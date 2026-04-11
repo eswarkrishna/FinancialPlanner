@@ -34,20 +34,17 @@ Educational software only. EPF rules, lender charges, and taxes vary — see §1
 
 `gh` is not required. Use an empty remote repository (no README, no `.gitignore`, no license on GitHub) if you are pushing this history for the first time.
 
-1. On GitHub: **New repository** → name it (e.g. `FinancialPlanner`) → **Create repository** (leave “Initialize” options unchecked).
-2. In this folder, set `main` and add the remote (replace `YOUR_USER` and repo name):
+1. On GitHub: **[Create a new repository](https://github.com/new)** → owner **eswarkrishna** → name **`FinancialPlanner`** → **Create repository** (leave “Add a README” unchecked if you already have commits here).
+2. This repo is already set up for **`https://github.com/eswarkrishna/FinancialPlanner`**. After the empty repo exists on GitHub, run:
 
 ```bash
-git branch -M main
-git remote add origin https://github.com/YOUR_USER/FinancialPlanner.git
 git push -u origin main
 ```
 
-**SSH** (if you use SSH keys with GitHub):
+**SSH** (if you use SSH keys with GitHub), set the remote once:
 
 ```bash
-git branch -M main
-git remote add origin git@github.com:YOUR_USER/FinancialPlanner.git
+git remote set-url origin git@github.com:eswarkrishna/FinancialPlanner.git
 git push -u origin main
 ```
 

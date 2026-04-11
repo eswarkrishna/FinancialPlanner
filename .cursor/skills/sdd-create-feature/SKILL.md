@@ -7,6 +7,8 @@ description: Creates a new FinancialPlanner feature end-to-end using docs/SPEC.m
 
 Use this as the **default playbook** for a single vertical slice of product value. Delegate details to the specialised skills listed in each phase.
 
+**Canonical ordered task list (all tasks run):** [TASKS.md](./TASKS.md) — numbered table + copy-paste checklist. Update TASKS.md when phases in this file change.
+
 ## Phase 0 — Intake
 
 - Restate the **user outcome** in one sentence.  

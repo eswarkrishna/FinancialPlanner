@@ -1,21 +1,20 @@
 ---
 name: spec-driven-financial-planner
-description: Implements and maintains FinancialPlanner per docs/SPEC.md. Use when adding loan simulation, prepayment policies, unemployment PF flows, UI for scenarios, tests, goldens, or when the user mentions FinancialPlanner, EMI, amortisation, or spec sections.
+description: Implements domain logic and UI for FinancialPlanner per docs/SPEC.md. Use when adding loan simulation, prepayment policies, unemployment PF flows, scenario presets, exports, Zod inputs, React tables, or domain-specific tests; or when the user mentions FinancialPlanner, EMI, amortisation, PF tranches, or SPEC §4–§9.
 ---
 
-# Spec-driven FinancialPlanner
+# Spec-driven FinancialPlanner (domain)
 
 ## When this skill applies
 
-Use for any change to **loan payoff simulation**, **scenario presets**, **PF unemployment tranches**, **exports**, or **tests** in this repository.
+Use for **domain and UI** work: formulas, schedules, scenarios, components—not for editing the spec document itself (use **`sdd-spec-change-first`**) or commit message hygiene (use **`sdd-commit-and-review`**).
 
 ## Workflow
 
 1. Open **`docs/SPEC.md`** and locate the governing section (§4–§10).  
 2. Implement the **smallest** change that satisfies that section.  
-3. Add or update **Vitest** coverage tied to §10 acceptance criteria.  
-4. If outputs are snapshot-like, add **JSON goldens** under `src/test/fixtures/` and name them by scenario id (`BASE`, `PREPAY_CASH_25L_TENURE`, etc.).  
-5. Update **`README.md`** only when user-facing defaults change (rounding, scripts).
+3. Add or update tests per **`sdd-verify-with-tests`** (Vitest, §10, goldens in `src/test/fixtures/`).  
+4. Update **`README.md`** only when user-facing defaults change (rounding, scripts).
 
 ## Canonical product rules
 

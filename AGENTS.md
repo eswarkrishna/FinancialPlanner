@@ -22,5 +22,13 @@ This repository is **spec-driven**. Treat `docs/SPEC.md` as the source of truth 
 ## Cursor project assets
 
 - Rules: `.cursor/rules/`  
-- Project skill: `.cursor/skills/spec-driven-financial-planner/`  
 - Hooks: `.cursor/hooks.json` + `.cursor/hooks/` (session context injection, etc.)
+
+### Spec-driven development skills (`.cursor/skills/`)
+
+| Skill | Role |
+|-------|------|
+| `spec-driven-financial-planner` | Domain + UI: EMI, amortisation, scenarios, PF flows, React/Zod. |
+| `sdd-spec-change-first` | Edit **`docs/SPEC.md`** before code when requirements change. |
+| `sdd-verify-with-tests` | Vitest, §10 acceptance, **`src/test/fixtures/`** goldens, rounding contract. |
+| `sdd-commit-and-review` | Commits and PRs cite SPEC §; review checklist. |

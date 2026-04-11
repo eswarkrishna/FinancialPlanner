@@ -32,8 +32,8 @@ async function main() {
   const additional_context = [
     "## FinancialPlanner",
     "This repo is **spec-driven**. Primary requirements: **docs/SPEC.md**.",
-    "Agent guide: **AGENTS.md**. Cursor skill: **.cursor/skills/spec-driven-financial-planner/SKILL.md**.",
-    "Before feature work: read the relevant SPEC section; update Vitest + goldens when behaviour changes (SPEC §10).",
+    "Agent guide: **AGENTS.md**.",
+    "SDD skills under **.cursor/skills/**: `spec-driven-financial-planner` (domain/UI), `sdd-spec-change-first` (edit SPEC before code), `sdd-verify-with-tests` (Vitest §10 goldens), `sdd-commit-and-review` (commits/PRs).",
     specNote,
   ].join("\n");
 

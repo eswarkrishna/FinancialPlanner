@@ -32,7 +32,7 @@ async function main() {
   const additional_context = [
     "## FinancialPlanner",
     "This repo is **spec-driven**. Primary requirements: **docs/SPEC.md**; orientation: **docs/OVERVIEW.md**.",
-    "Agent guide: **AGENTS.md** lists the full **.cursor/skills/** lifecycle (research → spec → implement → verify → harness → learnings → overview → commit).",
+    "Agent guide: **AGENTS.md**; umbrella for new work: **sdd-create-feature** (then research → spec → implement → verify → …).",
     specNote,
   ].join("\n");
 

@@ -7,5 +7,5 @@ alwaysApply: true
 
 - **Source of truth:** `docs/SPEC.md` (section numbers are stable references in commits and PRs).
 - **Orientation:** `docs/OVERVIEW.md` for architecture and doc map.
-- **Lifecycle skills** (see `AGENTS.md` table): research → spec change → implement → domain → verify (tests + feature) → harness → learnings → overview → commit/review.
+- **New feature:** **`sdd-create-feature`** orchestrates the full slice; see `AGENTS.md` for the full skill table (research → spec → implement → verify → …).
 - **Non-goals:** Do not implement §11 items without first updating `docs/SPEC.md` (and `README.md` if user-facing defaults change).

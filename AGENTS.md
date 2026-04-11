@@ -28,10 +28,13 @@ This repository is **spec-driven**. Treat `docs/SPEC.md` as the source of truth 
 
 ### Spec-driven development skills (`.cursor/skills/`)
 
+**New feature (full slice):** start with **`sdd-create-feature`** — it orchestrates the phases below.
+
 Lifecycle order (typical feature):
 
 | Order | Skill | Role |
 |------:|-------|------|
+| ★ | `sdd-create-feature` | **Orchestrate** delivery: intake → spec → code → tests → sign-off → docs → ship. |
 | 0 | `sdd-research-spike` | Uncertainly / options → `docs/research/*.md` → recommendation. |
 | 1 | `sdd-spec-change-first` | Edit **`docs/SPEC.md`** when requirements change. |
 | 2 | `sdd-implement-from-spec` | Map § to code; minimal implementation. |

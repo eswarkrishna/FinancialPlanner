@@ -15,6 +15,8 @@ export const loanInputSchema = z.object({
   cash_inr: z.coerce.number().min(0).optional().default(0),
   pf_corpus_inr: z.coerce.number().min(0).optional().default(0),
   gold_liquid_inr: z.coerce.number().min(0).optional().default(0),
+  /** Recurring amount applied as extra principal after each month's EMI (§4.5). */
+  monthly_cash_to_loan_inr: z.coerce.number().min(0).optional().default(0),
 });
 
 export type LoanInput = z.infer<typeof loanInputSchema>;
@@ -26,4 +28,5 @@ export const REFERENCE_SCENARIO: LoanInput = {
   cash_inr: 2_500_000,
   pf_corpus_inr: 2_500_000,
   gold_liquid_inr: 2_500_000,
+  monthly_cash_to_loan_inr: 0,
 };

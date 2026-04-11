@@ -186,3 +186,65 @@ export function schedulePrepayKeepEmi(
     },
   };
 }
+
+/**
+ * Fixed baseline EMI each month; after scheduled principal (and optional one-time prepay on a given month),
+ * apply **monthlyExtraInr** toward remaining principal (§4.5 order: interest → EMI principal → lump → recurring extra).
+ */
+export function scheduleFixedEmiWithMonthlyExtra(
+  principalInr: number,
+  annualPercent: number,
+  tenureMonths: number,
+  monthlyExtraInr: number,
+  oneTimePrepay?: { month: number; amount: number },
+): { rows: ScheduleRow[]; totals: ScheduleTotals; emi_inr: number } {
+  const emi0 = computeEmi(principalInr, annualPercent, tenureMonths);
+  const r = monthlyRateFromAnnualPercent(annualPercent);
+  const rows: ScheduleRow[] = [];
+  let balance = roundInr(principalInr);
+  let totalInterest = 0;
+  let totalPaid = 0;
+  let totalPrepay = 0;
+  let m = 0;
+  const cap = tenureMonths * 8;
+  const extra = Math.max(0, monthlyExtraInr);
+
+  while (balance > 0.005 && m < cap) {
+    m++;
+    const opening = balance;
+    const interest = roundInr(opening * r);
+    let principal = roundInr(Math.min(opening, emi0 - interest));
+    balance = roundInr(opening - principal);
+
+    let lump = 0;
+    if (oneTimePrepay && m === oneTimePrepay.month && oneTimePrepay.amount > 0) {
+      lump = roundInr(Math.min(oneTimePrepay.amount, balance));
+      balance = roundInr(balance - lump);
+      totalPrepay += lump;
+    }
+
+    let monthExtra = 0;
+    if (extra > 0 && balance > 0.005) {
+      monthExtra = roundInr(Math.min(extra, balance));
+      balance = roundInr(balance - monthExtra);
+      totalPrepay += monthExtra;
+    }
+
+    const prepayShown = roundInr(lump + monthExtra);
+    pushRow(rows, m, opening, interest, principal, prepayShown, balance, emi0);
+    totalInterest += interest;
+    totalPaid += roundInr(interest + principal + prepayShown);
+    if (balance <= 0.005) break;
+  }
+
+  return {
+    emi_inr: emi0,
+    rows,
+    totals: {
+      total_paid_inr: roundInr(totalPaid),
+      total_interest_inr: roundInr(totalInterest),
+      total_prepayments_inr: roundInr(totalPrepay),
+      payoff_month: rows.length,
+    },
+  };
+}

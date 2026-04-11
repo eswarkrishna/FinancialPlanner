@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   baselineSchedule,
+  scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepEmi,
   schedulePrepayKeepTenure,
   type ScheduleRow,
@@ -8,7 +9,7 @@ import {
 import { formatInr } from "./lib/formatInr";
 import { REFERENCE_SCENARIO, loanInputSchema, type LoanInput } from "./lib/loanInputSchema";
 
-type ScenarioView = "BASE" | "PREPAY_TENURE" | "PREPAY_EMI";
+type ScenarioView = "BASE" | "PREPAY_TENURE" | "PREPAY_EMI" | "BASE_INFLOW" | "PREPAY_EMI_INFLOW";
 
 const PREPAY_INR = 2_500_000;
 
@@ -21,8 +22,8 @@ function ScenarioTable({ rows }: { rows: ScheduleRow[] }) {
             <th>Month</th>
             <th>Opening</th>
             <th>Interest</th>
-            <th>Principal</th>
-            <th>Prepay</th>
+            <th>Principal (EMI)</th>
+            <th>Prepay / extra</th>
             <th>Closing</th>
             <th>Payment</th>
           </tr>
@@ -45,6 +46,15 @@ function ScenarioTable({ rows }: { rows: ScheduleRow[] }) {
   );
 }
 
+type ComparisonRow = {
+  id: string;
+  label: string;
+  payoffMonth: number;
+  totalInterest: number;
+  totalPaid: number;
+  deltaVsBaseMonths: number;
+};
+
 export function App() {
   const [inputs, setInputs] = useState<Record<keyof LoanInput, string>>({
     principal_inr: String(REFERENCE_SCENARIO.principal_inr),
@@ -53,6 +63,7 @@ export function App() {
     cash_inr: String(REFERENCE_SCENARIO.cash_inr),
     pf_corpus_inr: String(REFERENCE_SCENARIO.pf_corpus_inr),
     gold_liquid_inr: String(REFERENCE_SCENARIO.gold_liquid_inr),
+    monthly_cash_to_loan_inr: String(REFERENCE_SCENARIO.monthly_cash_to_loan_inr),
   });
   const [scenarioView, setScenarioView] = useState<ScenarioView>("BASE");
 
@@ -64,12 +75,14 @@ export function App() {
       cash_inr: inputs.cash_inr || 0,
       pf_corpus_inr: inputs.pf_corpus_inr || 0,
       gold_liquid_inr: inputs.gold_liquid_inr || 0,
+      monthly_cash_to_loan_inr: inputs.monthly_cash_to_loan_inr || 0,
     });
   }, [inputs]);
 
   const models = useMemo(() => {
     if (!parsed.success) return null;
     const v = parsed.data;
+    const x = v.monthly_cash_to_loan_inr;
     const base = baselineSchedule(v.principal_inr, v.annual_interest_rate, v.tenure_months);
     const canPrepay = v.principal_inr >= PREPAY_INR;
     const prepayTenure = canPrepay
@@ -78,14 +91,87 @@ export function App() {
     const prepayEmi = canPrepay
       ? schedulePrepayKeepEmi(v.principal_inr, v.annual_interest_rate, v.tenure_months, 1, PREPAY_INR)
       : null;
-    return { v, base, prepayTenure, prepayEmi, canPrepay };
+    const baseInflow =
+      x > 0
+        ? scheduleFixedEmiWithMonthlyExtra(v.principal_inr, v.annual_interest_rate, v.tenure_months, x)
+        : null;
+    const prepayEmiInflow =
+      canPrepay && x > 0
+        ? scheduleFixedEmiWithMonthlyExtra(v.principal_inr, v.annual_interest_rate, v.tenure_months, x, {
+            month: 1,
+            amount: PREPAY_INR,
+          })
+        : null;
+    return { v, base, prepayTenure, prepayEmi, baseInflow, prepayEmiInflow, canPrepay, monthlyExtra: x };
   }, [parsed]);
+
+  const comparisonRows = useMemo((): ComparisonRow[] => {
+    if (!models) return [];
+    const baseM = models.base.totals.payoff_month;
+    const rows: ComparisonRow[] = [
+      {
+        id: "BASE",
+        label: "BASE",
+        payoffMonth: models.base.totals.payoff_month,
+        totalInterest: models.base.totals.total_interest_inr,
+        totalPaid: models.base.totals.total_paid_inr,
+        deltaVsBaseMonths: 0,
+      },
+    ];
+    if (models.baseInflow) {
+      const p = models.baseInflow.totals.payoff_month;
+      rows.push({
+        id: "BASE_INFLOW",
+        label: `BASE + ${formatInr(models.monthlyExtra)}/mo to loan`,
+        payoffMonth: p,
+        totalInterest: models.baseInflow.totals.total_interest_inr,
+        totalPaid: models.baseInflow.totals.total_paid_inr,
+        deltaVsBaseMonths: baseM - p,
+      });
+    }
+    if (models.prepayTenure) {
+      const p = models.prepayTenure.totals.payoff_month;
+      rows.push({
+        id: "PREPAY_TENURE",
+        label: "Prepay ₹25L + keep tenure",
+        payoffMonth: p,
+        totalInterest: models.prepayTenure.totals.total_interest_inr,
+        totalPaid: models.prepayTenure.totals.total_paid_inr,
+        deltaVsBaseMonths: baseM - p,
+      });
+    }
+    if (models.prepayEmi) {
+      const p = models.prepayEmi.totals.payoff_month;
+      rows.push({
+        id: "PREPAY_EMI",
+        label: "Prepay ₹25L + keep EMI",
+        payoffMonth: p,
+        totalInterest: models.prepayEmi.totals.total_interest_inr,
+        totalPaid: models.prepayEmi.totals.total_paid_inr,
+        deltaVsBaseMonths: baseM - p,
+      });
+    }
+    if (models.prepayEmiInflow) {
+      const p = models.prepayEmiInflow.totals.payoff_month;
+      rows.push({
+        id: "PREPAY_EMI_INFLOW",
+        label: `Prepay ₹25L + keep EMI + ${formatInr(models.monthlyExtra)}/mo`,
+        payoffMonth: p,
+        totalInterest: models.prepayEmiInflow.totals.total_interest_inr,
+        totalPaid: models.prepayEmiInflow.totals.total_paid_inr,
+        deltaVsBaseMonths: baseM - p,
+      });
+    }
+    return rows;
+  }, [models]);
 
   const activeRows = useMemo(() => {
     if (!models) return [];
     if (scenarioView === "BASE") return models.base.rows;
     if (scenarioView === "PREPAY_TENURE" && models.prepayTenure) return models.prepayTenure.rows;
     if (scenarioView === "PREPAY_EMI" && models.prepayEmi) return models.prepayEmi.rows;
+    if (scenarioView === "BASE_INFLOW" && models.baseInflow) return models.baseInflow.rows;
+    if (scenarioView === "PREPAY_EMI_INFLOW" && models.prepayEmiInflow) return models.prepayEmiInflow.rows;
     return models.base.rows;
   }, [models, scenarioView]);
 
@@ -101,6 +187,7 @@ export function App() {
       cash_inr: String(REFERENCE_SCENARIO.cash_inr),
       pf_corpus_inr: String(REFERENCE_SCENARIO.pf_corpus_inr),
       gold_liquid_inr: String(REFERENCE_SCENARIO.gold_liquid_inr),
+      monthly_cash_to_loan_inr: String(REFERENCE_SCENARIO.monthly_cash_to_loan_inr),
     });
     setScenarioView("BASE");
   }
@@ -143,6 +230,14 @@ export function App() {
             />
           </label>
           <label>
+            Monthly cash to loan (INR)
+            <input
+              inputMode="decimal"
+              value={inputs.monthly_cash_to_loan_inr}
+              onChange={(e) => setField("monthly_cash_to_loan_inr", e.target.value)}
+            />
+          </label>
+          <label>
             Cash (INR)
             <input
               inputMode="decimal"
@@ -167,6 +262,11 @@ export function App() {
             />
           </label>
         </div>
+        <p className="hint">
+          <strong>Monthly cash to loan:</strong> amount applied as <strong>extra principal</strong> after each
+          month&apos;s scheduled EMI (SPEC §4.5). Does not model living expenses—compare payoff <strong>months</strong>{" "}
+          in the table below.
+        </p>
         <div className="actions">
           <button type="button" className="btn secondary" onClick={loadReference}>
             Load reference scenario (§15)
@@ -184,49 +284,40 @@ export function App() {
       {models && (
         <>
           <section className="card">
-            <h2>Scenario comparison</h2>
+            <h2>Scenario comparison — time to repay</h2>
             <p className="hint">
-              Preset prepayment: <strong>{formatInr(PREPAY_INR)}</strong> at end of month 1 (SPEC §4.6
-              style).
+              One-time prepay where shown: <strong>{formatInr(PREPAY_INR)}</strong> at end of month 1. Monthly column
+              uses your <strong>Monthly cash to loan</strong> value.
             </p>
             <div className="table-wrap comparison">
               <table>
                 <thead>
                   <tr>
                     <th>Scenario</th>
-                    <th>Payoff month</th>
+                    <th>Payoff (months)</th>
+                    <th>Faster vs BASE</th>
                     <th>Total interest</th>
-                    <th>Total paid (incl. prepay)</th>
+                    <th>Total paid (incl. prepay/extra)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>BASE</td>
-                    <td>{models.base.totals.payoff_month}</td>
-                    <td>{formatInr(models.base.totals.total_interest_inr)}</td>
-                    <td>{formatInr(models.base.totals.total_paid_inr)}</td>
-                  </tr>
-                  {models.prepayTenure && (
-                    <tr>
-                      <td>Prepay + keep tenure (§4.4)</td>
-                      <td>{models.prepayTenure.totals.payoff_month}</td>
-                      <td>{formatInr(models.prepayTenure.totals.total_interest_inr)}</td>
-                      <td>{formatInr(models.prepayTenure.totals.total_paid_inr)}</td>
+                  {comparisonRows.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.label}</td>
+                      <td>{row.payoffMonth}</td>
+                      <td>{row.deltaVsBaseMonths === 0 ? "—" : `${row.deltaVsBaseMonths} mo`}</td>
+                      <td>{formatInr(row.totalInterest)}</td>
+                      <td>{formatInr(row.totalPaid)}</td>
                     </tr>
-                  )}
-                  {models.prepayEmi && (
-                    <tr>
-                      <td>Prepay + keep EMI (§4.4)</td>
-                      <td>{models.prepayEmi.totals.payoff_month}</td>
-                      <td>{formatInr(models.prepayEmi.totals.total_interest_inr)}</td>
-                      <td>{formatInr(models.prepayEmi.totals.total_paid_inr)}</td>
-                    </tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
             {!models.canPrepay && (
               <p className="hint">Prepay scenarios need principal ≥ {formatInr(PREPAY_INR)}.</p>
+            )}
+            {models.monthlyExtra <= 0 && (
+              <p className="hint">Enter <strong>Monthly cash to loan</strong> &gt; 0 to see inflow scenarios.</p>
             )}
           </section>
 
@@ -262,11 +353,15 @@ export function App() {
                   onChange={(e) => setScenarioView(e.target.value as ScenarioView)}
                 >
                   <option value="BASE">BASE</option>
+                  {models.baseInflow && <option value="BASE_INFLOW">BASE + monthly to loan</option>}
                   {models.canPrepay && (
                     <>
                       <option value="PREPAY_TENURE">Prepay + keep tenure</option>
                       <option value="PREPAY_EMI">Prepay + keep EMI</option>
                     </>
+                  )}
+                  {models.prepayEmiInflow && (
+                    <option value="PREPAY_EMI_INFLOW">Prepay + keep EMI + monthly to loan</option>
                   )}
                 </select>
               </label>

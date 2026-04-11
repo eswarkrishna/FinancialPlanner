@@ -19,7 +19,10 @@ npm run build
 | Document | Purpose |
 |----------|---------|
 | [docs/SPEC.md](docs/SPEC.md) | Full product & engineering specification |
-| [AGENTS.md](AGENTS.md) | Instructions for AI coding agents |
+| [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
+| [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
+| [docs/research/](docs/research/) | Spikes and research notes |
+| [AGENTS.md](AGENTS.md) | Instructions for AI coding agents + Cursor skills index |
 | [.cursor/rules/](.cursor/rules/) | Cursor project rules |
 
 ## Money rounding (v1 default)

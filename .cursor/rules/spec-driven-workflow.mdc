@@ -6,8 +6,6 @@ alwaysApply: true
 # Spec-driven development
 
 - **Source of truth:** `docs/SPEC.md` (section numbers are stable references in commits and PRs).
-- **Requirement changes:** Edit the spec first — see `.cursor/skills/sdd-spec-change-first/SKILL.md`.
-- **Implementation:** Domain/UI — `.cursor/skills/spec-driven-financial-planner/SKILL.md`.
-- **Tests & goldens:** `.cursor/skills/sdd-verify-with-tests/SKILL.md` (Vitest, §10, `src/test/fixtures/`).
-- **Commits / PRs:** `.cursor/skills/sdd-commit-and-review/SKILL.md`.
+- **Orientation:** `docs/OVERVIEW.md` for architecture and doc map.
+- **Lifecycle skills** (see `AGENTS.md` table): research → spec change → implement → domain → verify (tests + feature) → harness → learnings → overview → commit/review.
 - **Non-goals:** Do not implement §11 items without first updating `docs/SPEC.md` (and `README.md` if user-facing defaults change).

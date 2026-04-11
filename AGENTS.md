@@ -2,6 +2,8 @@
 
 This repository is **spec-driven**. Treat `docs/SPEC.md` as the source of truth for product behaviour, formulas, scenarios, and acceptance tests.
 
+**Orientation:** For stakeholders and architecture, see **`docs/OVERVIEW.md`**.
+
 ## Before implementing
 
 1. Read the relevant sections of `docs/SPEC.md` (note section numbers in PR/commit messages when useful).  
@@ -26,9 +28,19 @@ This repository is **spec-driven**. Treat `docs/SPEC.md` as the source of truth 
 
 ### Spec-driven development skills (`.cursor/skills/`)
 
-| Skill | Role |
-|-------|------|
-| `spec-driven-financial-planner` | Domain + UI: EMI, amortisation, scenarios, PF flows, React/Zod. |
-| `sdd-spec-change-first` | Edit **`docs/SPEC.md`** before code when requirements change. |
-| `sdd-verify-with-tests` | Vitest, §10 acceptance, **`src/test/fixtures/`** goldens, rounding contract. |
-| `sdd-commit-and-review` | Commits and PRs cite SPEC §; review checklist. |
+Lifecycle order (typical feature):
+
+| Order | Skill | Role |
+|------:|-------|------|
+| 0 | `sdd-research-spike` | Uncertainly / options → `docs/research/*.md` → recommendation. |
+| 1 | `sdd-spec-change-first` | Edit **`docs/SPEC.md`** when requirements change. |
+| 2 | `sdd-implement-from-spec` | Map § to code; minimal implementation. |
+| 3 | `spec-driven-financial-planner` | Domain + UI specifics (EMI, PF, React, Zod). |
+| 4 | `sdd-verify-with-tests` | Vitest, §10 contracts, goldens, rounding. |
+| 5 | `sdd-verify-feature` | End-to-end sign-off: test map + build + manual smoke. |
+| 6 | `sdd-improve-test-harness` | Refine fixtures, helpers, Vitest config, stability. |
+| 7 | `sdd-record-learning` | **`docs/LEARNINGS.md`** dated entries. |
+| 8 | `sdd-create-overview` | Keep **`docs/OVERVIEW.md`** accurate for onboarding. |
+| — | `sdd-commit-and-review` | Commits / PRs cite SPEC §; review checklist. |
+
+**Note:** `sdd-verify-with-tests` focuses on **automated contracts**; `sdd-verify-feature` adds **acceptance mapping and manual checks**. Use both before calling a feature done.

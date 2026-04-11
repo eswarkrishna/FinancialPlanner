@@ -17,6 +17,10 @@ After requirements are clear (see **`sdd-spec-change-first`**), for any **execut
 4. **Off-by-one:** PF tranche months (§7.3) and prepayment month boundaries (§4.4) get **dedicated tests** with comments citing the spec section.
 5. **UI:** Prefer testing **pure logic** in `src/lib/`; component tests only when UI logic is non-trivial.
 
+## Relationship to `sdd-verify-feature`
+
+This skill is **automated contracts** (Vitest, goldens, rounding). For **definition of done**, manual smoke, and §10-to-checklist mapping, also apply **`sdd-verify-feature`**.
+
 ## Do not
 
 - Loosen tests to hide bugs; if the spec is wrong, fix **SPEC** first.  

@@ -28,7 +28,7 @@ This repository is **spec-driven**. Treat `docs/SPEC.md` as the source of truth 
 
 ### Spec-driven development skills (`.cursor/skills/`)
 
-**New feature (full slice):** start with **`sdd-create-feature`** — it orchestrates the phases below. **Ordered task table:** `.cursor/skills/sdd-create-feature/TASKS.md`.
+**New feature (full slice):** start with **`sdd-create-feature`** — it orchestrates the phases below. **Detailed checklist (with `[ ]` / `[x]`):** [`docs/TASKS.md`](docs/TASKS.md).
 
 Lifecycle order (typical feature):
 

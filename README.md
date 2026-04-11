@@ -19,6 +19,7 @@ npm run build
 | Document | Purpose |
 |----------|---------|
 | [docs/SPEC.md](docs/SPEC.md) | Full product & engineering specification |
+| [docs/TASKS.md](docs/TASKS.md) | Feature delivery checklist (mark tasks done) |
 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
 | [docs/research/](docs/research/) | Spikes and research notes |

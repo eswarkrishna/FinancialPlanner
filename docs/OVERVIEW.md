@@ -56,6 +56,7 @@ npm run dev
 | Doc | Purpose |
 |-----|---------|
 | [SPEC.md](SPEC.md) | Full product & engineering specification |
+| [TASKS.md](TASKS.md) | Feature delivery checklist (`[ ]` → `[x]`) |
 | [LEARNINGS.md](LEARNINGS.md) | Dated post-feature notes |
 | [research/README.md](research/README.md) | Spike and research index |
 | [../AGENTS.md](../AGENTS.md) | Cursor agent + skill index |

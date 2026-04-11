@@ -1,0 +1,12 @@
+---
+description: TypeScript and React conventions for FinancialPlanner
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# TypeScript / React
+
+- Prefer **explicit types** on exported APIs (`src/lib/` domain code especially).
+- Keep **domain logic** (EMI, amortisation, PF tranches) **pure** and framework-free in `src/lib/`; React components orchestrate inputs and display.
+- Use **Zod** for parsing user / URL / JSON inputs when you add those surfaces (spec §12).
+- Avoid `any`; use `unknown` + narrowing for untrusted data.

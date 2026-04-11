@@ -1,0 +1,11 @@
+---
+description: Spec-driven workflow — read SPEC before feature work
+alwaysApply: true
+---
+
+# Spec-driven development
+
+- **Source of truth:** `docs/SPEC.md` (section numbers are stable references in commits and PRs).
+- **Before coding:** Identify the spec section (e.g. §4.4 prepayment policies) and implement only what it requires.
+- **After behaviour changes:** Update or add **Vitest** tests; add or refresh **golden JSON** under `src/test/fixtures/` when §10 applies.
+- **Non-goals:** Do not implement items in §11 without first updating `docs/SPEC.md` and `README.md`.

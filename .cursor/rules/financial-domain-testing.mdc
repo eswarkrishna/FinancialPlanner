@@ -1,0 +1,11 @@
+---
+description: Tests and numerics for loan simulation
+globs: "**/*.{test.ts,test.tsx}"
+alwaysApply: false
+---
+
+# Financial tests
+
+- Assert against **tolerances** in rupees only when the spec allows (e.g. §10 EMI within ₹1).
+- Prefer **table-driven tests** for amortisation months and PF tranche months (§7.3 off-by-one).
+- When adding goldens, pin **rounding policy** and document in `README.md`.

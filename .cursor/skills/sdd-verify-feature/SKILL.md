@@ -7,15 +7,16 @@ description: Verifies a FinancialPlanner feature end-to-end against docs/SPEC.md
 
 ## Preconditions
 
-- SPEC § and (if applicable) **§10 acceptance** bullets for this feature are known.
+- **`docs/SPEC.md`**: governing **§§** for the feature are known; map acceptance from **§10** (and any new bullets you added for this slice).
+- **`docs/TASKS.md`**: check off **Phase 3** (automated verification) and **Phase 4** (feature sign-off) as you complete each row — that file is the detailed task list next to the spec.
 
 ## Steps
 
-1. **Test mapping:** Each §10 bullet → a **Vitest** test or documented manual check. Use **`sdd-verify-with-tests`** for goldens, rounding, and lib-level contracts.  
+1. **Test mapping:** Each relevant **§10** bullet → a **Vitest** test **or** an explicit **manual** check (list the manual ones in the PR). Use **`sdd-verify-with-tests`** for goldens, rounding, and lib-level contracts.  
 2. **Automated:** Run `npm run test` and `npm run build` (and `npm run lint` if TypeScript/config touched).  
 3. **Manual smoke:** `npm run dev` — exercise new UI paths; confirm errors, empty states, and **§14** footer where relevant.  
 4. **Regression:** Run scenarios that neighbour the change (e.g. BASE + prepay presets if amortisation changed).  
-5. **Record gaps:** If verification reveals missing spec detail, note under **§13** or open a follow-up (see **`sdd-record-learning`**).
+5. **Record gaps:** If verification reveals missing spec detail, note under **§13** or open a follow-up (see **`sdd-record-learning`**). Update **`docs/TASKS.md`** checkboxes through Phase 4 before calling the feature done.
 
 ## Definition of done (default)
 

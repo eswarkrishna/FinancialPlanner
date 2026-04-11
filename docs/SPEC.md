@@ -329,6 +329,8 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 
 ## 10. Testing / Acceptance Criteria
 
+**How to verify:** Use **`.cursor/skills/sdd-verify-feature/SKILL.md`** (maps this section to tests + smoke + build). Check off **Phase 3–4** in **[`TASKS.md`](TASKS.md)** as you complete each task.
+
 ### Unit tests (required)
 
 1. **EMI matches reference** for: `P=5_000_000`, `annual=7.9`, `n=168` within **₹1** tolerance after rounding policy documented.  

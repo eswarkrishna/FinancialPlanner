@@ -2,7 +2,7 @@
 
 **Project:** `FinancialPlanner`  
 **Canonical spec (this file):** `docs/SPEC.md`  
-**Spec-driven workflow:** See `AGENTS.md` and `.cursor/skills/spec-driven-financial-planner/SKILL.md`.
+**Spec-driven workflow:** See `AGENTS.md`. **New feature delivery:** `.cursor/skills/sdd-create-feature/SKILL.md`. **Domain implementation:** `.cursor/skills/spec-driven-financial-planner/SKILL.md`.
 
 ---
 

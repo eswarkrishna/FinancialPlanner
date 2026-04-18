@@ -1,4 +1,4 @@
-import { type ScheduleRow } from "../../../lib/amortisation";
+import { type ScheduleRow } from "../../../lib/loan";
 import { formatInr } from "../../../lib/formatInr";
 
 export function ScenarioTable({ rows }: { rows: ScheduleRow[] }) {

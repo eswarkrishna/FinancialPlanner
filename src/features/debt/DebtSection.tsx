@@ -1,5 +1,5 @@
 import { formatInr } from "../../lib/formatInr";
-import { type DebtStrategy } from "../../lib/debtPlanner";
+import { type DebtStrategy } from "../../lib/debt";
 import { useDebtPlanner } from "./hooks/useDebtPlanner";
 
 export function DebtSection() {

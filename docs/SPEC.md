@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.1  
+**Version:** 1.6  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **Status:** Draft for implementation
@@ -17,7 +17,13 @@
 
 ## 1. Purpose
 
-Build a **client-side or lightweight web application** that lets a user model a **reducing-balance loan** (home / personal / LAP-style) and compare **multiple payoff strategies**, including:
+Build a **client-side or lightweight web application dashboard** that lets a user:
+
+- model a **reducing-balance loan** (home / personal / LAP-style) and compare **multiple payoff strategies**
+- run a **debt payoff planner** with avalanche/snowball ordering and payoff-date simulation
+- run a **retirement planner** with corpus projection, inflation assumptions, and scenario testing
+
+Loan payoff capabilities include:
 
 - Lump-sum prepayments from **cash**, **gold liquidation**, and **PF (Provident Fund corpus)**  
 - Prepayment policies: **reduce tenure** vs **reduce EMI** (where applicable)  
@@ -67,7 +73,10 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 | Field | Type | Required |
 |------|------|----------|
 | `cash_inr` | number | no |
+| `monthly_salary_inr` | number | no | Default `0`; recurring monthly salary contribution applied toward loan across all scenarios |
 | `pf_corpus_inr` | number | no |
+| `pf_annual_interest_rate_pct` | number | no | Default `8.25`; annual PF credit used in unemployment module (§4.7) |
+| `monthly_pf_addition_inr` | number | no | Default `0`; amount added to PF corpus every month for PF scenario modelling |
 | `gold_liquid_inr` | number | no |
 | `gold_haircut_pct` | number | no | 0–100 applied to gold if user enables |
 | `monthly_cash_to_loan_inr` | number | no | Recurring INR applied as **extra principal** after each month’s scheduled EMI (§4.5). v1 UI label: “Monthly cash to loan”; does **not** deduct living expenses—use §4.8 for budgeted cashflow. |
@@ -108,6 +117,7 @@ Prepayments are applied **at month boundary** unless advanced setting `prepaymen
 - Optional `extra_principal_inr` each month, or a single recurring amount.  
 - Applied after EMI allocation for that month (document order: interest → scheduled principal → extra principal).  
 - Must not drive balance negative; clamp overpayment to remaining principal + accrued interest rules (define: extra reduces principal after interest).
+- `monthly_salary_inr` is treated as a recurring monthly extra-principal contribution in all scenarios.
 
 ### 4.6 Scenario catalogue (employed)
 
@@ -124,6 +134,8 @@ Implement as named presets + freeform builder.
 | `STAGED_PREPAY` | Multiple timed prepayments (array) |
 | `BASE_PLUS_MONTHLY_INFLOW` | Baseline EMI + fixed `monthly_cash_to_loan_inr` each month after EMI (§4.5); compare **payoff months** to BASE |
 | `PREPAY_EMI_PLUS_MONTHLY_INFLOW` | One-time prepay (e.g. ₹25L) month 1 + **keep original EMI** + same monthly extra to loan; compare payoff months |
+| `CASHFLOW_NO_PF` | One-time prepay from `cash_inr` at month 1 + recurring `monthly_cash_to_loan_inr`; excludes PF withdrawals |
+| `CASHFLOW_PLUS_PF` | `CASHFLOW_NO_PF` plus PF tranches (§4.7) layered on top (month 1 + month 12) |
 
 ### 4.7 Unemployment + PF withdrawal module (required)
 
@@ -133,10 +145,15 @@ Implement as named presets + freeform builder.
 
 Let `PF0` be PF corpus at unemployment start (default: user `pf_corpus_inr`; allow editing).
 
+PF balance earns annual interest at `pf_annual_interest_rate_pct` (default **8.25%**) credited once per year for full-year spans that elapse before a tranche is withdrawn.
+`monthly_pf_addition_inr` is added to PF balance each month; for the month-12 tranche calculation, include **12 monthly additions** from the unemployment year.
+
 | Event time | Withdrawal fraction of `PF0` | Amount |
 |------------|-------------------------------|--------|
 | End of **month 1** after unemployment start | **75%** | `0.75 * PF0` |
-| End of **month 12** after unemployment start | **25%** | `0.25 * PF0` |
+| End of **month 12** after unemployment start | Remaining 25% + monthly PF additions + annual PF credit | `((0.25 * PF0) + (12 * monthly_pf_addition_inr)) * (1 + pf_annual_interest_rate_pct/100)` |
+
+**Canonical credit order for month 12 tranche:** add monthly PF additions for the 12-month window to remaining PF balance, then apply annual PF interest, then withdraw tranche 2.
 
 **Constraints / modelling knobs:**
 
@@ -184,6 +201,76 @@ For each scenario:
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
 
 **Export:** CSV export of schedule + JSON export of scenario config.
+
+### 4.10 Debt payoff planner dashboard (required)
+
+Support a dedicated debt module that accepts multiple debts and simulates monthly payoff under two methods:
+
+- `avalanche`: prioritise highest APR debt first (tie-breaker: higher balance)
+- `snowball`: prioritise lowest balance debt first (tie-breaker: higher APR)
+
+#### Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `debts[]` | array | yes | Each debt has `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr` |
+| `monthly_budget_inr` | number | yes | Total monthly debt-payment budget across all debts |
+| `start_date` | date | yes | Used by payoff-date simulator |
+
+#### Debt simulation order
+
+For each month:
+
+1. Accrue interest on each debt (`balance * apr/12`).
+2. Pay each debt's minimum payment (clamped to remaining balance).
+3. Allocate remaining budget to one target debt by chosen strategy.
+4. Continue until all balances are 0 or less.
+
+#### Outputs
+
+- Payoff month count and projected payoff date
+- Total interest paid
+- Monthly timeline table with: month, total opening debt, interest, payment, total closing debt, target debt label
+- Strategy comparison table (`avalanche` vs `snowball`) showing payoff months/date and total interest
+- Validation warning when `monthly_budget_inr` is less than sum of minimum payments
+
+### 4.11 Retirement planner dashboard (required)
+
+Support a retirement module for corpus projection and scenario testing.
+
+#### Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `current_corpus_inr` | number | yes | Current invested corpus |
+| `monthly_contribution_inr` | number | yes | Recurring monthly investment |
+| `annual_return_pct` | number | yes | Expected nominal return |
+| `inflation_pct` | number | yes | Long-term inflation assumption |
+| `years_to_retirement` | integer | yes | Projection horizon |
+| `annual_expense_today_inr` | number | yes | Current annual expenses |
+| `safe_withdrawal_rate_pct` | number | yes | Default `4` unless user edits |
+
+#### Computation
+
+- Project nominal corpus month by month with compounding and monthly contributions.
+- Inflate current annual expenses to retirement year using inflation assumptions.
+- Compute target corpus using withdrawal rule:
+
+\[
+\text{target\_corpus} = \frac{\text{annual\_expense\_at\_retirement}}{\text{safe\_withdrawal\_rate}}
+\]
+
+- Report real corpus (inflation-adjusted) and funded ratio (`projected / target`).
+
+#### Scenario testing
+
+Provide at least three scenarios from the same base inputs:
+
+1. `Base` (as entered)
+2. `Conservative` (lower return, higher inflation)
+3. `Optimistic` (higher return, lower inflation and/or higher contribution)
+
+Show projected corpus, retirement expense, target corpus, and funded ratio per scenario.
 
 ---
 
@@ -340,9 +427,19 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 2. **Baseline total interest** within **0.1%** of a reference spreadsheet for same inputs.  
 3. **Prepay ₹25L at month 1 + keep EMI**: payoff month ~ **62** for the reference loan (allow ±1 month due to rounding).  
 4. **Prepay ₹25L at month 1 + keep tenure 168**: EMI ~ **half** of baseline within **₹50** (rounding).  
-5. **PF unemployment**: for `PF0=2_500_000`, verify inflows **1,875,000** then **625,000** on correct months.  
+5. **PF unemployment**: for `PF0=2_500_000` and `pf_annual_interest_rate_pct=8.25`, verify inflows **1,875,000** then **676,562.50** on correct months.  
 6. **Cashflow**: constructed fixture where income=0, living+EMI exhaust cash in `k` months → system flags shortfall.  
 7. **Monthly inflow to loan:** for fixed `monthly_cash_to_loan_inr` &gt; 0, payoff month count is **strictly less** than baseline for the same principal/rate/tenure (reference loan).
+8. **Reference PF scenario recalculation:** for `PF0=2_500_000`, total withdrawals over month 1 + month 12 equal **2,551,562.50** (reflecting annual PF interest on the remaining 25%).
+9. **Cashflow layering:** `CASHFLOW_PLUS_PF` payoff month is less than or equal to `CASHFLOW_NO_PF` for the same inputs.
+10. **PF monthly addition:** for `PF0=2_500_000`, `pf_annual_interest_rate_pct=8.25`, and `monthly_pf_addition_inr=10_000`, month-12 PF tranche is **806,462.50**.
+11. **Salary contribution impact:** with `monthly_salary_inr > 0`, payoff month for each scenario is less than or equal to the same scenario computed with `monthly_salary_inr = 0` (all else equal).
+12. **Debt strategy comparison:** for a fixed multi-debt fixture, `avalanche` total interest is less than or equal to `snowball` total interest.
+13. **Debt payoff date simulator:** payoff date equals `start_date + payoff_months` for both strategies.
+14. **Debt budget guard:** when monthly budget is lower than sum of minimum payments, planner returns a warning and does not claim full payoff.
+15. **Retirement projection monotonicity:** increasing monthly contribution increases projected corpus (all else equal).
+16. **Retirement scenario ranking:** conservative funded ratio is less than or equal to optimistic funded ratio for the same base inputs.
+17. **Retirement inflation impact:** increasing inflation increases required target corpus.
 
 ### Golden files
 
@@ -389,6 +486,11 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 - Tenure: **168** months  
 - Assets for labelling: cash **₹25,00,000**, PF **₹25,00,000**, gold **₹25,00,000**  
 - Unemployment PF rule: **75% month 1**, **25% month 12** of unemployment window  
+- PF annual interest assumption: **8.25%** yearly credit on remaining PF balance
+- Recalculated PF withdrawals for this reference:
+  - Month 1 tranche: **₹18,75,000.00**
+  - Month 12 tranche: **₹6,76,562.50**
+  - Combined PF withdrawals: **₹25,51,562.50**
 
 ---
 

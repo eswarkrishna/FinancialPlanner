@@ -14,11 +14,11 @@ See **SPEC §3** (borrower optimiser, stress tester, comparator).
 
 | Area | Role |
 |------|------|
-| `src/lib/` | Pure finance: EMI, schedules, Zod input shapes, formatting. |
-| `src/App.tsx` (and future components) | Inputs, scenario selection, tables, copy. |
+| `src/lib/` | Pure finance modules: loan amortisation, debt payoff strategy engine, retirement corpus projection, input shaping, formatting. |
+| `src/App.tsx` (and future components) | Dashboard inputs, scenario selection, comparison tables, timeline views. |
 | `docs/SPEC.md` | Source of truth for behaviour and acceptance tests. |
 
-**Data flow:** form values → Zod parse → simulation functions → summary + schedule rows → UI.
+**Data flow:** form values → input parse/validation → simulation functions → summary + timeline rows → UI.
 
 ```mermaid
 flowchart LR

@@ -19,6 +19,11 @@ export interface ScheduleTotals {
   payoff_month: number;
 }
 
+export interface TimedPrepaymentEvent {
+  month: number;
+  amount_inr: number;
+}
+
 function pushRow(
   rows: ScheduleRow[],
   m: number,
@@ -92,6 +97,7 @@ export function schedulePrepayKeepTenure(
   tenureMonths: number,
   prepayMonth: number,
   prepaymentInr: number,
+  monthlyExtraInr = 0,
 ): { rows: ScheduleRow[]; totals: ScheduleTotals } {
   const r = monthlyRateFromAnnualPercent(annualPercent);
   const rows: ScheduleRow[] = [];
@@ -99,8 +105,12 @@ export function schedulePrepayKeepTenure(
   let totalInterest = 0;
   let totalPaid = 0;
   let totalPrepay = 0;
+  const monthlyExtra = Math.max(0, monthlyExtraInr);
 
   for (let m = 1; m <= tenureMonths; m++) {
+    if (balance <= 0.005) {
+      break;
+    }
     const opening = balance;
     const rem = tenureMonths - m + 1;
     const emi = computeEmi(opening, annualPercent, rem);
@@ -119,9 +129,17 @@ export function schedulePrepayKeepTenure(
       totalPrepay += prepay;
     }
 
-    pushRow(rows, m, opening, interest, principal, prepay, balance, emi);
+    let extra = 0;
+    if (monthlyExtra > 0 && balance > 0.005) {
+      extra = roundInr(Math.min(monthlyExtra, balance));
+      balance = roundInr(balance - extra);
+      totalPrepay += extra;
+    }
+
+    const prepayShown = roundInr(prepay + extra);
+    pushRow(rows, m, opening, interest, principal, prepayShown, balance, emi);
     totalInterest += interest;
-    totalPaid += roundInr(payEmi + prepay);
+    totalPaid += roundInr(payEmi + prepayShown);
   }
 
   return {
@@ -231,6 +249,76 @@ export function scheduleFixedEmiWithMonthlyExtra(
     }
 
     const prepayShown = roundInr(lump + monthExtra);
+    pushRow(rows, m, opening, interest, principal, prepayShown, balance, emi0);
+    totalInterest += interest;
+    totalPaid += roundInr(interest + principal + prepayShown);
+    if (balance <= 0.005) break;
+  }
+
+  return {
+    emi_inr: emi0,
+    rows,
+    totals: {
+      total_paid_inr: roundInr(totalPaid),
+      total_interest_inr: roundInr(totalInterest),
+      total_prepayments_inr: roundInr(totalPrepay),
+      payoff_month: rows.length,
+    },
+  };
+}
+
+/**
+ * Fixed baseline EMI each month with one or more timed prepayments applied after EMI.
+ * Useful for unemployment PF tranches (SPEC §4.7) where month 1 and month 12 prepays are scheduled.
+ */
+export function scheduleTimedPrepaysKeepEmi(
+  principalInr: number,
+  annualPercent: number,
+  tenureMonths: number,
+  prepaymentEvents: TimedPrepaymentEvent[],
+  monthlyExtraInr = 0,
+): { rows: ScheduleRow[]; totals: ScheduleTotals; emi_inr: number } {
+  const emi0 = computeEmi(principalInr, annualPercent, tenureMonths);
+  const r = monthlyRateFromAnnualPercent(annualPercent);
+  const rows: ScheduleRow[] = [];
+  let balance = roundInr(principalInr);
+  let totalInterest = 0;
+  let totalPaid = 0;
+  let totalPrepay = 0;
+  let m = 0;
+  const cap = tenureMonths * 8;
+  const monthlyExtra = Math.max(0, monthlyExtraInr);
+
+  const monthlyPrepay = new Map<number, number>();
+  for (const event of prepaymentEvents) {
+    if (event.month < 1 || event.amount_inr <= 0) continue;
+    const existing = monthlyPrepay.get(event.month) ?? 0;
+    monthlyPrepay.set(event.month, roundInr(existing + event.amount_inr));
+  }
+
+  while (balance > 0.005 && m < cap) {
+    m++;
+    const opening = balance;
+    const interest = roundInr(opening * r);
+    const principal = roundInr(Math.min(opening, emi0 - interest));
+    balance = roundInr(opening - principal);
+
+    let prepay = 0;
+    const configuredForMonth = monthlyPrepay.get(m) ?? 0;
+    if (configuredForMonth > 0 && balance > 0.005) {
+      prepay = roundInr(Math.min(configuredForMonth, balance));
+      balance = roundInr(balance - prepay);
+      totalPrepay += prepay;
+    }
+
+    let monthExtra = 0;
+    if (monthlyExtra > 0 && balance > 0.005) {
+      monthExtra = roundInr(Math.min(monthlyExtra, balance));
+      balance = roundInr(balance - monthExtra);
+      totalPrepay += monthExtra;
+    }
+
+    const prepayShown = roundInr(prepay + monthExtra);
     pushRow(rows, m, opening, interest, principal, prepayShown, balance, emi0);
     totalInterest += interest;
     totalPaid += roundInr(interest + principal + prepayShown);

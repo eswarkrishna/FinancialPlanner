@@ -1,6 +1,12 @@
 # FinancialPlanner
 
-India-focused **loan payoff simulator** planning tool: reducing-balance loans, prepayment strategies, optional unemployment + staged PF withdrawals, and scenario comparison. Behaviour is defined in **`docs/SPEC.md`** (spec-driven development).
+India-focused **financial planning dashboard** with:
+
+- debt payoff planner (avalanche/snowball + payoff-date simulation)
+- retirement planner (projected corpus, inflation assumptions, scenario testing)
+- loan payoff simulator (reducing-balance loans, prepayment strategies, optional unemployment + staged PF withdrawals)
+
+Behaviour is defined in **`docs/SPEC.md`** (spec-driven development).
 
 ## Quick start
 
@@ -13,6 +19,28 @@ npm run dev
 npm run test
 npm run build
 ```
+
+## Android app (Capacitor)
+
+This project is configured with Capacitor for Android in the `android` folder.
+
+```bash
+npm run android:sync
+npm run android:open
+```
+
+- `android:sync`: builds web assets and copies them into the Android project
+- `android:open`: opens the Android project in Android Studio
+
+To build a debug APK from CLI (Windows):
+
+```bash
+npm run android:apk:debug
+```
+
+APK output path:
+
+`android/app/build/outputs/apk/debug/app-debug.apk`
 
 ## Documentation
 

@@ -4,7 +4,9 @@ import {
   scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepEmi,
   schedulePrepayKeepTenure,
+  scheduleTimedPrepaysKeepEmi,
 } from "./amortisation";
+import { computePfUnemploymentWithdrawalPlan } from "./pf";
 
 describe("baselineSchedule", () => {
   it("produces reference tenure length", () => {
@@ -28,6 +30,19 @@ describe("schedulePrepayKeepTenure", () => {
     const { rows } = schedulePrepayKeepTenure(5_000_000, 7.9, 168, 1, 2_500_000);
     expect(rows.length).toBe(168);
   });
+
+  it("does not throw when one-time prepay clears the balance early", () => {
+    const run = () => schedulePrepayKeepTenure(5_000_000, 7.9, 168, 1, 50_000_000);
+    expect(run).not.toThrow();
+    const { totals } = run();
+    expect(totals.payoff_month).toBeLessThanOrEqual(2);
+  });
+
+  it("closes faster when monthly recurring contribution is added", () => {
+    const withoutRecurring = schedulePrepayKeepTenure(5_000_000, 7.9, 168, 1, 2_500_000, 0);
+    const withRecurring = schedulePrepayKeepTenure(5_000_000, 7.9, 168, 1, 2_500_000, 50_000);
+    expect(withRecurring.totals.payoff_month).toBeLessThan(withoutRecurring.totals.payoff_month);
+  });
 });
 
 describe("scheduleFixedEmiWithMonthlyExtra", () => {
@@ -41,5 +56,49 @@ describe("scheduleFixedEmiWithMonthlyExtra", () => {
     const a = schedulePrepayKeepEmi(5_000_000, 7.9, 168, 1, 2_500_000);
     const b = scheduleFixedEmiWithMonthlyExtra(5_000_000, 7.9, 168, 0, { month: 1, amount: 2_500_000 });
     expect(b.totals.payoff_month).toBe(a.totals.payoff_month);
+  });
+});
+
+describe("scheduleTimedPrepaysKeepEmi", () => {
+  it("applies unemployment PF tranches on month 1 and month 12 (SPEC §4.7)", () => {
+    const pfPlan = computePfUnemploymentWithdrawalPlan(2_500_000, 8.25);
+    const result = scheduleTimedPrepaysKeepEmi(5_000_000, 7.9, 168, [
+      { month: 1, amount_inr: pfPlan.tranche1_inr },
+      { month: 12, amount_inr: pfPlan.tranche2_inr },
+    ]);
+
+    expect(result.rows[0]?.prepayment_inr).toBe(1_875_000);
+    expect(result.rows[11]?.prepayment_inr).toBe(676_562.5);
+    expect(result.totals.total_prepayments_inr).toBe(2_551_562.5);
+  });
+
+  it("closes faster than baseline for PF-to-loan unemployment scenario", () => {
+    const baseline = baselineSchedule(5_000_000, 7.9, 168);
+    const pfPlan = computePfUnemploymentWithdrawalPlan(2_500_000, 8.25);
+    const uePfToLoan = scheduleTimedPrepaysKeepEmi(5_000_000, 7.9, 168, [
+      { month: 1, amount_inr: pfPlan.tranche1_inr },
+      { month: 12, amount_inr: pfPlan.tranche2_inr },
+    ]);
+    expect(uePfToLoan.totals.payoff_month).toBeLessThan(baseline.totals.payoff_month);
+  });
+
+  it("supports cash event + monthly cashflow, then PF on top", () => {
+    const cashOnly = scheduleTimedPrepaysKeepEmi(5_000_000, 7.9, 168, [{ month: 1, amount_inr: 2_500_000 }], 75_000);
+    const pfPlan = computePfUnemploymentWithdrawalPlan(2_500_000, 8.25);
+    const cashPlusPf = scheduleTimedPrepaysKeepEmi(
+      5_000_000,
+      7.9,
+      168,
+      [
+        { month: 1, amount_inr: 2_500_000 },
+        { month: 1, amount_inr: pfPlan.tranche1_inr },
+        { month: 12, amount_inr: pfPlan.tranche2_inr },
+      ],
+      75_000,
+    );
+
+    expect(cashOnly.rows[0]?.prepayment_inr).toBeGreaterThan(2_500_000);
+    expect(cashPlusPf.rows[0]?.prepayment_inr).toBeGreaterThan(cashOnly.rows[0]?.prepayment_inr ?? 0);
+    expect(cashPlusPf.totals.payoff_month).toBeLessThanOrEqual(cashOnly.totals.payoff_month);
   });
 });

@@ -119,6 +119,11 @@ select:focus {
   color: #64748b;
 }
 
+.hint.warning {
+  color: #b45309;
+  font-weight: 600;
+}
+
 .table-wrap {
   overflow: auto;
   max-height: min(28rem, 55vh);
@@ -128,6 +133,15 @@ select:focus {
 
 .table-wrap.comparison {
   max-height: none;
+}
+
+.debt-input-table {
+  margin-top: 0.8rem;
+}
+
+.debt-input-table input {
+  width: 100%;
+  min-width: 6rem;
 }
 
 table {

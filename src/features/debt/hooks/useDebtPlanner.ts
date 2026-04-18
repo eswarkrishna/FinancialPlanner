@@ -3,7 +3,7 @@ import {
   simulateDebtPayoff,
   type DebtInput,
   type DebtStrategy,
-} from "../../../lib/debt/simulatePayoff";
+} from "../../../lib/debt/index";
 
 type DebtFormRow = {
   id: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { simulateDebtPayoff } from "./debt/simulatePayoff";
+import { simulateDebtPayoff } from "./debt";
 
 const debtsFixture = [
   {

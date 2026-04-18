@@ -7,3 +7,9 @@ dist
 coverage
 *.log
 .vite
+
+# Android/Capacitor generated artifacts (keep source under android/ trackable)
+android/.gradle/
+android/build/
+android/**/build/
+android/local.properties

@@ -20,6 +20,10 @@ npm run test
 npm run build
 ```
 
+```bash
+npm run goldens:update
+```
+
 ## Android app (Capacitor)
 
 This project is configured with Capacitor for Android in the `android` folder.
@@ -48,11 +52,20 @@ APK output path:
 |----------|---------|
 | [docs/SPEC.md](docs/SPEC.md) | Full product & engineering specification |
 | [docs/TASKS.md](docs/TASKS.md) | Feature delivery checklist (mark tasks done) |
+| [docs/TEST-MAP.md](docs/TEST-MAP.md) | SPEC §10 acceptance to tests/smoke mapping |
 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
 | [docs/research/](docs/research/) | Spikes and research notes |
 | [AGENTS.md](AGENTS.md) | Instructions for AI coding agents + Cursor skills index |
 | [.cursor/rules/](.cursor/rules/) | Cursor project rules |
+
+## Continuous Integration
+
+GitHub Actions CI runs on pushes to `main` and pull requests:
+
+- `npm run lint`
+- `npm run test`
+- `npm run build`
 
 ## Money rounding (v1 default)
 

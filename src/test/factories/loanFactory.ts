@@ -2,6 +2,7 @@ export interface ReferenceLoanInput {
   principal_inr: number;
   annual_interest_rate: number;
   tenure_months: number;
+  monthly_salary_inr: number;
 }
 
 export function makeReferenceLoanInput(
@@ -11,6 +12,7 @@ export function makeReferenceLoanInput(
     principal_inr: 5_000_000,
     annual_interest_rate: 7.9,
     tenure_months: 168,
+    monthly_salary_inr: 100_000,
     ...overrides,
   };
 }

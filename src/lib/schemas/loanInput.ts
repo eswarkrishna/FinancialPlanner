@@ -32,7 +32,7 @@ export const REFERENCE_SCENARIO: LoanInput = {
   annual_interest_rate: 7.9,
   tenure_months: 168,
   cash_inr: 2_500_000,
-  monthly_salary_inr: 0,
+  monthly_salary_inr: 100_000,
   pf_corpus_inr: 2_500_000,
   pf_annual_interest_rate_pct: DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT,
   monthly_pf_addition_inr: 0,

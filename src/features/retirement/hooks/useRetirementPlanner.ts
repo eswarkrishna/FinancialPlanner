@@ -2,7 +2,7 @@ import { type ChangeEvent, useMemo, useState } from "react";
 import {
   buildRetirementScenarios,
   type RetirementInput,
-} from "../../../lib/retirement";
+} from "../../../lib/retirement/project";
 
 type RetirementFormState = {
   current_corpus_inr: string;

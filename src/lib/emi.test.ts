@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeEmi, monthlyRateFromAnnualPercent } from "./emi";
+import { computeEmi, monthlyRateFromAnnualPercent } from "./loan/emi";
 
 describe("computeEmi (docs/SPEC.md §10 reference)", () => {
   it("matches reference loan (analytic check, rounded paise)", () => {

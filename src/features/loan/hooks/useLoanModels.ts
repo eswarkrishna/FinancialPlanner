@@ -3,14 +3,14 @@ import {
   scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepTenure,
   scheduleTimedPrepaysKeepEmi,
-} from "../../../lib/amortisation";
+} from "../../../lib/loan/amortisation";
 import { formatInr } from "../../../lib/formatInr";
 import {
   REFERENCE_SCENARIO,
   loanInputSchema,
   type LoanInput,
-} from "../../../lib/loanInputSchema";
-import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf";
+} from "../../../lib/schemas/loanInput";
+import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf/unemployment";
 
 export type ScenarioView =
   | "BASE"

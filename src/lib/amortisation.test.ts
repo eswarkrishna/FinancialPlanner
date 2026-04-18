@@ -5,8 +5,8 @@ import {
   schedulePrepayKeepEmi,
   schedulePrepayKeepTenure,
   scheduleTimedPrepaysKeepEmi,
-} from "./amortisation";
-import { computePfUnemploymentWithdrawalPlan } from "./pf";
+} from "./loan/amortisation";
+import { computePfUnemploymentWithdrawalPlan } from "./pf/unemployment";
 
 describe("baselineSchedule", () => {
   it("produces reference tenure length", () => {

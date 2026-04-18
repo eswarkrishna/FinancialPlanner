@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computePfUnemploymentWithdrawalPlan,
   DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT,
-} from "./pf";
+} from "./pf/unemployment";
 
 describe("computePfUnemploymentWithdrawalPlan", () => {
   it("matches SPEC §10 PF reference amounts with 8.25% annual credit", () => {

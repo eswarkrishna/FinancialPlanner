@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildRetirementScenarios, projectRetirementCorpus } from "./retirement";
+import {
+  buildRetirementScenarios,
+  projectRetirementCorpus,
+} from "./retirement/project";
 
 const baseInput = {
   current_corpus_inr: 1_000_000,

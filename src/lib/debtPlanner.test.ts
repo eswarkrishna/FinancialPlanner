@@ -1,40 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { simulateDebtPayoff } from "./debt";
-
-const debtsFixture = [
-  {
-    id: "card",
-    name: "Credit Card",
-    balance_inr: 150_000,
-    apr_pct: 36,
-    minimum_payment_inr: 8_000,
-  },
-  {
-    id: "pl",
-    name: "Personal Loan",
-    balance_inr: 450_000,
-    apr_pct: 16,
-    minimum_payment_inr: 12_000,
-  },
-  {
-    id: "consumer",
-    name: "Consumer Durable",
-    balance_inr: 80_000,
-    apr_pct: 14,
-    minimum_payment_inr: 4_000,
-  },
-];
+import { makeReferenceDebts } from "../test/factories";
 
 describe("simulateDebtPayoff", () => {
   it("keeps avalanche interest less than or equal to snowball interest", () => {
+    const debts = makeReferenceDebts();
     const avalanche = simulateDebtPayoff(
-      debtsFixture,
+      debts,
       40_000,
       "2026-04-01",
       "avalanche",
     );
     const snowball = simulateDebtPayoff(
-      debtsFixture,
+      debts,
       40_000,
       "2026-04-01",
       "snowball",
@@ -48,8 +26,9 @@ describe("simulateDebtPayoff", () => {
   });
 
   it("projects payoff date from start date and payoff month", () => {
+    const debts = makeReferenceDebts();
     const avalanche = simulateDebtPayoff(
-      debtsFixture,
+      debts,
       40_000,
       "2026-01-15",
       "avalanche",
@@ -60,8 +39,9 @@ describe("simulateDebtPayoff", () => {
   });
 
   it("warns when monthly budget is lower than minimum dues", () => {
+    const debts = makeReferenceDebts();
     const result = simulateDebtPayoff(
-      debtsFixture,
+      debts,
       10_000,
       "2026-04-01",
       "snowball",

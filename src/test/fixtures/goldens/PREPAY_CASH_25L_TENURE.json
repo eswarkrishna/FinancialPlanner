@@ -1,0 +1,40 @@
+{
+  "emi_inr": 49282.45,
+  "totals": {
+    "total_paid_inr": 6650853.47,
+    "total_interest_inr": 1650853.47,
+    "total_prepayments_inr": 2500000,
+    "payoff_month": 168
+  },
+  "first_row": {
+    "month": 1,
+    "opening_inr": 5000000,
+    "interest_inr": 32916.67,
+    "principal_inr": 16365.78,
+    "prepayment_inr": 2500000,
+    "closing_inr": 2483634.22,
+    "payment_inr": 2549282.45,
+    "emi_inr": 49282.45
+  },
+  "row_12": {
+    "month": 12,
+    "opening_inr": 2399061.78,
+    "interest_inr": 15793.82,
+    "principal_inr": 8766.48,
+    "prepayment_inr": 0,
+    "closing_inr": 2390295.3,
+    "payment_inr": 24560.3,
+    "emi_inr": 24560.3
+  },
+  "last_row": {
+    "month": 168,
+    "opening_inr": 24399.67,
+    "interest_inr": 160.63,
+    "principal_inr": 24399.67,
+    "prepayment_inr": 0,
+    "closing_inr": 0,
+    "payment_inr": 24560.3,
+    "emi_inr": 24560.3
+  },
+  "row_count": 168
+}

@@ -24,11 +24,12 @@ export function StrategySection() {
   return (
     <>
       <section className="card">
-        <h2>Repayment strategy planner (SPEC §4.12)</h2>
+        <h2>Repayment strategies</h2>
         <p className="hint">
-          Compare three named allocation strategies — <strong>Equity blend</strong>,{" "}
-          <strong>Prepay heavy</strong>, and <strong>Aggressive prepay</strong> — over
-          the loan horizon. Reuses §4.5 amortisation and §4.11 corpus projection.
+          Compare three allocation approaches — <strong>Equity blend</strong>,{" "}
+          <strong>Prepay heavy</strong>, and <strong>Aggressive prepay</strong> — over the
+          loan horizon. Uses the same amortisation engine as the Loan tab and monthly
+          compounding for an illustrative equity sleeve.
         </p>
 
         <div className="actions" role="group" aria-label="Take-home tier presets">
@@ -203,7 +204,7 @@ export function StrategySection() {
         <h2>Strategy comparison</h2>
         <p className="hint">
           Net worth at horizon = equity corpus + cash buffer + PF − loan balance.
-          Amounts compounded per SPEC §4.12.3.
+          Projections use the same rounding rules as the rest of the dashboard.
         </p>
         <div className="table-wrap comparison">
           <table>

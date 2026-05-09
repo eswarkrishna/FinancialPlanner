@@ -6,9 +6,7 @@ describe("StrategySection", () => {
   it("renders the strategy planner with comparison + allocation tables", () => {
     render(<StrategySection />);
     expect(
-      screen.getByRole("heading", {
-        name: /Repayment strategy planner/,
-      }),
+      screen.getByRole("heading", { name: "Repayment strategies" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Strategy comparison" }),

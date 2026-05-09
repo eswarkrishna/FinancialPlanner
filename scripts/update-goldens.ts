@@ -2,23 +2,33 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeGoldenScenarios } from "../src/test/fixtures/goldens/buildGoldens";
+import { computeStrategyGoldens } from "../src/test/fixtures/goldens/buildStrategyGoldens";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const goldensDir = path.resolve(__dirname, "../src/test/fixtures/goldens");
+const strategyDir = path.resolve(__dirname, "../src/test/fixtures/strategy");
 
-async function main() {
-  const snapshots = computeGoldenScenarios();
-
-  await mkdir(goldensDir, { recursive: true });
+async function writeJsonFiles(
+  dir: string,
+  payloadByName: Record<string, unknown>,
+): Promise<number> {
+  await mkdir(dir, { recursive: true });
   await Promise.all(
-    Object.entries(snapshots).map(async ([name, payload]) => {
-      const filePath = path.join(goldensDir, `${name}.json`);
+    Object.entries(payloadByName).map(async ([name, payload]) => {
+      const filePath = path.join(dir, `${name}.json`);
       await writeFile(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
     }),
   );
+  return Object.keys(payloadByName).length;
+}
 
-  process.stdout.write(`Updated ${Object.keys(snapshots).length} golden fixtures.\n`);
+async function main() {
+  const loanCount = await writeJsonFiles(goldensDir, computeGoldenScenarios());
+  const strategyCount = await writeJsonFiles(strategyDir, computeStrategyGoldens());
+  process.stdout.write(
+    `Updated ${loanCount} loan + ${strategyCount} strategy golden fixtures.\n`,
+  );
 }
 
 main().catch((error: unknown) => {

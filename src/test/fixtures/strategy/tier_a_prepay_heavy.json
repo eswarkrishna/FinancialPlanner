@@ -1,0 +1,18 @@
+{
+  "strategy_id": "STRATEGY_PREPAY_HEAVY",
+  "loan_close_month": 41,
+  "total_interest_inr": 350600.03,
+  "interest_saved_vs_base_inr": 946150.41,
+  "one_time_prepay_inr": 1220198.96,
+  "monthly_extra_principal_inr": 17000,
+  "monthly_sip_inr": 0,
+  "equity_lump_inr": 0,
+  "equity_corpus_at_horizon_inr": 4984006.35,
+  "equity_corpus_at_horizon_post_tax_inr": 4853769.29,
+  "pf_corpus_at_horizon_inr": 4939972.51,
+  "cash_buffer_remaining_inr": 779801.04,
+  "loan_balance_at_horizon_inr": 0,
+  "net_worth_at_horizon_inr": 10703779.9,
+  "min_living_budget_inr": 250033.16,
+  "warnings": []
+}

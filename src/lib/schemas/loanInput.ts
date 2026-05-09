@@ -39,3 +39,36 @@ export const REFERENCE_SCENARIO: LoanInput = {
   gold_liquid_inr: 2_500_000,
   monthly_cash_to_loan_inr: 0,
 };
+
+/** Spec §4.2 (extended fields) + §4.12 — household + strategy planner inputs. */
+export const strategyInputSchema = z.object({
+  monthly_take_home_inr: z.coerce.number().min(0).optional().default(0),
+  monthly_living_expense_inr: z.coerce.number().min(0).optional().default(0),
+  extra_monthly_income_inr: z.coerce.number().min(0).optional().default(0),
+  extra_income_post_tax: z.coerce.boolean().optional().default(true),
+  marginal_tax_rate_pct: z.coerce.number().min(0).max(100).optional().default(0),
+  emergency_months_buffer: z.coerce
+    .number()
+    .int("Buffer must be a whole number of months")
+    .min(0)
+    .max(60)
+    .optional()
+    .default(6),
+  expected_equity_return_pct: z.coerce
+    .number()
+    .min(0)
+    .max(50)
+    .optional()
+    .default(11),
+  horizon_months: z.coerce
+    .number()
+    .int("Horizon must be a whole number of months")
+    .positive("Horizon must be positive")
+    .max(600)
+    .optional()
+    .default(168),
+  repayment_pct_of_take_home: z.coerce.number().min(0).max(100).optional().default(0),
+  tax_regime: z.enum(["old", "new"]).optional().default("new"),
+});
+
+export type StrategyHouseholdInput = z.infer<typeof strategyInputSchema>;

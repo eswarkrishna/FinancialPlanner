@@ -17,6 +17,11 @@ describe("App shell composition", () => {
       screen.getByRole("heading", { name: "Retirement planner" }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("heading", {
+        name: /Repayment strategy planner/,
+      }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByText(/Educational planning only\. EPF withdrawal eligibility/),
     ).toBeInTheDocument();
   });

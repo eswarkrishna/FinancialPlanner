@@ -25,6 +25,7 @@ If stdin is empty or not JSON, `payload` may be `null` or a small fallback objec
 ## Privacy
 
 - The directory `.cursor/usage/` is listed in `.gitignore`. **Do not** commit these files if `payload` might include prompts or paths you consider sensitive.
+- Git ignores the log, but the file still sits on disk under your clone. Before **zipping, syncing, or copying** this project folder elsewhere (backup, cloud drive, another machine), delete `.cursor/usage/sessions.ndjson` or rotate it (rename/move then start fresh) if you do not want session metadata or paths preserved in that bundle.
 - To stop logging:
   - **sessionEnd:** remove or comment out the `sessionEnd` entry in `.cursor/hooks.json` (e.g. point back at `.cursor/hooks/session-end-noop.mjs`).
   - **sessionStart:** remove the `appendUsageRecord(...)` block from `session-spec-context.mjs` if you still want spec injection without logging.

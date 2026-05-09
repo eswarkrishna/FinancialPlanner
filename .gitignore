@@ -8,6 +8,9 @@ coverage
 *.log
 .vite
 
+# Cursor local usage capture (sessionEnd hook); may contain prompts — do not commit
+.cursor/usage/
+
 # Android/Capacitor generated artifacts (keep source under android/ trackable)
 android/.gradle/
 android/build/

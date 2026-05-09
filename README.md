@@ -60,6 +60,7 @@ APK output path:
 | [docs/TASKS.md](docs/TASKS.md) | Feature delivery checklist (mark tasks done) |
 | [docs/TEST-MAP.md](docs/TEST-MAP.md) | SPEC §10 acceptance to tests/smoke mapping |
 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
+| [docs/CURSOR-USAGE.md](docs/CURSOR-USAGE.md) | Local Cursor hook log (`sessionEnd` → `.cursor/usage/`) |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
 | [docs/research/](docs/research/) | Spikes and research notes |
 | [AGENTS.md](AGENTS.md) | Instructions for AI coding agents + Cursor skills index |

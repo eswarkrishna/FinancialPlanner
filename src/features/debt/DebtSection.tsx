@@ -1,4 +1,4 @@
-import { formatInr } from "../../lib/formatInr";
+import { formatInrFinite } from "../../lib/formatInr";
 import { type DebtStrategy } from "../../lib/debt";
 import { useDebtPlanner } from "./hooks/useDebtPlanner";
 
@@ -121,6 +121,12 @@ export function DebtSection() {
             Add debt
           </button>
         </div>
+        <p className="hint">
+          Enter each debt on one row: <strong>name</strong>, then{" "}
+          <strong>balance</strong>, <strong>APR</strong>, <strong>minimum</strong>. If
+          columns are misaligned, totals can explode—comparison uses safe formatting (—)
+          when numbers are not finite.
+        </p>
         {activeDebtModel.warning && (
           <p className="hint warning">{activeDebtModel.warning}</p>
         )}
@@ -145,8 +151,8 @@ export function DebtSection() {
                   <td>{model.strategy === "avalanche" ? "Avalanche" : "Snowball"}</td>
                   <td>{model.summary.is_paid_off ? model.summary.payoff_months : "—"}</td>
                   <td>{model.summary.payoff_date_iso ?? "—"}</td>
-                  <td>{formatInr(model.summary.total_interest_inr)}</td>
-                  <td>{formatInr(model.summary.total_paid_inr)}</td>
+                  <td>{formatInrFinite(model.summary.total_interest_inr)}</td>
+                  <td>{formatInrFinite(model.summary.total_paid_inr)}</td>
                 </tr>
               ))}
             </tbody>
@@ -174,10 +180,10 @@ export function DebtSection() {
               {activeDebtModel.rows.map((row) => (
                 <tr key={row.month}>
                   <td>{row.month}</td>
-                  <td>{formatInr(row.opening_total_inr)}</td>
-                  <td>{formatInr(row.interest_inr)}</td>
-                  <td>{formatInr(row.payment_inr)}</td>
-                  <td>{formatInr(row.closing_total_inr)}</td>
+                  <td>{formatInrFinite(row.opening_total_inr)}</td>
+                  <td>{formatInrFinite(row.interest_inr)}</td>
+                  <td>{formatInrFinite(row.payment_inr)}</td>
+                  <td>{formatInrFinite(row.closing_total_inr)}</td>
                   <td>{row.focus_debt_name ?? "Paid off"}</td>
                 </tr>
               ))}

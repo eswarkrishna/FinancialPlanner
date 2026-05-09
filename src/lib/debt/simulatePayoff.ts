@@ -186,18 +186,38 @@ export function simulateDebtPayoff(
   const isPaidOff = normalizedDebts.every(
     (debt) => debt.balance_inr <= BALANCE_EPSILON_INR,
   );
+
+  let totalInterestOut = totalInterest;
+  let totalPaidOut = totalPaid;
+  const tailWarnings: string[] = [];
+
+  if (!Number.isFinite(totalInterestOut) || !Number.isFinite(totalPaidOut)) {
+    totalInterestOut = 0;
+    totalPaidOut = Number.isFinite(totalPaid) ? roundInr(totalPaid) : 0;
+    tailWarnings.push(
+      "Totals were reset after extreme interest accrual—usually APR or balances vs payments are inconsistent. Check each debt row.",
+    );
+  } else {
+    totalInterestOut = roundInr(totalInterestOut);
+    totalPaidOut = roundInr(totalPaidOut);
+  }
+
+  if (!isPaidOff) {
+    tailWarnings.push(
+      "Simulation horizon reached before all debts were paid off.",
+    );
+  }
+
   return {
     strategy,
     rows,
     summary: {
       payoff_months: rows.length,
       payoff_date_iso: isPaidOff ? addMonthsIso(startDateIso, rows.length) : null,
-      total_interest_inr: totalInterest,
-      total_paid_inr: totalPaid,
+      total_interest_inr: totalInterestOut,
+      total_paid_inr: totalPaidOut,
       is_paid_off: isPaidOff,
     },
-    warning: isPaidOff
-      ? undefined
-      : "Simulation horizon reached before all debts were paid off.",
+    warning: tailWarnings.length > 0 ? tailWarnings.join(" ") : undefined,
   };
 }

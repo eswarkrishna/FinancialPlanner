@@ -244,6 +244,7 @@ For each month:
 - Monthly timeline table with: month, total opening debt, interest, payment, total closing debt, target debt label
 - Strategy comparison table (`avalanche` vs `snowball`) showing payoff months/date and total interest
 - Validation warning when `monthly_budget_inr` is less than sum of minimum payments
+- **Numeric guard:** If running totals become non-finite (e.g. extreme APR vs payments from mis-keyed rows), summary interest is reset to `0`, warnings concatenate an explanation, and the UI renders non-finite amounts as an em dash (—).
 
 ### 4.11 Retirement planner dashboard (required)
 

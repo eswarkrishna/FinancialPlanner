@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepTenure,
@@ -21,6 +21,40 @@ export type ScenarioView =
   | "CASHFLOW_NO_PF"
   | "CASHFLOW_PLUS_PF"
   | "UE_PF_TO_LOAN";
+
+function scenarioViewIsAvailable(
+  view: ScenarioView,
+  models: {
+    baseInflow: unknown;
+    prepayTenure: unknown;
+    prepayEmi: unknown;
+    prepayEmiInflow: unknown;
+    cashflowNoPf: unknown;
+    cashflowPlusPf: unknown;
+    uePfToLoan: unknown;
+  },
+): boolean {
+  switch (view) {
+    case "BASE":
+      return true;
+    case "BASE_INFLOW":
+      return models.baseInflow != null;
+    case "PREPAY_TENURE":
+      return models.prepayTenure != null;
+    case "PREPAY_EMI":
+      return models.prepayEmi != null;
+    case "PREPAY_EMI_INFLOW":
+      return models.prepayEmiInflow != null;
+    case "CASHFLOW_NO_PF":
+      return models.cashflowNoPf != null;
+    case "CASHFLOW_PLUS_PF":
+      return models.cashflowPlusPf != null;
+    case "UE_PF_TO_LOAN":
+      return models.uePfToLoan != null;
+    default:
+      return false;
+  }
+}
 
 export type PrepaySource = "cash" | "pf" | "gold";
 
@@ -208,6 +242,13 @@ export function useLoanModels() {
       prepaySource,
     };
   }, [parsed, prepaySource]);
+
+  useEffect(() => {
+    if (!models) return;
+    if (!scenarioViewIsAvailable(scenarioView, models)) {
+      setScenarioView("BASE");
+    }
+  }, [models, scenarioView]);
 
   const comparisonRows = useMemo((): ComparisonRow[] => {
     if (!models) return [];

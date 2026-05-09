@@ -93,6 +93,11 @@ export function RetirementSection() {
             </select>
           </label>
         </div>
+        <p className="hint">
+          <strong>Safe withdrawal %:</strong> leaving it blank stores 0 for this form; the
+          retirement engine still enforces a small minimum rate so expense targets stay
+          numerically stable (enter e.g. 4 once you want classic “% of portfolio” semantics).
+        </p>
       </section>
 
       <section className="card">

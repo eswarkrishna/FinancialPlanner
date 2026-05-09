@@ -32,6 +32,18 @@ export function StrategySection() {
           compounding for an illustrative equity sleeve.
         </p>
 
+        <p className="hint">
+          Tier shortcuts only fill <strong>Take-home</strong>; enter loan and household
+          fields separately.
+        </p>
+
+        <p className="hint">
+          <strong>Take-home</strong> here is monthly cash after tax that reaches your bank—it
+          feeds emergency-buffer math, deployable cash, and aggressive % repayment. It does{" "}
+          <strong>not</strong> replace <strong>Monthly salary</strong> on the{" "}
+          <strong>Loan</strong> tab, which only adds recurring principal to the loan model.
+        </p>
+
         <div className="actions" role="group" aria-label="Take-home tier presets">
           {tierPresets.map((preset) => (
             <button
@@ -160,6 +172,11 @@ export function StrategySection() {
               disabled={form.extra_income_post_tax === true}
             />
           </label>
+          <p className="hint hint-span">
+            <strong>Extra is post-tax?</strong> If left as —, the planner treats extra income
+            like <strong>No</strong> (gross): your marginal tax % reduces it before allocation.
+            Choose <strong>Yes</strong> only when the extra income amount is already net of tax.
+          </p>
           <label>
             Emergency buffer (months)
             <input

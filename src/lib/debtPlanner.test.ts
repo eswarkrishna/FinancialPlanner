@@ -50,4 +50,19 @@ describe("simulateDebtPayoff", () => {
     expect(result.rows.length).toBe(0);
     expect(result.warning).toMatch(/below total minimum payments/i);
   });
+
+  it("keeps summary totals finite when APR is wildly mis-entered", () => {
+    const debts = [
+      {
+        id: "bad-apr",
+        name: "Mis-keyed row",
+        balance_inr: 36,
+        apr_pct: 8000,
+        minimum_payment_inr: 8000,
+      },
+    ];
+    const result = simulateDebtPayoff(debts, 100_000, "2026-04-01", "avalanche");
+    expect(Number.isFinite(result.summary.total_interest_inr)).toBe(true);
+    expect(Number.isFinite(result.summary.total_paid_inr)).toBe(true);
+  });
 });

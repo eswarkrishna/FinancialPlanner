@@ -112,11 +112,13 @@ export function LoanSection() {
         </div>
         <p className="hint">
           <strong>Monthly cash to loan:</strong> amount applied as{" "}
-          <strong>extra principal</strong> after each month&apos;s scheduled EMI.
-          <strong> Monthly salary</strong> is also added as recurring loan
-          contribution in all scenarios. <strong>Gold liquid</strong> is counted in
-          liquid assets and can be chosen as the one-time prepay source below (along
-          with cash or PF).
+          <strong>extra principal</strong> after each month&apos;s scheduled EMI.{" "}
+          <strong>Monthly salary (below)</strong> is money routed <strong>into the loan</strong>{" "}
+          every month in these scenarios—it is <strong>not</strong> the same as household
+          take-home on the <strong>Strategies</strong> tab (which drives emergency buffer,
+          surplus, and percent-of-income rules there).
+          <strong> Gold liquid</strong> is counted in liquid assets and can be chosen as the
+          one-time prepay source below (along with cash or PF).
         </p>
         <div className="actions">
           <button type="button" className="btn secondary" onClick={loadReference}>

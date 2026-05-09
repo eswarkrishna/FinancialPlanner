@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LoanSection } from "./LoanSection";
@@ -53,5 +53,30 @@ describe("LoanSection", () => {
     expect(
       screen.getByRole("option", { name: /One-time prepay \(Gold\) \+ keep EMI/ }),
     ).toBeInTheDocument();
+  });
+
+  it("resets amortisation schedule view when prepay scenarios disappear", async () => {
+    const user = userEvent.setup();
+    render(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    const comboBoxes = screen.getAllByRole("combobox");
+    expect(comboBoxes.length).toBeGreaterThanOrEqual(2);
+    const scheduleSelect = comboBoxes[1]!;
+
+    fireEvent.change(scheduleSelect, { target: { value: "PREPAY_TENURE" } });
+    expect(scheduleSelect).toHaveValue("PREPAY_TENURE");
+
+    fireEvent.change(screen.getByLabelText("One-time prepay source"), {
+      target: { value: "gold" },
+    });
+    fireEvent.change(screen.getByLabelText(/Gold liquid/i), {
+      target: { value: "" },
+    });
+
+    await waitFor(() => {
+      const updated = screen.getAllByRole("combobox")[1];
+      expect(updated).toHaveValue("BASE");
+    });
   });
 });

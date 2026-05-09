@@ -3,6 +3,7 @@ import { simulateAllStrategies } from "../../../lib/strategy/simulate";
 import {
   STRATEGY_TIER_PRESETS,
   type StrategyInputs,
+  type StrategyResult,
   type StrategyTierPreset,
 } from "../../../lib/strategy/types";
 
@@ -21,29 +22,29 @@ type StrategyFormState = {
   expected_equity_return_pct: string;
   horizon_months: string;
   repayment_pct_of_take_home: string;
-  extra_income_post_tax: boolean;
+  extra_income_post_tax: boolean | null;
   marginal_tax_rate_pct: string;
-  tax_regime: "old" | "new";
+  tax_regime: "" | "old" | "new";
 };
 
-const DEFAULT_FORM: StrategyFormState = {
-  principal_inr: "3600000",
-  annual_interest_rate: "7.9",
-  tenure_months: "98",
-  cash_inr: "2000000",
-  pf_corpus_inr: "2620000",
-  pf_annual_interest_rate_pct: "8.25",
-  monthly_pf_addition_inr: "0",
-  monthly_take_home_inr: "300000",
-  monthly_living_expense_inr: "80000",
-  extra_monthly_income_inr: "17000",
-  emergency_months_buffer: "6",
-  expected_equity_return_pct: "11",
-  horizon_months: "98",
-  repayment_pct_of_take_home: "90",
-  extra_income_post_tax: true,
-  marginal_tax_rate_pct: "0",
-  tax_regime: "new",
+const EMPTY_FORM: StrategyFormState = {
+  principal_inr: "",
+  annual_interest_rate: "",
+  tenure_months: "",
+  cash_inr: "",
+  pf_corpus_inr: "",
+  pf_annual_interest_rate_pct: "",
+  monthly_pf_addition_inr: "",
+  monthly_take_home_inr: "",
+  monthly_living_expense_inr: "",
+  extra_monthly_income_inr: "",
+  emergency_months_buffer: "",
+  expected_equity_return_pct: "",
+  horizon_months: "",
+  repayment_pct_of_take_home: "",
+  extra_income_post_tax: null,
+  marginal_tax_rate_pct: "",
+  tax_regime: "",
 };
 
 function parseNumber(value: string): number {
@@ -51,7 +52,23 @@ function parseNumber(value: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+export function strategyFormReady(form: StrategyFormState): boolean {
+  if (
+    !form.principal_inr.trim() ||
+    !form.annual_interest_rate.trim() ||
+    !form.tenure_months.trim() ||
+    !form.horizon_months.trim()
+  ) {
+    return false;
+  }
+  const principal = parseNumber(form.principal_inr);
+  const tenure = Math.floor(parseNumber(form.tenure_months));
+  const horizon = Math.floor(parseNumber(form.horizon_months));
+  return principal > 0 && tenure > 0 && horizon > 0;
+}
+
 function buildInputs(form: StrategyFormState): StrategyInputs {
+  const postTax = form.extra_income_post_tax ?? false;
   return {
     principal_inr: Math.max(0, parseNumber(form.principal_inr)),
     annual_interest_rate: Math.max(0, parseNumber(form.annual_interest_rate)),
@@ -72,7 +89,7 @@ function buildInputs(form: StrategyFormState): StrategyInputs {
       0,
       parseNumber(form.extra_monthly_income_inr),
     ),
-    extra_income_post_tax: form.extra_income_post_tax,
+    extra_income_post_tax: postTax,
     marginal_tax_rate_pct: Math.max(0, parseNumber(form.marginal_tax_rate_pct)),
     emergency_months_buffer: Math.max(
       0,
@@ -91,10 +108,14 @@ function buildInputs(form: StrategyFormState): StrategyInputs {
 }
 
 export function useStrategyPlanner() {
-  const [form, setForm] = useState<StrategyFormState>(DEFAULT_FORM);
+  const [form, setForm] = useState<StrategyFormState>(EMPTY_FORM);
 
+  const ready = strategyFormReady(form);
   const inputs = useMemo(() => buildInputs(form), [form]);
-  const results = useMemo(() => simulateAllStrategies(inputs), [inputs]);
+  const results = useMemo((): StrategyResult[] => {
+    if (!ready) return [];
+    return simulateAllStrategies(inputs);
+  }, [inputs, ready]);
 
   function setField<K extends keyof StrategyFormState>(
     key: K,
@@ -115,6 +136,7 @@ export function useStrategyPlanner() {
     setField,
     inputs,
     results,
+    strategyFormReady: ready,
     tierPresets: STRATEGY_TIER_PRESETS,
     applyTierPreset,
   };

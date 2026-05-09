@@ -19,32 +19,18 @@ function parseNumber(value: string): number {
 }
 
 export function useDebtPlanner() {
-  const [startDateIso, setStartDateIso] = useState("2026-04-01");
-  const [monthlyBudgetInr, setMonthlyBudgetInr] = useState("40000");
+  const [startDateIso, setStartDateIso] = useState("");
+  const [monthlyBudgetInr, setMonthlyBudgetInr] = useState("");
   const [selectedDebtStrategy, setSelectedDebtStrategy] = useState<DebtStrategy>(
     "avalanche",
   );
   const [debtRows, setDebtRows] = useState<DebtFormRow[]>([
     {
-      id: "card",
-      name: "Credit Card",
-      balance_inr: "150000",
-      apr_pct: "36",
-      minimum_payment_inr: "8000",
-    },
-    {
-      id: "pl",
-      name: "Personal Loan",
-      balance_inr: "450000",
-      apr_pct: "16",
-      minimum_payment_inr: "12000",
-    },
-    {
-      id: "consumer",
-      name: "Consumer Durable",
-      balance_inr: "80000",
-      apr_pct: "14",
-      minimum_payment_inr: "4000",
+      id: "debt-1",
+      name: "",
+      balance_inr: "",
+      apr_pct: "",
+      minimum_payment_inr: "",
     },
   ]);
 
@@ -90,10 +76,10 @@ export function useDebtPlanner() {
       ...prev,
       {
         id: `debt-${Date.now()}`,
-        name: `Debt ${prev.length + 1}`,
-        balance_inr: "0",
-        apr_pct: "12",
-        minimum_payment_inr: "0",
+        name: "",
+        balance_inr: "",
+        apr_pct: "",
+        minimum_payment_inr: "",
       },
     ]);
   }

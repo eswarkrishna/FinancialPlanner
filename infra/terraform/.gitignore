@@ -1,0 +1,25 @@
+# Local Terraform working directories
+.terraform/
+.terraform/*
+
+# State and crash logs (use remote state for shared work)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+
+# Variable files with secrets
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# CLI overrides
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Note: commit .terraform.lock.hcl for reproducible provider versions.

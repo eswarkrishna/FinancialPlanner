@@ -77,7 +77,7 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 | `pf_corpus_inr` | number | no |
 | `pf_annual_interest_rate_pct` | number | no | Default `8.25`; annual PF credit used in unemployment module (§4.7) |
 | `monthly_pf_addition_inr` | number | no | Default `0`; amount added to PF corpus every month for PF scenario modelling |
-| `gold_liquid_inr` | number | no |
+| `gold_liquid_inr` | number | no | Included in **Liquid assets** KPI; may be chosen as the **one-time prepay source** (month 1) for PREPAY_* rows in the Loan tab (alongside cash and PF). Does not alter `CASHFLOW_*` scenarios, which still use `cash_inr` for month-1 cash prepay. |
 | `gold_haircut_pct` | number | no | 0–100 applied to gold if user enables |
 | `monthly_cash_to_loan_inr` | number | no | Recurring INR applied as **extra principal** after each month’s scheduled EMI (§4.5). v1 UI label: “Monthly cash to loan”; does **not** deduct living expenses—use §4.8 for budgeted cashflow. |
 | `monthly_take_home_inr` | number | no | Default `0`. Household post-tax income reaching the bank account. **Distinct** from `monthly_salary_inr`, which represents amount routed to the loan as recurring extra principal. Used by §4.12 as the basis for percent-of-take-home repayment policies. |

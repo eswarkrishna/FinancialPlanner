@@ -49,8 +49,9 @@ function toStartOfDay(dateIso: string): Date {
   return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
 }
 
-function addMonthsIso(dateIso: string, months: number): string {
+function addMonthsIso(dateIso: string, months: number): string | null {
   const dt = toStartOfDay(dateIso);
+  if (Number.isNaN(dt.getTime())) return null;
   dt.setMonth(dt.getMonth() + months);
   return dt.toISOString().slice(0, 10);
 }
@@ -93,7 +94,7 @@ export function simulateDebtPayoff(
       rows: [],
       summary: {
         payoff_months: 0,
-        payoff_date_iso: startDateIso,
+        payoff_date_iso: addMonthsIso(startDateIso, 0),
         total_interest_inr: 0,
         total_paid_inr: 0,
         is_paid_off: true,

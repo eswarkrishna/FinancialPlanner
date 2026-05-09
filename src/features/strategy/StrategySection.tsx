@@ -18,7 +18,7 @@ const WARNING_COPY: Record<StrategyWarning, string> = {
 };
 
 export function StrategySection() {
-  const { form, setField, results, tierPresets, applyTierPreset } =
+  const { form, setField, results, strategyFormReady, tierPresets, applyTierPreset } =
     useStrategyPlanner();
 
   return (
@@ -131,11 +131,22 @@ export function StrategySection() {
           <label>
             Extra is post-tax?
             <select
-              value={form.extra_income_post_tax ? "yes" : "no"}
-              onChange={(e) =>
-                setField("extra_income_post_tax", e.target.value === "yes")
+              value={
+                form.extra_income_post_tax === null
+                  ? ""
+                  : form.extra_income_post_tax
+                    ? "yes"
+                    : "no"
               }
+              onChange={(e) => {
+                const v = e.target.value;
+                setField(
+                  "extra_income_post_tax",
+                  v === "" ? null : v === "yes",
+                );
+              }}
             >
+              <option value="">—</option>
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
@@ -146,7 +157,7 @@ export function StrategySection() {
               inputMode="decimal"
               value={form.marginal_tax_rate_pct}
               onChange={(e) => setField("marginal_tax_rate_pct", e.target.value)}
-              disabled={form.extra_income_post_tax}
+              disabled={form.extra_income_post_tax === true}
             />
           </label>
           <label>
@@ -190,9 +201,10 @@ export function StrategySection() {
             <select
               value={form.tax_regime}
               onChange={(e) =>
-                setField("tax_regime", e.target.value as "old" | "new")
+                setField("tax_regime", e.target.value as "" | "old" | "new")
               }
             >
+              <option value="">—</option>
               <option value="new">New</option>
               <option value="old">Old</option>
             </select>
@@ -206,6 +218,11 @@ export function StrategySection() {
           Net worth at horizon = equity corpus + cash buffer + PF − loan balance.
           Projections use the same rounding rules as the rest of the dashboard.
         </p>
+        {!strategyFormReady && (
+          <p className="hint">
+            Enter principal, annual rate, tenure, and horizon to compare strategies.
+          </p>
+        )}
         <div className="table-wrap comparison">
           <table>
             <thead>
@@ -221,6 +238,15 @@ export function StrategySection() {
               </tr>
             </thead>
             <tbody>
+              {!strategyFormReady ? (
+                <tr>
+                  <td colSpan={8}>
+                    <span className="hint">
+                      No rows yet — fill the loan and horizon fields above.
+                    </span>
+                  </td>
+                </tr>
+              ) : null}
               {results.map((row) => (
                 <tr key={row.strategy_id}>
                   <td>{STRATEGY_LABELS[row.strategy_id]}</td>
@@ -246,6 +272,11 @@ export function StrategySection() {
 
       <section className="card">
         <h2>Allocation breakdown</h2>
+        {!strategyFormReady && (
+          <p className="hint">
+            Enter principal, annual rate, tenure, and horizon to see allocations.
+          </p>
+        )}
         <div className="table-wrap comparison">
           <table>
             <thead>
@@ -261,6 +292,13 @@ export function StrategySection() {
               </tr>
             </thead>
             <tbody>
+              {!strategyFormReady ? (
+                <tr>
+                  <td colSpan={8}>
+                    <span className="hint">No rows yet — fill the loan and horizon fields above.</span>
+                  </td>
+                </tr>
+              ) : null}
               {results.map((row) => (
                 <tr key={row.strategy_id}>
                   <td>{STRATEGY_LABELS[row.strategy_id]}</td>

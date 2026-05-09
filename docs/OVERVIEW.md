@@ -55,6 +55,10 @@ npm run build
 npm run dev
 ```
 
+## Hosting
+
+Production hosting is a static SPA on **S3 (private) + CloudFront** with optional ACM/Route 53 for a custom domain. Infra-as-code lives in [`../infra/terraform/`](../infra/terraform/) and the deploy workflow in [`../.github/workflows/deploy.yml`](../.github/workflows/deploy.yml). See [`../infra/README.md`](../infra/README.md) for the apply/teardown loop and the GitHub OIDC setup.
+
 ## Related docs
 
 | Doc | Purpose |
@@ -63,6 +67,7 @@ npm run dev
 | [TASKS.md](TASKS.md) | Feature delivery checklist (`[ ]` → `[x]`) |
 | [LEARNINGS.md](LEARNINGS.md) | Dated post-feature notes |
 | [research/README.md](research/README.md) | Spike and research index |
+| [../infra/README.md](../infra/README.md) | AWS deploy (S3 + CloudFront) infra-as-code |
 | [../AGENTS.md](../AGENTS.md) | Cursor agent + skill index |
 
 ## Research

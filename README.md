@@ -24,6 +24,12 @@ npm run build
 npm run goldens:update
 ```
 
+Approximate **git-derived session stats** (sums only consecutive commits ≤3h apart; calendar days strictly between longer gaps are listed as ignored):
+
+```bash
+npm run stats:git
+```
+
 ## Android app (Capacitor)
 
 This project is configured with Capacitor for Android in the `android` folder.

@@ -39,8 +39,9 @@ export function App() {
         <div className="app-header-inner app-brand">
           <h1>FinancialPlanner</h1>
           <p className="lede">
-            Loan scenarios, debt payoff, retirement corpus, repayment strategies, and
-            strategic game profiles — aligned with <code>docs/SPEC.md</code>.
+            Plan your home loan, compare prepayment options, model debt and retirement
+            savings, and explore what-if strategies—all in one place. Numbers are for
+            learning only, not financial advice.
           </p>
         </div>
         <nav className="app-tabs" aria-label="Planner sections">

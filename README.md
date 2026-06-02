@@ -58,13 +58,20 @@ Optional: install the [GitHub CLI](https://cli.github.com/) (`winget install Git
 
 ## Publish on the internet
 
-### GitHub Pages (default, free)
+### GitHub Pages (free, **public** repository required)
 
 Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml) and deploys the built SPA.
 
-**Live URL:** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)
+**Live URL (after enable):** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)
 
-One-time setup in the GitHub repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**. (If Pages was never enabled, push `main` once, then pick the **github-pages** environment when prompted.)
+GitHub does **not** offer Pages on **private** repos with the free plan. Either:
+
+1. **Make the repo public** (recommended for this open calculator): GitHub → **Settings → General → Danger zone → Change visibility**, or  
+   `gh repo edit --visibility public --accept-visibility-change-consequences`
+2. Use a **paid** GitHub plan that includes Pages on private repos, or  
+3. Use **AWS** below, or connect the repo to [Cloudflare Pages](https://pages.cloudflare.com/) / [Netlify](https://www.netlify.com/) (both work with private repos).
+
+Then: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 Local build for the same base path as production:
 

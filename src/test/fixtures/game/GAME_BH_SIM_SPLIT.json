@@ -1,0 +1,60 @@
+{
+  "game_profile_id": "GAME_BH_SIM_SPLIT",
+  "matrix_size": 3,
+  "payoff_matrix": [
+    {
+      "cell_key": "||||H_BLEND||",
+      "action_profile": {
+        "h_split": "H_BLEND"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "H": 1138660.46
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "||||H_PREPAY||",
+      "action_profile": {
+        "h_split": "H_PREPAY"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "H": 2212618.73
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "||||H_AGGR||",
+      "action_profile": {
+        "h_split": "H_AGGR"
+      },
+      "payoffs": {
+        "B": 3011901.3,
+        "H": 3011901.3
+      },
+      "underlying_scenario_id": "STRATEGY_AGGRESSIVE_PREPAY"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "h_split": "H_AGGR"
+      },
+      "payoffs": {
+        "B": 3011901.3,
+        "H": 3011901.3
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "h_split": "H_AGGR"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "STRATEGY_EQUITY_BLEND",
+    "STRATEGY_PREPAY_HEAVY",
+    "STRATEGY_AGGRESSIVE_PREPAY"
+  ]
+}

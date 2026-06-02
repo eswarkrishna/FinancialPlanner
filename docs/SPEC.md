@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.7  
+**Version:** 1.2  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **Status:** Draft for implementation
@@ -17,13 +17,7 @@
 
 ## 1. Purpose
 
-Build a **client-side or lightweight web application dashboard** that lets a user:
-
-- model a **reducing-balance loan** (home / personal / LAP-style) and compare **multiple payoff strategies**
-- run a **debt payoff planner** with avalanche/snowball ordering and payoff-date simulation
-- run a **retirement planner** with corpus projection, inflation assumptions, and scenario testing
-
-Loan payoff capabilities include:
+Build a **client-side or lightweight web application** that lets a user model a **reducing-balance loan** (home / personal / LAP-style) and compare **multiple payoff strategies**, including:
 
 - Lump-sum prepayments from **cash**, **gold liquidation**, and **PF (Provident Fund corpus)**  
 - Prepayment policies: **reduce tenure** vs **reduce EMI** (where applicable)  
@@ -31,6 +25,8 @@ Loan payoff capabilities include:
 - A dedicated **unemployment + PF staged withdrawal** timeline per product rules defined in this spec  
 
 The app must produce **transparent numbers**: amortisation tables, totals, interest paid, payoff month, and scenario comparison tables.
+
+Optional **strategic interaction** modelling (§4.13) compares borrower, lender, household, and nature moves using the same amortisation engine as a **payoff oracle**—not a replacement for §4.3–§4.6 deterministic scenarios.
 
 ---
 
@@ -43,6 +39,13 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 | **Gold value** | User-entered liquidatable value (post haircut optional field) |
 | **Prepayment** | Principal reduction outside scheduled EMI |
 | **Moratorium** | Out of scope unless explicitly added later |
+| **Player** | Decision-maker in §4.13 (`B` borrower, `L` lender, `H` household co-decider, `N` nature) |
+| **Action profile** | One chosen action per active player in a game round |
+| **Payoff oracle** | Existing simulation (§4.3–§4.8, §4.12) that maps actions → INR outcomes |
+| **Normal-form game** | Simultaneous choices; payoff matrix per action profile |
+| **Extensive-form game** | Sequential choices; solved by backward induction when information is perfect |
+| **Nash equilibrium (pure)** | Action profile where no player gains by unilateral deviation |
+| **Best response** | Optimal action for one player holding others’ actions fixed |
 
 ---
 
@@ -50,7 +53,8 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 
 1. **Borrower optimiser:** Employed, wants to minimise interest while keeping liquidity.  
 2. **Stress tester:** Wants unemployment path + staged PF withdrawals + cash runway.  
-3. **Comparator:** Wants side-by-side scenarios exportable to CSV.
+3. **Comparator:** Wants side-by-side scenarios exportable to CSV.  
+4. **Strategic planner:** Wants best responses and equilibria when lender fees, household splits, or unemployment paths interact with prepay choices (§4.13).
 
 ---
 
@@ -73,24 +77,10 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 | Field | Type | Required |
 |------|------|----------|
 | `cash_inr` | number | no |
-| `monthly_salary_inr` | number | no | Default `0`; recurring monthly salary contribution applied toward loan across all scenarios |
 | `pf_corpus_inr` | number | no |
-| `pf_annual_interest_rate_pct` | number | no | Default `8.25`; annual PF credit used in unemployment module (§4.7) |
-| `monthly_pf_addition_inr` | number | no | Default `0`; amount added to PF corpus every month for PF scenario modelling |
-| `gold_liquid_inr` | number | no | Included in **Liquid assets** KPI; may be chosen as the **one-time prepay source** (month 1) for PREPAY_* rows in the Loan tab (alongside cash and PF). Does not alter `CASHFLOW_*` scenarios, which still use `cash_inr` for month-1 cash prepay. |
+| `gold_liquid_inr` | number | no |
 | `gold_haircut_pct` | number | no | 0–100 applied to gold if user enables |
 | `monthly_cash_to_loan_inr` | number | no | Recurring INR applied as **extra principal** after each month’s scheduled EMI (§4.5). v1 UI label: “Monthly cash to loan”; does **not** deduct living expenses—use §4.8 for budgeted cashflow. |
-| `monthly_take_home_inr` | number | no | Default `0`. Household post-tax income reaching the bank account. **Distinct** from `monthly_salary_inr`, which represents amount routed to the loan as recurring extra principal. Used by §4.12 as the basis for percent-of-take-home repayment policies. |
-| `monthly_living_expense_inr` | number | no | Default `0`. Promoted from §4.8; used globally by §4.12 for emergency-fund sizing and surplus calculation. |
-| `extra_monthly_income_inr` | number | no | Default `0`. Side / rental / variable income, **post-tax** unless `extra_income_post_tax` is `false`. |
-| `extra_income_post_tax` | boolean | no | Default `true`. If `false`, app applies user-provided `marginal_tax_rate_pct` to net it down. |
-| `marginal_tax_rate_pct` | number | no | Default `0`. Only consulted when `extra_income_post_tax = false`. |
-| `emergency_months_buffer` | integer | no | Default `6`. Number of months of `monthly_living_expense_inr + emi_inr` to reserve as untouchable cash before any deployment. |
-| `expected_equity_return_pct` | number | no | Default `11`. Long-run nominal expected return for the equity sleeve in §4.12. |
-| `horizon_months` | integer | no | Default = `tenure_months`. Used by §4.12 as the comparison horizon for net worth at horizon. |
-| `tax_regime` | enum | no | `old` \| `new`. Display-only hint in v1; does not auto-compute Sec 24b deductions. |
-
-> **Note on `monthly_salary_inr` vs `monthly_take_home_inr`:** `monthly_salary_inr` retains its existing v1 semantics (recurring monthly amount routed to the loan as extra principal across all §4.6 scenarios). `monthly_take_home_inr` is the new household-income field used **only** by §4.12 strategy math. Conversely, the §4.12 strategy planner computes its own monthly extra principal from `monthly_take_home_inr` and `extra_monthly_income_inr`; it does **not** add `monthly_salary_inr` on top.
 
 ### 4.3 Baseline computation
 
@@ -128,7 +118,6 @@ Prepayments are applied **at month boundary** unless advanced setting `prepaymen
 - Optional `extra_principal_inr` each month, or a single recurring amount.  
 - Applied after EMI allocation for that month (document order: interest → scheduled principal → extra principal).  
 - Must not drive balance negative; clamp overpayment to remaining principal + accrued interest rules (define: extra reduces principal after interest).
-- `monthly_salary_inr` is treated as a recurring monthly extra-principal contribution in all scenarios.
 
 ### 4.6 Scenario catalogue (employed)
 
@@ -145,8 +134,6 @@ Implement as named presets + freeform builder.
 | `STAGED_PREPAY` | Multiple timed prepayments (array) |
 | `BASE_PLUS_MONTHLY_INFLOW` | Baseline EMI + fixed `monthly_cash_to_loan_inr` each month after EMI (§4.5); compare **payoff months** to BASE |
 | `PREPAY_EMI_PLUS_MONTHLY_INFLOW` | One-time prepay (e.g. ₹25L) month 1 + **keep original EMI** + same monthly extra to loan; compare payoff months |
-| `CASHFLOW_NO_PF` | One-time prepay from `cash_inr` at month 1 + recurring `monthly_cash_to_loan_inr`; excludes PF withdrawals |
-| `CASHFLOW_PLUS_PF` | `CASHFLOW_NO_PF` plus PF tranches (§4.7) layered on top (month 1 + month 12) |
 
 ### 4.7 Unemployment + PF withdrawal module (required)
 
@@ -156,15 +143,10 @@ Implement as named presets + freeform builder.
 
 Let `PF0` be PF corpus at unemployment start (default: user `pf_corpus_inr`; allow editing).
 
-PF balance earns annual interest at `pf_annual_interest_rate_pct` (default **8.25%**) credited once per year for full-year spans that elapse before a tranche is withdrawn.
-`monthly_pf_addition_inr` is added to PF balance each month; for the month-12 tranche calculation, include **12 monthly additions** from the unemployment year.
-
 | Event time | Withdrawal fraction of `PF0` | Amount |
 |------------|-------------------------------|--------|
 | End of **month 1** after unemployment start | **75%** | `0.75 * PF0` |
-| End of **month 12** after unemployment start | Remaining 25% + monthly PF additions + annual PF credit | `((0.25 * PF0) + (12 * monthly_pf_addition_inr)) * (1 + pf_annual_interest_rate_pct/100)` |
-
-**Canonical credit order for month 12 tranche:** add monthly PF additions for the 12-month window to remaining PF balance, then apply annual PF interest, then withdraw tranche 2.
+| End of **month 12** after unemployment start | **25%** | `0.25 * PF0` |
 
 **Constraints / modelling knobs:**
 
@@ -213,157 +195,325 @@ For each scenario:
 
 **Export:** CSV export of schedule + JSON export of scenario config.
 
-### 4.10 Debt payoff planner dashboard (required)
+### 4.12 Repayment strategy planner (household allocation)
 
-Support a dedicated debt module that accepts multiple debts and simulates monthly payoff under two methods:
+Compare **three named strategies** over a user horizon. Reuses §4.3 EMI and §4.5 extra-principal engine; adds equity SIP + PF corpus projection.
 
-- `avalanche`: prioritise highest APR debt first (tie-breaker: higher balance)
-- `snowball`: prioritise lowest balance debt first (tie-breaker: higher APR)
-
-#### Inputs
+#### 4.12.1 Inputs (extends §4.1–§4.2)
 
 | Field | Type | Required | Notes |
 |------|------|----------|------|
-| `debts[]` | array | yes | Each debt has `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr` |
-| `monthly_budget_inr` | number | yes | Total monthly debt-payment budget across all debts |
-| `start_date` | date | yes | Used by payoff-date simulator |
+| `monthly_take_home_inr` | number | yes | > 0 for meaningful warnings |
+| `monthly_living_expense_inr` | number | no | Used in emergency buffer |
+| `extra_monthly_income_inr` | number | no | Post-tax optional via `extra_income_post_tax` |
+| `marginal_tax_rate_pct` | number | no | When extra is pre-tax |
+| `emergency_months_buffer` | number | no | Default `6` |
+| `expected_equity_return_pct` | number | no | Nominal annual % for SIP/lump projection |
+| `horizon_months` | number | yes | Compare KPIs at this month index |
+| `repayment_pct_of_take_home` | number | no | Only for `STRATEGY_AGGRESSIVE_PREPAY`; 0–100 |
 
-#### Debt simulation order
+Emergency deployable cash: `deployable = max(0, cash_inr - emergency_months_buffer × (living + emi0))`. If `cash_inr < buffer`, deployable = 0 and warn `EMERGENCY_FUND_SHORTFALL`.
 
-For each month:
+#### 4.12.2 Strategy IDs and allocation rules
 
-1. Accrue interest on each debt (`balance * apr/12`).
-2. Pay each debt's minimum payment (clamped to remaining balance).
-3. Allocate remaining budget to one target debt by chosen strategy.
-4. Continue until all balances are 0 or less.
+| Strategy ID | One-time deployable | Monthly extra (post-EMI) | Equity sleeve |
+|-------------|---------------------|--------------------------|---------------|
+| `STRATEGY_EQUITY_BLEND` | 40% prepay, 60% equity lump | 60% to loan, 40% SIP | Lump + SIP during loan; post-loan redirect = `emi0 + extra` to equity |
+| `STRATEGY_PREPAY_HEAVY` | 100% prepay | 100% to loan | None |
+| `STRATEGY_AGGRESSIVE_PREPAY` | 100% prepay | `max(0, repayment_pct_of_take_home × take_home + extra − emi0)` | None |
 
-#### Outputs
+Month-1 prepay uses `recompute_tenure_keep_emi` (§4.4 policy 1). Post-loan equity redirect runs for `horizon − loan_close_month` months.
 
-- Payoff month count and projected payoff date
-- Total interest paid
-- Monthly timeline table with: month, total opening debt, interest, payment, total closing debt, target debt label
-- Strategy comparison table (`avalanche` vs `snowball`) showing payoff months/date and total interest
-- Validation warning when `monthly_budget_inr` is less than sum of minimum payments
-- **Numeric guard:** If running totals become non-finite (e.g. extreme APR vs payments from mis-keyed rows), summary interest is reset to `0`, warnings concatenate an explanation, and the UI renders non-finite amounts as an em dash (—).
+#### 4.12.3 Outputs (per strategy row)
 
-### 4.11 Retirement planner dashboard (required)
+`loan_close_month`, `total_interest_inr`, `interest_saved_vs_base_inr`, allocation breakdown, `equity_corpus_at_horizon_inr`, `equity_corpus_at_horizon_post_tax_inr` (LTCG 12.5% on gain above ₹1,25,000 exemption), `pf_corpus_at_horizon_inr`, `net_worth_at_horizon_inr`, `min_living_budget_inr`, `warnings[]`.
 
-Support a retirement module for corpus projection and scenario testing.
+#### 4.12.4 Tier presets (UI)
 
-#### Inputs
+| Tier ID | Label | `monthly_take_home_inr` |
+|---------|-------|-------------------------|
+| `tier_a` | Tier A | 300,000 |
+| `tier_b` | Tier B | 200,000 |
+| `tier_c` | Tier C | 100,000 |
+
+Nine golden fixtures: each tier × each strategy (§15.1).
+
+#### 4.12.5 Warnings (strategy module)
+
+| Code | Condition |
+|------|-----------|
+| `EMERGENCY_FUND_SHORTFALL` | `cash_inr` below emergency buffer |
+| `FRAGILE_CASH_FLOW` | `emi0 > 0.5 × monthly_take_home_inr` |
+| `BELOW_SUBSISTENCE` | `min_living_budget_inr < 15_000` |
+| `AGGRESSIVE_PCT_INVALID` | `repayment_pct_of_take_home` outside 0–100 |
+| `HORIZON_TOO_SHORT` | `horizon_months < loan_close_month` |
+
+---
+
+### 4.13 Strategic interaction (game theory)
+
+Model **multi-agent** choices on top of deterministic simulation. Single-agent “pick the best scenario” (§4.6) is **not** §4.13; it remains brute-force comparison over named presets.
+
+#### 4.13.1 Architecture
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Payoff oracle** | §4.3–§4.8 schedules, §4.12 `simulateStrategy` — no equilibrium logic inside |
+| **Game definition** | Players, action sets, information, timing, payoff weights |
+| **Solver** | Nash (pure), backward induction, max-min, Pareto scan, bargaining (phased) |
+| **UI** | Select `game_profile_id`, opponent assumptions, show matrix / tree / recommendations |
+
+Implement under `src/lib/game/` (names non-binding). Results are **educational** (§14); not lender negotiation or legal advice.
+
+#### 4.13.2 Player roster
+
+| ID | Role | Active when |
+|----|------|-------------|
+| `B` | Borrower / household principal | Always in §4.13 |
+| `L` | Lender (fees, repricing) | `players` includes `L` |
+| `H` | Co-decider (spouse/partner split) | `players` includes `H` |
+| `N` | Nature (employment, shocks) | `players` includes `N` |
+
+**Valid player sets** (7 configurations; `{B}` alone is excluded—use §4.6):
+
+| `players` | Code | Description |
+|-----------|------|-------------|
+| `B,L` | `BL` | Prepay vs prepayment fee / reprice |
+| `B,H` | `BH` | Surplus split: loan vs equity vs buffer |
+| `B,N` | `BN` | Employed path vs unemployment + PF tranches (§4.7) |
+| `B,L,H` | `BLH` | Fee + household split |
+| `B,L,N` | `BLN` | Fee + unemployment timing |
+| `B,H,N` | `BHN` | Split + unemployment |
+| `B,L,H,N` | `BLHN` | Full stack (stress + strategic) |
+
+#### 4.13.3 Action dimensions (enumerated levels)
+
+Each dimension applies only if the relevant player is active. **Invalid** cells (e.g. `H` action when `H` ∉ `players`) are omitted from the catalogue.
+
+**Borrower (`B`) — lump prepay at month 1**
+
+| Action ID | Meaning |
+|-----------|---------|
+| `B_PREPAY_0` | No lump prepay |
+| `B_PREPAY_25` | ₹25,00,000 (reference; scale via `prepay_fraction_of_deployable` optional) |
+| `B_PREPAY_50` | 50% of deployable cash (after emergency buffer) |
+| `B_PREPAY_100` | 100% of deployable |
+
+**Borrower (`B`) — prepayment policy** (when lump > 0)
+
+| Action ID | Maps to §4.4 |
+|-----------|----------------|
+| `B_POL_TENURE` | `recompute_tenure_keep_emi` |
+| `B_POL_EMI` | `recompute_emi_keep_tenure` |
+
+**Borrower (`B`) — recurring extra principal**
+
+| Action ID | Meaning |
+|-----------|---------|
+| `B_EXTRA_0` | No monthly extra |
+| `B_EXTRA_LOW` | `monthly_cash_to_loan_inr` default **₹10,000** |
+| `B_EXTRA_HIGH` | `monthly_cash_to_loan_inr` default **₹50,000** |
+
+**Borrower (`B`) — funding source** (labelling + constraint only)
+
+| Action ID | Meaning |
+|-----------|---------|
+| `B_FUND_CASH` | Prepay from `cash_inr` only |
+| `B_FUND_MIX` | Cash first, then gold (haircut), then PF (user fractions) |
+
+**Lender (`L`)**
+
+| Action ID | Meaning |
+|-----------|---------|
+| `L_FEE_0` | `prepayment_fee_inr = 0` |
+| `L_FEE_FLAT` | Charge `prepayment_fee_inr` once per lump prepay event |
+| `L_FEE_PCT` | Charge `prepayment_fee_pct × prepay_amount` (new input; default **1%** if unset) |
+| `L_RATE_HOLD` | `annual_interest_rate` unchanged (v1 default) |
+| `L_RATE_BUMP` | Add `lender_rate_bump_bps` (default **50** bps) after borrower lump prepay (v1.3) |
+
+**Household (`H`) — maps to §4.12 strategy or custom split**
+
+| Action ID | Maps to |
+|-----------|---------|
+| `H_BLEND` | `STRATEGY_EQUITY_BLEND` |
+| `H_PREPAY` | `STRATEGY_PREPAY_HEAVY` |
+| `H_AGGR` | `STRATEGY_AGGRESSIVE_PREPAY` |
+| `H_CUSTOM_70_30` | 70% deployable + monthly surplus to loan, 30% equity |
+| `H_CUSTOM_30_70` | 30% loan / 70% equity |
+
+**Nature (`N`)**
+
+| Action ID | Meaning |
+|-----------|---------|
+| `N_EMPLOYED` | `unemployment_mode = false` |
+| `N_UE_M1` | Unemployment starts month **1** (§4.7) |
+| `N_UE_M12` | Unemployment starts month **12** |
+| `N_UE_M24` | Unemployment starts month **24** |
+
+**PF tranche routing** (when `N` active and unemployment on)
+
+| Action ID | Meaning |
+|-----------|---------|
+| `N_PF_LOAN` | Both tranches 100% `loan_prepay` (`UE_PF_TO_LOAN`) |
+| `N_PF_BRIDGE` | `UE_PF_BRIDGE` preset |
+| `N_PF_DELAY` | `UE_DELAY_PREPAY` preset |
+
+#### 4.13.4 Information and timing
+
+| `information` | Valid if | Semantics |
+|---------------|----------|-----------|
+| `SIM` | Any player set | Normal form: all players choose simultaneously |
+| `SEQ_B` | `L` or `H` present | Borrower moves first; others observe then respond |
+| `SEQ_L` | `L` present | Lender announces fee rule first; borrower then prepays |
+| `SEQ_N` | `N` present | Nature reveals employment state first; then `B` (and `L`/`H` if present) |
+
+| `game_form` | Requires | Solver |
+|-------------|----------|--------|
+| `NORMAL` | `information = SIM` | Pure Nash; optional mixed Nash v1.3 |
+| `EXTENSIVE` | `SEQ_*` | Subgame-perfect (backward induction) |
+| `STOCHASTIC` | `N` present + `game_form = STOCHASTIC` | Scenario-tree / max-min over nature branches (v1.3; not full MDP v2) |
+
+#### 4.13.5 Payoff functions (per player)
+
+Payoffs are computed from oracle outputs. User may select **objective** (applies to `B` / `H`; `L` uses lender objective when in competitive mode).
+
+| `payoff_metric` | Formula (borrower / household) |
+|-----------------|----------------------------------|
+| `MINUS_TOTAL_INTEREST` | `−total_interest_inr` |
+| `MINUS_TOTAL_OUTFLOW` | `−(total_paid_inr + prepayment_fees_inr)` |
+| `NET_WORTH_HORIZON` | `net_worth_at_horizon_inr` from §4.12 when `H` active; else cash + PF + equity − loan balance at horizon |
+| `INTEREST_SAVED_MINUS_FEES` | `interest_saved_vs_base_inr − prepayment_fees_inr` |
+| `MIN_CASH_RUNWAY` | `min(cash_balance_inr)` over schedule (§4.8); maximise for risk-averse |
+
+| `lender_objective` | Formula (`L` active, competitive) |
+|--------------------|-----------------------------------|
+| `L_FEE_INCOME` | `prepayment_fees_inr` |
+| `L_INTEREST_INCOME` | `total_interest_inr` (lender prefers borrower **not** to prepay) |
+
+**Cooperative mode** (`B,H` only, or user toggles `cooperative: true`): single welfare `W = w_b × U_B + w_h × U_H` with default `w_b = w_h = 0.5`; report **Pareto frontier** over deployable splits instead of zero-sum Nash.
+
+#### 4.13.6 Solution concepts
+
+| `solution` | Use when |
+|------------|----------|
+| `NASH_PURE` | `NORMAL`, finite action sets |
+| `SUBGAME_PERFECT` | `EXTENSIVE`, perfect information |
+| `MAXMIN_B` | Risk-averse borrower vs unknown `L` or `N` |
+| `PARETO` | Cooperative `B,H` |
+| `NASH_BARGAINING` | `B,H` with disagreement point = `B_PREPAY_0` + `H_BLEND` (v1.3) |
+| `MIXED_NASH` | No pure equilibrium; 2×2 games only (v1.3) |
+
+#### 4.13.7 Combination index (how profiles are built)
+
+A **game profile** is a valid tuple:
+
+```text
+game_profile = ( players, information, game_form, solution,
+                 b_lump, b_policy, b_extra, b_fund,
+                 l_fee, l_rate,          -- omitted if L ∉ players
+                 h_split,                -- omitted if H ∉ players
+                 n_employment, n_pf_route )  -- omitted if N ∉ players
+```
+
+**Validity rules**
+
+1. `{B}` only → not §4.13; use §4.6 / §4.12.  
+2. `b_policy` required iff `b_lump ≠ B_PREPAY_0`.  
+3. `l_fee`, `l_rate` require `L ∈ players`.  
+4. `h_split` requires `H ∈ players`.  
+5. `n_employment`, `n_pf_route` require `N ∈ players`; `n_pf_route` only if `n_employment ≠ N_EMPLOYED`.  
+6. `SEQ_L` requires `L`; `SEQ_N` requires `N`.  
+7. `STOCHASTIC` requires `N` and at least two nature branches in the run config.  
+8. `B_FUND_MIX` requires sufficient labelled assets (§4.2); else profile runs with warning `INSUFFICIENT_ASSETS`.
+
+**Raw combinatorial upper bound** (before validity):  
+`7 player sets × 4 information × 3 game_form × 6 solution × 4 lump × 2 policy × 3 extra × 2 fund × 4 l_fee × 2 l_rate × 5 h_split × 3 n_emp × 3 n_pf` → millions of tuples; **§4.13.8** lists the **canonical** profiles the product actually names and ships.
+
+#### 4.13.8 Canonical game profile catalogue
+
+Naming: `GAME_{players}_{information}_{focus}` where `focus` summarises the strategic tension. Each row is one preset; implementation may expand action grids internally.
+
+**Tier P0 — v1.2 (implement first)**
+
+| Profile ID | players | information | Focus | B actions (grid) | Other actions | solution |
+|------------|---------|-------------|-------|------------------|---------------|----------|
+| `GAME_BL_SIM_FEE` | B,L | SIM | Prepay vs fee | lump × {0,25,50} × policy tenure | L: {FEE_0, FEE_FLAT} | NASH_PURE |
+| `GAME_BL_SEQ_L_FEE` | B,L | SEQ_L | Lender commits fee rule first | lump × {0,25,50} | L: {FEE_0, FEE_FLAT, FEE_PCT} | SUBGAME_PERFECT |
+| `GAME_BH_SIM_SPLIT` | B,H | SIM | Loan vs equity | via H: {BLEND, PREPAY, AGGR} | B: deployable fixed | PARETO |
+| `GAME_BH_COOP_PARETO` | B,H | SIM | Custom splits | H: {CUSTOM_70_30, CUSTOM_30_70, BLEND} | cooperative | PARETO |
+| `GAME_BN_SEQ_N_UE` | B,N | SEQ_N | Employment shock | B: {EXTRA_0, EXTRA_HIGH} | N: {EMPLOYED, UE_M1} × PF route | MAXMIN_B |
+| `GAME_BN_SIM_UE_TIMING` | B,N | SIM | When unemployment hits | B: lump {0,25} | N: {UE_M1, UE_M12, UE_M24} × {PF_LOAN, PF_BRIDGE} | MAXMIN_B |
+
+**Tier P1 — v1.3**
+
+| Profile ID | players | information | Focus |
+|------------|---------|-------------|-------|
+| `GAME_BLH_SIM_FULL` | B,L,H | SIM | Fee + household split |
+| `GAME_BLN_SEQ_N_FEE` | B,L,N | SEQ_N | UE timing + lender fee |
+| `GAME_BHN_STOCH_RUNWAY` | B,H,N | STOCHASTIC | Min cash runway vs split |
+| `GAME_BLHN_EXT_STRESS` | B,L,H,N | SEQ_N | Full stress + strategic |
+| `GAME_BL_SIM_RATE_BUMP` | B,L | SIM | Prepay triggers rate bump |
+| `GAME_BL_MIXED_FEE` | B,L | SIM | Mixed strategy Nash on 2×2 fee game |
+
+**Tier P2 — research / non-shipping (document only)**
+
+| Profile ID | Note |
+|------------|------|
+| `GAME_MULTI_CREDITOR` | >1 loan; blocked by §11 until spec revision |
+| `GAME_REPEATED_LENDER` | Repeated game over months; needs horizon policy |
+| `GAME_FLOATING_N` | Nature draws rate paths; blocked by §11 stochastic rates |
+| `GAME_B_ONLY_OPTIM` | Alias to §4.6 grid search — not game theory |
+
+**Cross-product within P0 `GAME_BL_SIM_FEE`** (explicit 3×2×2 = **12** raw cells):
+
+- `b_lump ∈ {B_PREPAY_0, B_PREPAY_25, B_PREPAY_50}`  
+- `b_policy ∈ {B_POL_TENURE, B_POL_EMI}` (ignored when lump = 0)  
+- `l_fee ∈ {L_FEE_0, L_FEE_FLAT}`  
+
+Collapsed distinct outcomes: **10** cells (when `b_lump = B_PREPAY_0`, the two policies share one payoff per `l_fee`).
+
+**Expanded grid (optional UI):** include `b_extra ∈ {B_EXTRA_0, B_EXTRA_HIGH}` → 12 × 2 = **24** raw cells, **20** collapsed (same lump=0 policy merge per extra/fee pair).
+
+**Cross-product within P0 `GAME_BN_SIM_UE_TIMING`**:  
+`3` UE months × `2` PF routes × `2` lump = **12** cells (B lump {0, 25}).
+
+#### 4.13.9 Outputs (game module)
+
+For each `game_profile_id`:
+
+| Output | Description |
+|--------|-------------|
+| `payoff_matrix` | Players × action profiles → INR (and lender column if competitive) |
+| `equilibria[]` | Pure Nash or subgame-perfect profiles |
+| `recommended_b_action` | Max-min or user-selected objective |
+| `deviation_gains` | Unilateral deviation Δ payoff (explainability) |
+| `warnings[]` | `INSUFFICIENT_ASSETS`, `NO_PURE_EQUILIBRIUM`, `AMBIGUOUS_EQUILIBRIUM` |
+| `underlying_scenario_ids[]` | §4.6 scenario IDs used as oracle calls |
+
+Export: JSON of matrix + equilibria; CSV optional v1.3.
+
+#### 4.13.10 Inputs (game-specific)
 
 | Field | Type | Required | Notes |
 |------|------|----------|------|
-| `current_corpus_inr` | number | yes | Current invested corpus |
-| `monthly_contribution_inr` | number | yes | Recurring monthly investment |
-| `annual_return_pct` | number | yes | Expected nominal return |
-| `inflation_pct` | number | yes | Long-term inflation assumption |
-| `years_to_retirement` | integer | yes | Projection horizon |
-| `annual_expense_today_inr` | number | yes | Current annual expenses |
-| `safe_withdrawal_rate_pct` | number | yes | Default `4` unless user edits |
+| `game_profile_id` | enum | yes | §4.13.8 |
+| `payoff_metric` | enum | no | Default `INTEREST_SAVED_MINUS_FEES` |
+| `lender_objective` | enum | no | Default `L_FEE_INCOME` when `L` active |
+| `cooperative` | boolean | no | Default `false`; force `true` for `GAME_BH_*` Pareto |
+| `prepayment_fee_inr` | number | no | §4.1 |
+| `prepayment_fee_pct` | number | no | For `L_FEE_PCT` |
+| `lender_rate_bump_bps` | number | no | For `L_RATE_BUMP` |
+| `horizon_months` | integer | no | Required when payoff uses `NET_WORTH_HORIZON` |
+| `w_b`, `w_h` | number | no | Cooperative weights; default 0.5 / 0.5 |
 
-#### Computation
+All §4.1–§4.2 loan and asset fields apply to the oracle.
 
-- Project nominal corpus month by month with compounding and monthly contributions.
-- Inflate current annual expenses to retirement year using inflation assumptions.
-- Compute target corpus using withdrawal rule:
+#### 4.13.11 UI (minimum)
 
-\[
-\text{target\_corpus} = \frac{\text{annual\_expense\_at\_retirement}}{\text{safe\_withdrawal\_rate}}
-\]
-
-- Report real corpus (inflation-adjusted) and funded ratio (`projected / target`).
-
-#### Scenario testing
-
-Provide at least three scenarios from the same base inputs:
-
-1. `Base` (as entered)
-2. `Conservative` (lower return, higher inflation)
-3. `Optimistic` (higher return, lower inflation and/or higher contribution)
-
-Show projected corpus, retirement expense, target corpus, and funded ratio per scenario.
-
-### 4.12 Repayment Strategy Planner (required)
-
-A composer that simulates **three named allocation strategies** over the loan's remaining horizon and reports loan close, interest paid, equity sleeve growth, and net worth at horizon. It **reuses** the §4.3–4.5 loan engine and §4.11 corpus projection — no new amortisation math.
-
-#### 4.12.1 Derived quantities
-
-Let:
-
-- `THM` = `monthly_take_home_inr`
-- `LE` = `monthly_living_expense_inr`
-- `EMI0` = baseline EMI from §4.3
-- `EXTRA` = `extra_monthly_income_inr` × (1 if `extra_income_post_tax` else 1 − `marginal_tax_rate_pct`/100)
-- `BUFFER` = `emergency_months_buffer × (LE + EMI0)`
-- `DEPLOYABLE` = `max(0, cash_inr − BUFFER)`
-
-Validation:
-
-- If `cash_inr < BUFFER` → §9 warning `EMERGENCY_FUND_SHORTFALL`; strategies still simulate but treat `DEPLOYABLE` as `0`.
-- If `EMI0 > 0.5 × THM` → §9 warning `FRAGILE_CASH_FLOW`.
-
-#### 4.12.2 Strategy presets
-
-| Strategy ID | One-time prepayment (month 1) | Monthly extra principal | Equity sleeve during loan | Post-loan redirection |
-|---|---|---|---|---|
-| `STRATEGY_EQUITY_BLEND` | `0.4 × DEPLOYABLE` | `0.6 × EXTRA` | Lump = `0.6 × DEPLOYABLE` invested month 1 + SIP from `0.4 × EXTRA` | After payoff, `EMI0 + EXTRA` → SIP until `horizon_months` |
-| `STRATEGY_PREPAY_HEAVY` | `DEPLOYABLE` (full) | `EXTRA` (full) | None | After payoff, `EMI0 + EXTRA` → SIP until `horizon_months` |
-| `STRATEGY_AGGRESSIVE_PREPAY` | `DEPLOYABLE` (full) | `(repayment_pct_of_take_home / 100) × THM + EXTRA − EMI0`, clamped ≥ 0 | None | After payoff, `(repayment_pct_of_take_home / 100) × THM + EXTRA` → SIP |
-
-Additional input for the third strategy:
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `repayment_pct_of_take_home` | number | only for `STRATEGY_AGGRESSIVE_PREPAY` | 0–100. Effective monthly cash to loan = `(pct/100) × THM + EXTRA`. |
-
-The 0.4 / 0.6 split for `STRATEGY_EQUITY_BLEND` is canonical in v1.7 and **must be referenced** as `EQUITY_BLEND_PREPAY_FRACTION = 0.4` in `src/lib/strategy/`. Open question §13.4 tracks future user-tunability.
-
-#### 4.12.3 Simulation procedure (each strategy)
-
-1. **Loan side:** call the §4.5 fixed-EMI-with-monthly-extra engine with the strategy's one-time prepayment and monthly extra principal. Result includes `payoff_month`. EMI is **not** recomputed at any stage; one-time prepayment shortens tenure naturally (policy `recompute_tenure_keep_emi`).
-2. **Equity sleeve during loan months 1 → `payoff_month`:** project a corpus per §4.11 monthly compounding using the strategy's lump and monthly SIP at `expected_equity_return_pct`.
-3. **Equity sleeve post-loan, months `payoff_month + 1` → `horizon_months`:** continue projection with the redirected monthly amount; lump at start of this phase = corpus from step 2.
-4. **Final corpus** = projection result at month `horizon_months`. Report **pre-tax**; an additional KPI applies 12.5% LTCG above ₹1.25L gain (canonical India rule, v1.7) for an indicative post-tax figure.
-5. **PF at horizon** = `pf_corpus_inr` projected with `pf_annual_interest_rate_pct` (annual credit, full years) plus `monthly_pf_addition_inr × horizon_months`. Strategy planner does **not** simulate unemployment PF tranches (§4.7 stays its own module).
-
-#### 4.12.4 Outputs (per strategy)
-
-Extends §4.9 with strategy-specific KPIs:
-
-| KPI | Definition |
-|---|---|
-| `loan_close_month` | From step 1 above. |
-| `total_interest_inr` | From step 1. |
-| `interest_saved_vs_base_inr` | Baseline §4.3 interest minus this strategy's `total_interest_inr`. |
-| `equity_corpus_at_horizon_inr` | Step 4, pre-tax. |
-| `equity_corpus_at_horizon_post_tax_inr` | Step 4 with 12.5% LTCG over ₹1.25L on the gain only. |
-| `net_worth_at_horizon_inr` | `equity_corpus_at_horizon_inr + cash_buffer_remaining_inr + pf_corpus_at_horizon_inr − loan_balance_at_horizon_inr`. Loan balance is `0` if `horizon_months ≥ loan_close_month`. |
-| `min_living_budget_inr` | `THM + EXTRA − (EMI0 + monthly_extra_principal + monthly_sip)`. Surfaced for §9 subsistence warning. |
-
-#### 4.12.5 Comparison output
-
-A side-by-side table with one row per strategy and columns: `loan_close_month`, `total_interest_inr`, `equity_corpus_at_horizon_inr`, `net_worth_at_horizon_inr`, `min_living_budget_inr`, `warnings[]`.
-
-#### 4.12.6 Take-home tier presets (UI helper)
-
-The UI **must** expose three quick-select presets that populate `monthly_take_home_inr` only — they do not change loan/asset inputs:
-
-| Preset | `monthly_take_home_inr` |
-|---|---|
-| Tier A | `300_000` |
-| Tier B | `200_000` |
-| Tier C | `100_000` |
-
-Tier presets are convenience only; nothing in the engine depends on them.
-
-#### 4.12.7 Known v1.7 simplifications
-
-- All three strategies use a **single** equity expected-return number; no scenario fan (cf. §4.11's `Conservative`/`Optimistic`).
-- `STRATEGY_PREPAY_HEAVY` deploys the **full** `EXTRA` to extra principal; the conversational variant of starting a small equity SIP even during the loan is **not** modelled. Users wanting that should use `STRATEGY_EQUITY_BLEND`.
-- `monthly_salary_inr` is ignored by §4.12 (see §4.2 note).
-- Sec 24b interest deduction is **not** auto-applied to derive an effective loan rate; `tax_regime` is display-only (cf. §13.7).
+1. **Game picker** — dropdown of Tier P0 profiles + short description.  
+2. **Matrix view** — heatmap or table for `NORMAL` games; tree diagram for `EXTENSIVE` (optional v1.3).  
+3. **Recommendation card** — equilibrium or max-min action with link to underlying amortisation scenario.  
+4. **Disclaimer** — §14 plus: “Opponent behaviour is assumed, not predicted.”
 
 ---
 
@@ -422,6 +572,42 @@ interface SimulationResult {
   };
 }
 
+type PlayerId = "B" | "L" | "H" | "N";
+
+type GameProfileId =
+  | "GAME_BL_SIM_FEE"
+  | "GAME_BL_SEQ_L_FEE"
+  | "GAME_BH_SIM_SPLIT"
+  | "GAME_BH_COOP_PARETO"
+  | "GAME_BN_SEQ_N_UE"
+  | "GAME_BN_SIM_UE_TIMING";
+  // v1.3: BLH, BLN, BHN, BLHN, BL_SIM_RATE_BUMP, BL_MIXED_FEE
+
+interface GameActionProfile {
+  b_lump?: string;
+  b_policy?: string;
+  b_extra?: string;
+  l_fee?: string;
+  h_split?: string;
+  n_employment?: string;
+  n_pf_route?: string;
+}
+
+interface GameEquilibrium {
+  action_profile: GameActionProfile;
+  payoffs: Partial<Record<PlayerId, number>>;
+  is_pure: boolean;
+}
+
+interface GameResult {
+  game_profile_id: GameProfileId;
+  payoff_matrix: unknown; // shape depends on profile; JSON-serialisable
+  equilibria: GameEquilibrium[];
+  recommended_b_action?: GameActionProfile;
+  warnings: string[];
+  underlying_scenario_ids: string[];
+}
+
 interface AmortRow {
   month: number;
   opening_principal_inr: number;
@@ -433,49 +619,6 @@ interface AmortRow {
   emi_inr: number;
   cash_balance_inr?: number;
   events?: string[];
-}
-
-type StrategyId =
-  | "STRATEGY_EQUITY_BLEND"
-  | "STRATEGY_PREPAY_HEAVY"
-  | "STRATEGY_AGGRESSIVE_PREPAY";
-
-interface StrategyInputs {
-  principal_inr: number;
-  annual_interest_rate: number;
-  tenure_months: number;
-  cash_inr: number;
-  pf_corpus_inr: number;
-  pf_annual_interest_rate_pct: number;
-  monthly_pf_addition_inr: number;
-  monthly_take_home_inr: number;
-  monthly_living_expense_inr: number;
-  extra_monthly_income_inr: number;
-  extra_income_post_tax: boolean;
-  marginal_tax_rate_pct: number;
-  emergency_months_buffer: number;
-  expected_equity_return_pct: number;
-  horizon_months: number;
-  repayment_pct_of_take_home?: number;
-}
-
-interface StrategyResult {
-  strategy_id: StrategyId;
-  loan_close_month: number;
-  total_interest_inr: number;
-  interest_saved_vs_base_inr: number;
-  one_time_prepay_inr: number;
-  monthly_extra_principal_inr: number;
-  monthly_sip_inr: number;
-  equity_lump_inr: number;
-  equity_corpus_at_horizon_inr: number;
-  equity_corpus_at_horizon_post_tax_inr: number;
-  pf_corpus_at_horizon_inr: number;
-  cash_buffer_remaining_inr: number;
-  loan_balance_at_horizon_inr: number;
-  net_worth_at_horizon_inr: number;
-  min_living_budget_inr: number;
-  warnings: string[];
 }
 ```
 
@@ -550,11 +693,6 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 - Unemployment mode with **no cash** and **no income** and **EMI > 0** → warn “EMI default risk”; do not silently succeed.  
 - PF withdrawals exceeding corpus → error.  
 - Gold haircut toggled → show effective liquidation value.
-- `EMERGENCY_FUND_SHORTFALL` (§4.12): `cash_inr < emergency_months_buffer × (monthly_living_expense_inr + EMI0)` → emit warning; strategies still run but `DEPLOYABLE = 0`.
-- `FRAGILE_CASH_FLOW` (§4.12): baseline `EMI0 > 0.5 × monthly_take_home_inr` → emit warning on every strategy result.
-- `BELOW_SUBSISTENCE` (§4.12): any strategy whose `min_living_budget_inr < 15,000` → emit warning attached to that strategy row.
-- `AGGRESSIVE_PCT_INVALID` (§4.12): `repayment_pct_of_take_home` outside `[0, 100]` for `STRATEGY_AGGRESSIVE_PREPAY` → emit warning and clamp to range; do not error.
-- `HORIZON_TOO_SHORT` (§4.12): `horizon_months < loan_close_month` → emit warning; equity sleeve is computed only up to `horizon_months` and post-loan redirection does not occur.
 
 ---
 
@@ -568,41 +706,39 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 2. **Baseline total interest** within **0.1%** of a reference spreadsheet for same inputs.  
 3. **Prepay ₹25L at month 1 + keep EMI**: payoff month ~ **62** for the reference loan (allow ±1 month due to rounding).  
 4. **Prepay ₹25L at month 1 + keep tenure 168**: EMI ~ **half** of baseline within **₹50** (rounding).  
-5. **PF unemployment**: for `PF0=2_500_000` and `pf_annual_interest_rate_pct=8.25`, verify inflows **1,875,000** then **676,562.50** on correct months.  
+5. **PF unemployment**: for `PF0=2_500_000`, verify inflows **1,875,000** then **625,000** on correct months.  
 6. **Cashflow**: constructed fixture where income=0, living+EMI exhaust cash in `k` months → system flags shortfall.  
 7. **Monthly inflow to loan:** for fixed `monthly_cash_to_loan_inr` &gt; 0, payoff month count is **strictly less** than baseline for the same principal/rate/tenure (reference loan).
-8. **Reference PF scenario recalculation:** for `PF0=2_500_000`, total withdrawals over month 1 + month 12 equal **2,551,562.50** (reflecting annual PF interest on the remaining 25%).
-9. **Cashflow layering:** `CASHFLOW_PLUS_PF` payoff month is less than or equal to `CASHFLOW_NO_PF` for the same inputs.
-10. **PF monthly addition:** for `PF0=2_500_000`, `pf_annual_interest_rate_pct=8.25`, and `monthly_pf_addition_inr=10_000`, month-12 PF tranche is **806,462.50**.
-11. **Salary contribution impact:** with `monthly_salary_inr > 0`, payoff month for each scenario is less than or equal to the same scenario computed with `monthly_salary_inr = 0` (all else equal).
-12. **Debt strategy comparison:** for a fixed multi-debt fixture, `avalanche` total interest is less than or equal to `snowball` total interest.
-13. **Debt payoff date simulator:** payoff date equals `start_date + payoff_months` for both strategies.
-14. **Debt budget guard:** when monthly budget is lower than sum of minimum payments, planner returns a warning and does not claim full payoff.
-15. **Retirement projection monotonicity:** increasing monthly contribution increases projected corpus (all else equal).
-16. **Retirement scenario ranking:** conservative funded ratio is less than or equal to optimistic funded ratio for the same base inputs.
-17. **Retirement inflation impact:** increasing inflation increases required target corpus.
-18. **Strategy monotonicity (aggressive):** Increasing `repayment_pct_of_take_home` strictly reduces (or equals at boundary) `loan_close_month` for `STRATEGY_AGGRESSIVE_PREPAY`, all else equal.
-19. **Equity-blend dominance under high return:** With `expected_equity_return_pct ≥ annual_interest_rate + 2`, `STRATEGY_EQUITY_BLEND.equity_corpus_at_horizon_inr ≥ STRATEGY_PREPAY_HEAVY.equity_corpus_at_horizon_inr` for the §15.1 reference loan.
-20. **Prepay-heavy dominance under low equity return:** With `expected_equity_return_pct ≤ annual_interest_rate`, `STRATEGY_PREPAY_HEAVY.net_worth_at_horizon_inr ≥ STRATEGY_EQUITY_BLEND.net_worth_at_horizon_inr` for the §15.1 reference loan.
-21. **Emergency fund guard:** When `cash_inr < emergency_months_buffer × (monthly_living_expense_inr + EMI0)`, all three strategy results carry the `EMERGENCY_FUND_SHORTFALL` warning and use `DEPLOYABLE = 0`.
-22. **Subsistence warning:** For `STRATEGY_AGGRESSIVE_PREPAY` with `repayment_pct_of_take_home = 90`, `monthly_take_home_inr = 100_000`, `monthly_living_expense_inr = 50_000` (and §15.1 loan), the result carries the `BELOW_SUBSISTENCE` warning.
-23. **Net-worth golden tiers:** For the three reference tiers in §15.1, each strategy's `StrategyResult` matches the golden file under `src/test/fixtures/strategy/<tier>_<strategy>.json` exactly.
-24. **Post-loan redirection sanity:** With `horizon_months > loan_close_month`, equity corpus at `horizon_months` strictly exceeds equity corpus at `loan_close_month` for any strategy with `EXTRA > 0` or `EMI0 > 0`.
 
 ### Golden files
 
 Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF_TO_LOAN` with a fixed rounding policy.
+
+### Strategy planner (§4.12)
+
+8. **Equity blend** on reference §15 inputs: `one_time_prepay_inr` = 40% of deployable; `equity_lump_inr` = remainder.  
+9. **Nine strategy goldens** (`tier_{a,b,c}` × three strategies) match `src/test/fixtures/strategy/` within documented rounding.
+
+### Game theory (§4.13) — phased
+
+10. **`GAME_BL_SIM_FEE`**: payoff matrix has **10** collapsed cells (12 raw); pure Nash exists for reference loan with `prepayment_fee_inr = 25_000` and fee objective — document equilibrium in golden JSON.  
+11. **`GAME_BL_SIM_FEE`**: when `L_FEE_0`, borrower best response is maximum lump in `INTEREST_SAVED_MINUS_FEES` objective (reference loan).  
+12. **`GAME_BN_SIM_UE_TIMING`**: **12** cells; max-min borrower action never chooses `B_PREPAY_25` if `min_cash_runway` < 3 months on reference budget fixture (construct in test).  
+13. **Oracle purity**: `src/lib/game/` must not duplicate EMI math; all payoffs call §4.3–§4.8 or §4.12 helpers.  
+14. **Tier P0 goldens** (when implemented): one JSON per profile in `src/test/fixtures/game/`.
 
 ---
 
 ## 11. Non-Goals (v1)
 
 - Tax advice, capital gains on gold, or EPFO compliance verification.  
-- Floating-rate stochastic simulation.  
-- Multi-loan optimisation.  
-- Lender-specific day-count conventions (ACT/365) unless user requests later.
-- §4.12 strategy planner does **not** model: equity drawdown / sequence-of-returns risk, dividend reinvestment policy, exit-load drag, expense ratios, NPS / PPF lock-ins, or deduction-aware effective loan rates beyond the §4.2 `tax_regime` display hint. Equity is treated as a single nominal-return sleeve.
-- §4.12 strategy planner does **not** auto-recommend a strategy; it only reports per-strategy KPIs and emits warnings. Users compare and choose.
+- Floating-rate **stochastic** simulation (§4.13 `GAME_FLOATING_N` remains design-only).  
+- **Multi-loan** creditor games (`GAME_MULTI_CREDITOR`) until §4.13.8 Tier P2 is promoted.  
+- Lender-specific day-count conventions (ACT/365) unless user requests later.  
+- **Machine-learned** or historical lender models; opponents use user-selected discrete actions only.  
+- Legal settlement / IBC negotiation outcomes.
+
+**In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 
 ---
 
@@ -612,6 +748,7 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 - **Zod** for input validation  
 - **TanStack Table** for schedules  
 - **Vitest** for unit tests  
+- **`src/lib/game/`** — payoff matrix + solvers; **no** React imports in lib
 
 ---
 
@@ -619,11 +756,11 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 
 1. Should “keep EMI” use **original** EMI or **recomputed** EMI after prior partial prepays?  
 2. Exact EPFO legal copy vs product copy (keep disclaimers).  
-3. Mid-cycle prepayment interest accrual model.
-4. Should `EQUITY_BLEND_PREPAY_FRACTION` (default `0.4`) be user-tunable in v1.8, or remain a constant?
-5. Should equity LTCG be modelled as a tax drag during the SIP years, or only applied at horizon (current spec)?
-6. Should `STRATEGY_AGGRESSIVE_PREPAY` enforce a minimum `min_living_budget_inr` floor (e.g. ₹15,000) by clamping `repayment_pct_of_take_home`, or merely warn (current spec)?
-7. Tax-regime-aware effective loan rate: should §4.12 honour Sec 24b in old regime to compute an effective rate, or keep the pure nominal-rate model in v1?
+3. Mid-cycle prepayment interest accrual model.  
+4. §4.13: Default `lender_objective` — `L_FEE_INCOME` vs `L_INTEREST_INCOME` in UI?  
+5. §4.13: Show **all** Pareto-efficient splits for `GAME_BH_COOP_PARETO` or cap at top 5 by `NET_WORTH_HORIZON`?  
+6. §4.13: Collapse duplicate normal-form cells when `b_lump = 0` in export vs show full grid?  
+7. §4.13 v1.3: Implement `L_RATE_BUMP` before or after mixed Nash?
 
 ---
 
@@ -640,39 +777,15 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 - Tenure: **168** months  
 - Assets for labelling: cash **₹25,00,000**, PF **₹25,00,000**, gold **₹25,00,000**  
 - Unemployment PF rule: **75% month 1**, **25% month 12** of unemployment window  
-- PF annual interest assumption: **8.25%** yearly credit on remaining PF balance
-- Recalculated PF withdrawals for this reference:
-  - Month 1 tranche: **₹18,75,000.00**
-  - Month 12 tranche: **₹6,76,562.50**
-  - Combined PF withdrawals: **₹25,51,562.50**
 
-### 15.1 Strategy planner reference tiers
+### 15.1 Strategy golden matrix
 
-For §10 acceptance bullet 23 and golden fixtures under `src/test/fixtures/strategy/`:
+Regenerate: `npm run goldens:update` (strategy fixtures).  
+Paths: `src/test/fixtures/strategy/tier_{a,b,c}_{equity_blend,prepay_heavy,aggressive_prepay}.json`.
 
-**Common loan + assets across all three tiers:**
+### 15.2 Game profile golden matrix (when §4.13 P0 ships)
 
-- Principal: **₹36,00,000**
-- Annual rate: **7.9%** fixed
-- Tenure: **98 months**
-- `cash_inr`: **₹20,00,000**
-- `pf_corpus_inr`: **₹26,20,000**
-- `monthly_pf_addition_inr`: **₹0**
-- `pf_annual_interest_rate_pct`: **8.25**
-- `extra_monthly_income_inr`: **₹17,000**
-- `extra_income_post_tax`: **true**
-- `expected_equity_return_pct`: **11**
-- `horizon_months`: **98**
-
-**Tier-specific:**
-
-| Tier | `monthly_take_home_inr` | `monthly_living_expense_inr` | `emergency_months_buffer` | `repayment_pct_of_take_home` (aggressive) |
-|---|---|---|---|---|
-| A | 300,000 | 80,000 | 6 | 90 |
-| B | 200,000 | 80,000 | 8 | 80 |
-| C | 100,000 | 50,000 | 12 | 75 |
-
-Goldens for each tier × strategy combination are stored as `src/test/fixtures/strategy/tier_<a|b|c>_<strategy>.json` and re-generated via `npm run goldens:update`.
+One fixture per Tier P0 profile ID under `src/test/fixtures/game/{profile_id}.json` containing `payoff_matrix`, `equilibria`, and `recommended_b_action` for §15 reference inputs.
 
 ---
 

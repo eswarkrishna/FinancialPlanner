@@ -8,3 +8,4 @@ export * from "./schemas/index";
 export * from "./rates/index";
 export * from "./shared/index";
 export * from "./strategy/index";
+export * from "./game/index";

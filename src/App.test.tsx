@@ -38,7 +38,7 @@ describe("App shell composition", () => {
 
     await user.click(screen.getByRole("tab", { name: "Strategic" }));
     expect(
-      screen.getByRole("heading", { name: "Strategic scenarios (SPEC §4.13)" }),
+      screen.getByRole("heading", { name: "Strategic scenarios" }),
     ).toBeInTheDocument();
   });
 });

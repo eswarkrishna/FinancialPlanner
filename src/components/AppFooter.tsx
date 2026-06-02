@@ -53,6 +53,20 @@ export function AppFooter() {
               its privacy policy applies additionally.
             </li>
             <li>
+              <strong>Analytics.</strong> The public site may use Google Analytics 4 to
+              collect anonymous usage (e.g. which tab you open). No loan amounts or
+              personal data are sent. You can block this with a browser extension or
+              opt out via{" "}
+              <a
+                href="https://tools.google.com/dlpage/gaoptout"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google&apos;s opt-out add-on
+              </a>
+              .
+            </li>
+            <li>
               <strong>Third parties.</strong> References to institutions (e.g. EPFO,
               lenders) are for context only. We are not endorsed by them.
             </li>

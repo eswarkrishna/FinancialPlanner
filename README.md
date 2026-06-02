@@ -84,6 +84,16 @@ npm run build
 
 For S3 + CloudFront + your own domain, follow [`infra/README.md`](infra/README.md), set GitHub secrets `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, and `AWS_DEPLOY_ROLE_ARN`, then use [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
+### Google Analytics (optional)
+
+1. Create a [GA4 property](https://analytics.google.com/) and copy the **Measurement ID** (`G-XXXXXXXXXX`).
+2. **Production (GitHub Pages):** repo **Settings → Secrets and variables → Actions → New repository secret**  
+   Name: `VITE_GA_MEASUREMENT_ID` · Value: your `G-…` id.  
+   Redeploy by pushing to `main` or re-running the **GitHub Pages** workflow.
+3. **Local:** copy [`.env.example`](.env.example) to `.env.local` and set `VITE_GA_MEASUREMENT_ID=G-…`, then `npm run dev`.
+
+Analytics loads only when that variable is set at build time. Tab switches send virtual page views (`/FinancialPlanner/tab/loan`, etc.). Loan inputs are not transmitted. See footer terms for the privacy note.
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).

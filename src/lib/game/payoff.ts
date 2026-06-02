@@ -145,7 +145,6 @@ export function lenderPayoffBl(
   objective: LenderObjective,
   feeInr: number,
   totals: ScheduleTotals,
-  baselineInterestInr: number,
 ): number {
   if (objective === "L_FEE_INCOME") return feeInr;
   return roundInr(totals.total_interest_inr);

@@ -1,6 +1,5 @@
 import type { GameInput } from "./gameInput";
 import {
-  baselineInterest,
   borrowerPayoffBh,
   borrowerPayoffBl,
   borrowerPayoffBn,
@@ -51,14 +50,13 @@ function blCell(
     b_extra: extra,
     l_fee: fee,
   };
-  const baseInterest = baselineInterest(input);
   return {
     action_profile: profile,
     cell_key: cellKey(profile),
     underlying_scenario_id: scenarioId,
     payoffs: {
       B: borrowerPayoffBl(input, input.payoff_metric, lumpInr, policy, extraInr, feeInr),
-      L: lenderPayoffBl(input.lender_objective, feeInr, totals, baseInterest),
+      L: lenderPayoffBl(input.lender_objective, feeInr, totals),
     },
   };
 }

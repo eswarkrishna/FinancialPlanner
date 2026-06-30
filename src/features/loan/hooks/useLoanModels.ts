@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepTenure,
@@ -22,7 +22,62 @@ export type ScenarioView =
   | "CASHFLOW_PLUS_PF"
   | "UE_PF_TO_LOAN";
 
-export type PrepaySource = "cash" | "pf";
+function scenarioViewIsAvailable(
+  view: ScenarioView,
+  models: {
+    baseInflow: unknown;
+    prepayTenure: unknown;
+    prepayEmi: unknown;
+    prepayEmiInflow: unknown;
+    cashflowNoPf: unknown;
+    cashflowPlusPf: unknown;
+    uePfToLoan: unknown;
+  },
+): boolean {
+  switch (view) {
+    case "BASE":
+      return true;
+    case "BASE_INFLOW":
+      return models.baseInflow != null;
+    case "PREPAY_TENURE":
+      return models.prepayTenure != null;
+    case "PREPAY_EMI":
+      return models.prepayEmi != null;
+    case "PREPAY_EMI_INFLOW":
+      return models.prepayEmiInflow != null;
+    case "CASHFLOW_NO_PF":
+      return models.cashflowNoPf != null;
+    case "CASHFLOW_PLUS_PF":
+      return models.cashflowPlusPf != null;
+    case "UE_PF_TO_LOAN":
+      return models.uePfToLoan != null;
+    default:
+      return false;
+  }
+}
+
+export type PrepaySource = "cash" | "pf" | "gold";
+
+/** Lower phrase used in comparison row labels ("cash", "PF", "gold"). */
+export function prepaySourceComparisonWord(source: PrepaySource): string {
+  if (source === "cash") return "cash";
+  if (source === "pf") return "PF";
+  return "gold";
+}
+
+/** Schedule dropdown label ("Cash", "PF", "Gold"). */
+export function prepaySourceScheduleLabel(source: PrepaySource): string {
+  if (source === "cash") return "Cash";
+  if (source === "pf") return "PF";
+  return "Gold";
+}
+
+/** Hint sentence fragment ("Cash", "PF account", "Gold (liquid)"). */
+export function prepaySourceHintLabel(source: PrepaySource): string {
+  if (source === "cash") return "Cash";
+  if (source === "pf") return "PF account";
+  return "Gold (liquid)";
+}
 
 type ComparisonRow = {
   id: string;
@@ -33,21 +88,22 @@ type ComparisonRow = {
   deltaVsBaseMonths: number;
 };
 
+const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
+  principal_inr: "",
+  annual_interest_rate: "",
+  tenure_months: "",
+  cash_inr: "",
+  monthly_salary_inr: "",
+  pf_corpus_inr: "",
+  pf_annual_interest_rate_pct: "",
+  monthly_pf_addition_inr: "",
+  gold_liquid_inr: "",
+  monthly_cash_to_loan_inr: "",
+};
+
 export function useLoanModels() {
-  const [inputs, setInputs] = useState<Record<keyof LoanInput, string>>({
-    principal_inr: String(REFERENCE_SCENARIO.principal_inr),
-    annual_interest_rate: String(REFERENCE_SCENARIO.annual_interest_rate),
-    tenure_months: String(REFERENCE_SCENARIO.tenure_months),
-    cash_inr: String(REFERENCE_SCENARIO.cash_inr),
-    monthly_salary_inr: String(REFERENCE_SCENARIO.monthly_salary_inr),
-    pf_corpus_inr: String(REFERENCE_SCENARIO.pf_corpus_inr),
-    pf_annual_interest_rate_pct: String(
-      REFERENCE_SCENARIO.pf_annual_interest_rate_pct,
-    ),
-    monthly_pf_addition_inr: String(REFERENCE_SCENARIO.monthly_pf_addition_inr),
-    gold_liquid_inr: String(REFERENCE_SCENARIO.gold_liquid_inr),
-    monthly_cash_to_loan_inr: String(REFERENCE_SCENARIO.monthly_cash_to_loan_inr),
-  });
+  const [inputs, setInputs] =
+    useState<Record<keyof LoanInput, string>>(EMPTY_LOAN_FORM);
   const [scenarioView, setScenarioView] = useState<ScenarioView>("BASE");
   const [prepaySource, setPrepaySource] = useState<PrepaySource>("cash");
 
@@ -78,7 +134,12 @@ export function useLoanModels() {
       v.tenure_months,
       salaryRecurring,
     );
-    const oneTimePrepayInr = prepaySource === "cash" ? v.cash_inr : v.pf_corpus_inr;
+    const oneTimePrepayInr =
+      prepaySource === "cash"
+        ? v.cash_inr
+        : prepaySource === "pf"
+          ? v.pf_corpus_inr
+          : v.gold_liquid_inr;
     const canPrepay = oneTimePrepayInr > 0;
     const prepayTenure = canPrepay
       ? schedulePrepayKeepTenure(
@@ -182,6 +243,13 @@ export function useLoanModels() {
     };
   }, [parsed, prepaySource]);
 
+  useEffect(() => {
+    if (!models) return;
+    if (!scenarioViewIsAvailable(scenarioView, models)) {
+      setScenarioView("BASE");
+    }
+  }, [models, scenarioView]);
+
   const comparisonRows = useMemo((): ComparisonRow[] => {
     if (!models) return [];
     const baseM = models.base.totals.payoff_month;
@@ -210,9 +278,7 @@ export function useLoanModels() {
       const p = models.prepayTenure.totals.payoff_month;
       rows.push({
         id: "PREPAY_TENURE",
-        label: `Prepay from ${
-          models.prepaySource === "cash" ? "cash" : "PF"
-        } + keep tenure`,
+        label: `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep tenure`,
         payoffMonth: p,
         totalInterest: models.prepayTenure.totals.total_interest_inr,
         totalPaid: models.prepayTenure.totals.total_paid_inr,
@@ -223,9 +289,7 @@ export function useLoanModels() {
       const p = models.prepayEmi.totals.payoff_month;
       rows.push({
         id: "PREPAY_EMI",
-        label: `Prepay from ${
-          models.prepaySource === "cash" ? "cash" : "PF"
-        } + keep EMI`,
+        label: `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI`,
         payoffMonth: p,
         totalInterest: models.prepayEmi.totals.total_interest_inr,
         totalPaid: models.prepayEmi.totals.total_paid_inr,
@@ -236,9 +300,7 @@ export function useLoanModels() {
       const p = models.prepayEmiInflow.totals.payoff_month;
       rows.push({
         id: "PREPAY_EMI_INFLOW",
-        label: `Prepay from ${
-          models.prepaySource === "cash" ? "cash" : "PF"
-        } + keep EMI + ${formatInr(models.monthlyExtra)}/mo`,
+        label: `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI + ${formatInr(models.monthlyExtra)}/mo`,
         payoffMonth: p,
         totalInterest: models.prepayEmiInflow.totals.total_interest_inr,
         totalPaid: models.prepayEmiInflow.totals.total_paid_inr,

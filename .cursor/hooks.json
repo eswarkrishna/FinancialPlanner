@@ -8,7 +8,7 @@
     ],
     "sessionEnd": [
       {
-        "command": "node .cursor/hooks/session-end-noop.mjs"
+        "command": "node .cursor/hooks/cursor-usage-session-end.mjs"
       }
     ]
   }

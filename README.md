@@ -1,12 +1,6 @@
 # FinancialPlanner
 
-India-focused **financial planning dashboard** with:
-
-- debt payoff planner (avalanche/snowball + payoff-date simulation)
-- retirement planner (projected corpus, inflation assumptions, scenario testing)
-- loan payoff simulator (reducing-balance loans, prepayment strategies, optional unemployment + staged PF withdrawals)
-
-Behaviour is defined in **`docs/SPEC.md`** (spec-driven development).
+India-focused **loan payoff simulator** planning tool: reducing-balance loans, prepayment strategies, optional unemployment + staged PF withdrawals, and scenario comparison. Behaviour is defined in **`docs/SPEC.md`** (spec-driven development).
 
 ## Quick start
 
@@ -20,52 +14,17 @@ npm run test
 npm run build
 ```
 
-```bash
-npm run goldens:update
-```
-
-## Android app (Capacitor)
-
-This project is configured with Capacitor for Android in the `android` folder.
-
-```bash
-npm run android:sync
-npm run android:open
-```
-
-- `android:sync`: builds web assets and copies them into the Android project
-- `android:open`: opens the Android project in Android Studio
-
-To build a debug APK from CLI (Windows):
-
-```bash
-npm run android:apk:debug
-```
-
-APK output path:
-
-`android/app/build/outputs/apk/debug/app-debug.apk`
-
 ## Documentation
 
 | Document | Purpose |
 |----------|---------|
 | [docs/SPEC.md](docs/SPEC.md) | Full product & engineering specification |
 | [docs/TASKS.md](docs/TASKS.md) | Feature delivery checklist (mark tasks done) |
-| [docs/TEST-MAP.md](docs/TEST-MAP.md) | SPEC §10 acceptance to tests/smoke mapping |
 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
 | [docs/research/](docs/research/) | Spikes and research notes |
 | [AGENTS.md](AGENTS.md) | Instructions for AI coding agents + Cursor skills index |
 | [.cursor/rules/](.cursor/rules/) | Cursor project rules |
-
-## Continuous Integration
-
-GitHub Actions CI runs on pushes to `main` and pull requests:
-
-- `npm run lint`
-- `npm run test`
-- `npm run build`
 
 ## Money rounding (v1 default)
 
@@ -96,6 +55,44 @@ git push -u origin main
 If GitHub created a default branch with a commit already, either use **GitHub’s import** flow or follow GitHub’s “push an existing repository” instructions (you may need `git pull --rebase origin main` once after adding the remote).
 
 Optional: install the [GitHub CLI](https://cli.github.com/) (`winget install GitHub.cli`) for `gh repo create` and auth helpers.
+
+## Publish on the internet
+
+### GitHub Pages (free, **public** repository required)
+
+Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml) and deploys the built SPA.
+
+**Live URL (after enable):** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)
+
+GitHub does **not** offer Pages on **private** repos with the free plan. Either:
+
+1. **Make the repo public** (recommended for this open calculator): GitHub → **Settings → General → Danger zone → Change visibility**, or  
+   `gh repo edit --visibility public --accept-visibility-change-consequences`
+2. Use a **paid** GitHub plan that includes Pages on private repos, or  
+3. Use **AWS** below, or connect the repo to [Cloudflare Pages](https://pages.cloudflare.com/) / [Netlify](https://www.netlify.com/) (both work with private repos).
+
+Then: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+Local build for the same base path as production:
+
+```bash
+set VITE_BASE=/FinancialPlanner/
+npm run build
+```
+
+### AWS (optional, custom domain)
+
+For S3 + CloudFront + your own domain, follow [`infra/README.md`](infra/README.md), set GitHub secrets `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, and `AWS_DEPLOY_ROLE_ARN`, then use [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+### Google Analytics (optional)
+
+1. Create a [GA4 property](https://analytics.google.com/) and copy the **Measurement ID** (`G-XXXXXXXXXX`).
+2. **Production (GitHub Pages):** repo **Settings → Secrets and variables → Actions → New repository secret**  
+   Name: `VITE_GA_MEASUREMENT_ID` · Value: your `G-…` id.  
+   Redeploy by pushing to `main` or re-running the **GitHub Pages** workflow.
+3. **Local:** copy [`.env.example`](.env.example) to `.env.local` and set `VITE_GA_MEASUREMENT_ID=G-…`, then `npm run dev`.
+
+Analytics loads only when that variable is set at build time. Tab switches send virtual page views (`/FinancialPlanner/tab/loan`, etc.). Loan inputs are not transmitted. See footer terms for the privacy note.
 
 ## Licence
 

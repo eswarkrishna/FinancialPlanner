@@ -1,0 +1,66 @@
+/** Spec §4.12.2 — three named allocation strategies. */
+export type StrategyId =
+  | "STRATEGY_EQUITY_BLEND"
+  | "STRATEGY_PREPAY_HEAVY"
+  | "STRATEGY_AGGRESSIVE_PREPAY";
+
+/** Spec §6 — household + strategy inputs. */
+export interface StrategyInputs {
+  principal_inr: number;
+  annual_interest_rate: number;
+  tenure_months: number;
+  cash_inr: number;
+  pf_corpus_inr: number;
+  pf_annual_interest_rate_pct: number;
+  monthly_pf_addition_inr: number;
+  monthly_take_home_inr: number;
+  monthly_living_expense_inr: number;
+  extra_monthly_income_inr: number;
+  extra_income_post_tax: boolean;
+  marginal_tax_rate_pct: number;
+  emergency_months_buffer: number;
+  expected_equity_return_pct: number;
+  horizon_months: number;
+  repayment_pct_of_take_home?: number;
+}
+
+/** Spec §4.12.4 — per-strategy KPIs surfaced in the comparison row. */
+export interface StrategyResult {
+  strategy_id: StrategyId;
+  loan_close_month: number;
+  total_interest_inr: number;
+  interest_saved_vs_base_inr: number;
+  one_time_prepay_inr: number;
+  monthly_extra_principal_inr: number;
+  monthly_sip_inr: number;
+  equity_lump_inr: number;
+  equity_corpus_at_horizon_inr: number;
+  equity_corpus_at_horizon_post_tax_inr: number;
+  pf_corpus_at_horizon_inr: number;
+  cash_buffer_remaining_inr: number;
+  loan_balance_at_horizon_inr: number;
+  net_worth_at_horizon_inr: number;
+  min_living_budget_inr: number;
+  warnings: StrategyWarning[];
+}
+
+/** Spec §9 — warning codes produced by the strategy planner. */
+export type StrategyWarning =
+  | "EMERGENCY_FUND_SHORTFALL"
+  | "FRAGILE_CASH_FLOW"
+  | "BELOW_SUBSISTENCE"
+  | "AGGRESSIVE_PCT_INVALID"
+  | "HORIZON_TOO_SHORT";
+
+/** Spec §4.12.6 — three take-home tier presets surfaced in the UI. */
+export interface StrategyTierPreset {
+  id: "tier_a" | "tier_b" | "tier_c";
+  label: string;
+  monthly_take_home_inr: number;
+}
+
+export const STRATEGY_TIER_PRESETS: readonly StrategyTierPreset[] = [
+  { id: "tier_a", label: "Tier A — ₹3L take-home", monthly_take_home_inr: 300_000 },
+  { id: "tier_b", label: "Tier B — ₹2L take-home", monthly_take_home_inr: 200_000 },
+  { id: "tier_c", label: "Tier C — ₹1L take-home", monthly_take_home_inr: 100_000 },
+];

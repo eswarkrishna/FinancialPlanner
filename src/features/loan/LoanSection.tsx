@@ -3,6 +3,8 @@ import { ScenarioTable } from "./components/ScenarioTable";
 import {
   type PrepaySource,
   type ScenarioView,
+  prepaySourceHintLabel,
+  prepaySourceScheduleLabel,
   useLoanModels,
 } from "./hooks/useLoanModels";
 
@@ -110,9 +112,13 @@ export function LoanSection() {
         </div>
         <p className="hint">
           <strong>Monthly cash to loan:</strong> amount applied as{" "}
-          <strong>extra principal</strong> after each month&apos;s scheduled EMI.
-          <strong> Monthly salary</strong> is also added as recurring loan
-          contribution in all scenarios.
+          <strong>extra principal</strong> after each month&apos;s scheduled EMI.{" "}
+          <strong>Monthly salary (below)</strong> is money routed <strong>into the loan</strong>{" "}
+          every month in these scenarios—it is <strong>not</strong> the same as household
+          take-home on the <strong>Strategies</strong> tab (which drives emergency buffer,
+          surplus, and percent-of-income rules there).
+          <strong> Gold liquid</strong> is counted in liquid assets and can be chosen as the
+          one-time prepay source below (along with cash or PF).
         </p>
         <div className="actions">
           <button type="button" className="btn secondary" onClick={loadReference}>
@@ -134,10 +140,8 @@ export function LoanSection() {
             <h2>Loan scenario comparison</h2>
             <p className="hint">
               One-time prepay scenarios use{" "}
-              <strong>
-                {models.prepaySource === "cash" ? "Cash" : "PF account"}
-              </strong>{" "}
-              at end of month 1. Monthly column uses your{" "}
+              <strong>{prepaySourceHintLabel(models.prepaySource)}</strong> at end of
+              month 1. Monthly column uses your{" "}
               <strong>Monthly cash to loan</strong> value.
             </p>
             <label className="inline">
@@ -148,6 +152,7 @@ export function LoanSection() {
               >
                 <option value="cash">Cash</option>
                 <option value="pf">PF account</option>
+                <option value="gold">Gold (liquid)</option>
               </select>
             </label>
             <div className="table-wrap comparison">
@@ -231,19 +236,18 @@ export function LoanSection() {
                     <>
                       <option value="PREPAY_TENURE">
                         One-time prepay (
-                        {models.prepaySource === "cash" ? "Cash" : "PF"}) + keep
-                        tenure
+                        {prepaySourceScheduleLabel(models.prepaySource)}) + keep tenure
                       </option>
                       <option value="PREPAY_EMI">
                         One-time prepay (
-                        {models.prepaySource === "cash" ? "Cash" : "PF"}) + keep EMI
+                        {prepaySourceScheduleLabel(models.prepaySource)}) + keep EMI
                       </option>
                     </>
                   )}
                   {models.prepayEmiInflow && (
                     <option value="PREPAY_EMI_INFLOW">
                       One-time prepay (
-                      {models.prepaySource === "cash" ? "Cash" : "PF"}) + keep EMI +
+                      {prepaySourceScheduleLabel(models.prepaySource)}) + keep EMI +
                       monthly cashflow
                     </option>
                   )}

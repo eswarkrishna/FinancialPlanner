@@ -1,0 +1,199 @@
+import { formatInr } from "../../lib/formatInr";
+import type { GameProfileId } from "../../lib/game";
+import { GameLegendPanel } from "./GameLegendPanel";
+import {
+  describeGameProfile,
+  describeWarning,
+  formatProfileReadable,
+  formatProfileWithCodes,
+} from "./gameLegend";
+import { useGamePlanner } from "./hooks/useGamePlanner";
+
+export function GameSection() {
+  const {
+    profileId,
+    setProfileId,
+    prepaymentFeeInr,
+    setPrepaymentFeeInr,
+    parsed,
+    result,
+    profiles,
+  } = useGamePlanner();
+
+  const activeProfile = describeGameProfile(profileId);
+
+  return (
+    <div className="game-section">
+      <section className="card">
+        <h2>Strategic scenarios</h2>
+        <p className="hint">
+          Model how your prepay choices interact with a lender fee, household split, or
+          unemployment timing. Payoffs use the same amortisation engine as the Loan tab.
+          Opponent behaviour is <strong>assumed</strong>, not predicted.
+        </p>
+        <div className="form-grid">
+          <label>
+            Game profile
+            <select
+              value={profileId}
+              onChange={(e) => setProfileId(e.target.value as GameProfileId)}
+            >
+              {profiles.map((id) => {
+                const meta = describeGameProfile(id);
+                return (
+                  <option key={id} value={id}>
+                    {meta ? `${meta.label} (${id})` : id}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+          <label>
+            Prepayment fee (INR)
+            <input
+              inputMode="decimal"
+              value={prepaymentFeeInr}
+              onChange={(e) => setPrepaymentFeeInr(e.target.value)}
+            />
+          </label>
+        </div>
+        {activeProfile && (
+          <p className="hint">
+            <strong>{activeProfile.label}:</strong> {activeProfile.meaning}
+          </p>
+        )}
+        {!parsed.success && (
+          <ul className="errors">
+            {parsed.error.issues.map((i) => (
+              <li key={i.path.join(".")}>{i.message}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <GameLegendPanel />
+
+      {result && (
+        <>
+          {result.warnings.length > 0 && (
+            <section className="card">
+              <h2>Warnings</h2>
+              <ul className="game-warning-list">
+                {result.warnings.map((w) => {
+                  const meta = describeWarning(w);
+                  return (
+                    <li key={w}>
+                      <strong>{meta?.label ?? w}</strong>
+                      {meta ? ` — ${meta.meaning}` : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
+          <section className="card">
+            <h2>Payoff matrix</h2>
+            <p className="hint">
+              {result.payoff_matrix.length} cells · underlying scenarios:{" "}
+              {result.underlying_scenario_ids.join(", ")}
+            </p>
+            <div className="table-wrap comparison">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Actions (plain English)</th>
+                    <th>Codes</th>
+                    <th>Borrower (B)</th>
+                    <th>Other (L or H)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.payoff_matrix.map((cell) => {
+                    const { readable, codes } = formatProfileWithCodes(
+                      cell.action_profile,
+                    );
+                    return (
+                      <tr key={cell.cell_key}>
+                        <td>{readable}</td>
+                        <td className="game-codes-cell">
+                          <code className="game-codes">{codes || "—"}</code>
+                        </td>
+                        <td>{formatInr(cell.payoffs.B ?? 0)}</td>
+                        <td>
+                          {cell.payoffs.L !== undefined
+                            ? formatInr(cell.payoffs.L)
+                            : cell.payoffs.H !== undefined
+                              ? formatInr(cell.payoffs.H)
+                              : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="card">
+            <h2>Recommendation</h2>
+            <p className="hint">
+              Stable outcomes (equilibrium) or best cautious move (max-min) for this
+              profile. See the legend above for code meanings.
+            </p>
+            {result.equilibria.length > 0 ? (
+              <ul className="game-recommendation-list">
+                {result.equilibria.map((eq, i) => {
+                  const { readable, codes } = formatProfileWithCodes(
+                    eq.action_profile,
+                  );
+                  return (
+                    <li key={i}>
+                      <span className="game-rec-readable">{readable}</span>
+                      <span className="game-rec-meta">
+                        {" "}
+                        — B: {formatInr(eq.payoffs.B ?? 0)}
+                        {eq.payoffs.L !== undefined &&
+                          ` · L: ${formatInr(eq.payoffs.L)}`}
+                        {codes ? (
+                          <>
+                            {" "}
+                            <code className="game-codes">({codes})</code>
+                          </>
+                        ) : null}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="hint">No pure equilibrium found for this profile.</p>
+            )}
+            {result.recommended_b_action && (
+              <p className="game-suggested">
+                <strong>Suggested borrower move:</strong>{" "}
+                {formatProfileReadable(result.recommended_b_action)}
+                {(() => {
+                  const { codes } = formatProfileWithCodes(
+                    result.recommended_b_action,
+                  );
+                  return codes ? (
+                    <>
+                      {" "}
+                      <code className="game-codes">({codes})</code>
+                    </>
+                  ) : null;
+                })()}
+              </p>
+            )}
+          </section>
+        </>
+      )}
+
+      <p className="hint">
+        Educational planning only. Lender and household responses are modelled from discrete
+        assumptions, not live market data.
+      </p>
+    </div>
+  );
+}

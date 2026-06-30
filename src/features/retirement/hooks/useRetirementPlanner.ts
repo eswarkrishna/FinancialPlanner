@@ -25,13 +25,13 @@ function formatPercent(value: number): string {
 
 export function useRetirementPlanner() {
   const [retirementInputs, setRetirementInputs] = useState<RetirementFormState>({
-    current_corpus_inr: "1200000",
-    monthly_contribution_inr: "30000",
-    annual_return_pct: "10",
-    inflation_pct: "6",
-    years_to_retirement: "20",
-    annual_expense_today_inr: "900000",
-    safe_withdrawal_rate_pct: "4",
+    current_corpus_inr: "",
+    monthly_contribution_inr: "",
+    annual_return_pct: "",
+    inflation_pct: "",
+    years_to_retirement: "",
+    annual_expense_today_inr: "",
+    safe_withdrawal_rate_pct: "",
   });
   const [selectedRetirementScenario, setSelectedRetirementScenario] =
     useState("base");
@@ -51,18 +51,21 @@ export function useRetirementPlanner() {
         parseNumber(retirementInputs.annual_return_pct),
       ),
       inflation_pct: Math.max(0, parseNumber(retirementInputs.inflation_pct)),
-      years_to_retirement: Math.max(
-        1,
-        Math.floor(parseNumber(retirementInputs.years_to_retirement)),
-      ),
+      years_to_retirement:
+        retirementInputs.years_to_retirement.trim() === ""
+          ? 0
+          : Math.max(
+              1,
+              Math.floor(parseNumber(retirementInputs.years_to_retirement)),
+            ),
       annual_expense_today_inr: Math.max(
         0,
         parseNumber(retirementInputs.annual_expense_today_inr),
       ),
-      safe_withdrawal_rate_pct: Math.max(
-        0.1,
-        parseNumber(retirementInputs.safe_withdrawal_rate_pct),
-      ),
+      safe_withdrawal_rate_pct:
+        retirementInputs.safe_withdrawal_rate_pct.trim() === ""
+          ? 0
+          : Math.max(0.1, parseNumber(retirementInputs.safe_withdrawal_rate_pct)),
     };
   }, [retirementInputs]);
 

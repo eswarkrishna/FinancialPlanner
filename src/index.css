@@ -7,7 +7,13 @@
   --border: #cbd5e1;
   --accent: #1d4ed8;
   --accent-muted: #eff6ff;
+  --accent-strong: #1e40af;
   --danger: #b91c1c;
+  --header-bg: #ffffff;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-md: 0 4px 14px rgb(15 23 42 / 8%);
+  --radius: 12px;
+  --tab-inactive: #64748b;
 }
 
 *,
@@ -20,10 +26,154 @@ body {
   margin: 0;
 }
 
-.layout {
-  max-width: 56rem;
+/* Skip link: visible on focus for keyboard users */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-header-inner {
+  max-width: 72rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.app-brand h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.app-brand .lede {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  color: #475569;
+  max-width: 42rem;
+  line-height: 1.45;
+}
+
+.app-tabs {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.app-tabs-scroll {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0 0.85rem;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-tabs-scroll:focus-within {
+  outline: none;
+}
+
+.app-tab {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.45rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tab-inactive);
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+.app-tab:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.app-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.app-tab--active {
+  color: #fff;
+  background: var(--accent);
+  border-color: #1e40af;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-tab--active:hover {
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+.app-tab-label {
+  pointer-events: none;
+}
+
+.layout {
+  flex: 1;
+  max-width: 72rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  min-height: min(50vh, 24rem);
+}
+
+.app-main:focus {
+  outline: none;
+}
+
+.app-panel > .card:first-child {
+  margin-top: 0;
 }
 
 .header h1 {
@@ -41,21 +191,29 @@ body {
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 1.25rem 1.35rem;
-  margin-top: 1.25rem;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 6%);
+  margin-top: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .card h2 {
   margin: 0 0 1rem;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 0.85rem 1rem;
+}
+
+.form-grid .hint-span {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 label {
@@ -85,6 +243,10 @@ select:focus {
 
 .actions {
   margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .btn {
@@ -228,10 +390,91 @@ tbody tr:hover {
 }
 
 .footer {
-  margin-top: 2rem;
+  margin-top: auto;
+  padding-top: 1.5rem;
   font-size: 0.78rem;
   color: #64748b;
   line-height: 1.45;
+  border-top: 1px solid #cbd5e1;
+}
+
+.footer-lead {
+  margin: 0 0 1rem;
+  max-width: 52rem;
+}
+
+.footer-terms {
+  max-width: 52rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.footer-terms-summary {
+  cursor: pointer;
+  padding: 0.65rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #334155;
+  list-style: none;
+}
+
+.footer-terms-summary::-webkit-details-marker {
+  display: none;
+}
+
+.footer-terms-summary::after {
+  content: "";
+  display: inline-block;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-left: 0.35rem;
+  border-right: 2px solid #64748b;
+  border-bottom: 2px solid #64748b;
+  transform: rotate(45deg);
+  vertical-align: 0.15em;
+  transition: transform 0.15s ease;
+}
+
+.footer-terms[open] .footer-terms-summary::after {
+  transform: rotate(-135deg);
+  vertical-align: 0.05em;
+}
+
+.footer-terms-summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.footer-terms-body {
+  padding: 0 0.85rem 0.85rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.footer-terms-intro {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.footer-terms-list {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+.footer-terms-list li {
+  margin-bottom: 0.55rem;
+}
+
+.footer-terms-list li:last-child {
+  margin-bottom: 0;
+}
+
+.footer-terms-list strong {
+  color: #334155;
 }
 
 code {
@@ -239,4 +482,135 @@ code {
   background: #e2e8f0;
   padding: 0.1em 0.35em;
   border-radius: 4px;
+}
+
+/* Strategic tab — action code legend */
+.game-legend-details {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.game-legend-summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #334155;
+  list-style: none;
+}
+
+.game-legend-summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-legend-intro {
+  margin: 0 1rem 0.75rem;
+}
+
+.game-legend-grid {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0 1rem 1rem;
+}
+
+@media (min-width: 720px) {
+  .game-legend-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .game-legend-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.game-legend-group-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.game-legend-list {
+  margin: 0;
+}
+
+.game-legend-item {
+  margin-bottom: 0.65rem;
+  font-size: 0.8rem;
+}
+
+.game-legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.game-legend-item dt {
+  margin: 0 0 0.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+}
+
+.game-legend-code {
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.game-legend-label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.game-legend-item dd {
+  margin: 0;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.game-codes-cell {
+  max-width: 14rem;
+  font-size: 0.75rem;
+  vertical-align: top;
+}
+
+.game-codes {
+  font-size: 0.72rem;
+  word-break: break-word;
+  white-space: normal;
+  display: inline-block;
+  line-height: 1.35;
+}
+
+.game-recommendation-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.game-recommendation-list li {
+  margin-bottom: 0.5rem;
+}
+
+.game-rec-readable {
+  font-weight: 600;
+}
+
+.game-rec-meta {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.game-suggested {
+  margin-top: 0.75rem;
+}
+
+.game-warning-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
 }

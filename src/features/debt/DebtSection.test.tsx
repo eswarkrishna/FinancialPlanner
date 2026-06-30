@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { DebtSection } from "./DebtSection";
 
@@ -17,6 +17,12 @@ describe("DebtSection", () => {
 
   it("shows warning when budget is below minimum dues", () => {
     render(<DebtSection />);
+
+    const firstDebtRow = screen.getAllByRole("row")[1];
+    const rowInputs = within(firstDebtRow).getAllByRole("textbox");
+    fireEvent.change(rowInputs[1], { target: { value: "150000" } });
+    fireEvent.change(rowInputs[2], { target: { value: "36" } });
+    fireEvent.change(rowInputs[3], { target: { value: "8000" } });
 
     fireEvent.change(screen.getByLabelText("Monthly debt budget (INR)"), {
       target: { value: "100" },

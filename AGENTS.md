@@ -47,27 +47,3 @@ Lifecycle order (typical feature):
 | — | `sdd-commit-and-review` | Commits / PRs cite SPEC §; review checklist. |
 
 **Note:** `sdd-verify-with-tests` focuses on **automated contracts**; `sdd-verify-feature` adds **acceptance mapping and manual checks**. Use both before calling a feature done.
-
-## Cursor Cloud specific instructions
-
-This is a **pure client-side SPA** — no backend, no database, no Docker, no `.env` secrets required.
-
-### Quick reference
-
-| Action | Command |
-|--------|---------|
-| Install deps | `npm install` |
-| Dev server | `npm run dev` (serves on `localhost:5173`) |
-| Lint (type-check) | `npm run lint` |
-| Unit tests | `npm run test` |
-| Production build | `npm run build` |
-| Update golden fixtures | `npm run goldens:update` |
-
-### Notes for cloud agents
-
-- **Node 22** is required (matches CI). The environment already has it.
-- The dev server (`npm run dev`) starts Vite with HMR on port 5173. It picks up file changes instantly — no restart needed.
-- All calculations are reactive; the app recalculates immediately when inputs change (no submit button for the loan/debt/retirement sections).
-- Tests run via `vitest run` with jsdom; no browser/Playwright needed for automated tests.
-- Golden fixture files are in `src/test/fixtures/goldens/`. If you change domain logic, run `npm run goldens:update` and commit the updated fixtures.
-- `npm run lint` is `tsc --noEmit` only (no ESLint configured).

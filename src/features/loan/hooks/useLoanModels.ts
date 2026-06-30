@@ -1,9 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  buildCumulativeInterestCurve,
+  buildPrincipalCurve,
+  effectiveGoldLiquidInr,
   scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepTenure,
   scheduleTimedPrepaysKeepEmi,
+  simulateUeDelayPrepayCashflow,
+  simulateUePfBridgeCashflow,
+  simulateUePfToLoanCashflow,
+  type CashflowSimResult,
+  type ScheduleRow,
 } from "../../../lib/loan";
+import {
+  downloadTextFile,
+  scheduleToCsv,
+  scenarioToJson,
+  type ScenarioExportPayload,
+} from "../../../lib/export";
 import { formatInr } from "../../../lib/formatInr";
 import {
   REFERENCE_SCENARIO,
@@ -11,6 +25,11 @@ import {
   type LoanInput,
 } from "../../../lib/schemas/index";
 import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf/index";
+import {
+  newStagedPrepayEntry,
+  parseStagedPrepays,
+  type StagedPrepayEntry,
+} from "../components/StagedPrepayEditor";
 
 export type ScenarioView =
   | "BASE"
@@ -20,7 +39,28 @@ export type ScenarioView =
   | "PREPAY_EMI_INFLOW"
   | "CASHFLOW_NO_PF"
   | "CASHFLOW_PLUS_PF"
-  | "UE_PF_TO_LOAN";
+  | "UE_PF_TO_LOAN"
+  | "UE_PF_BRIDGE"
+  | "UE_DELAY_PREPAY"
+  | "STAGED_PREPAY";
+
+type ScheduleBundle = {
+  rows: ScheduleRow[];
+  totals: {
+    payoff_month: number;
+    total_interest_inr: number;
+    total_paid_inr: number;
+    total_prepayments_inr?: number;
+  };
+  cashBalances?: number[];
+  warnings?: string[];
+};
+
+function isCashflowResult(
+  value: { rows: ScheduleRow[]; totals: ScheduleBundle["totals"] } | CashflowSimResult,
+): value is CashflowSimResult {
+  return "min_cash_balance_inr" in value;
+}
 
 function scenarioViewIsAvailable(
   view: ScenarioView,
@@ -32,6 +72,9 @@ function scenarioViewIsAvailable(
     cashflowNoPf: unknown;
     cashflowPlusPf: unknown;
     uePfToLoan: unknown;
+    uePfBridge: unknown;
+    ueDelayPrepay: unknown;
+    stagedPrepay: unknown;
   },
 ): boolean {
   switch (view) {
@@ -51,6 +94,12 @@ function scenarioViewIsAvailable(
       return models.cashflowPlusPf != null;
     case "UE_PF_TO_LOAN":
       return models.uePfToLoan != null;
+    case "UE_PF_BRIDGE":
+      return models.uePfBridge != null;
+    case "UE_DELAY_PREPAY":
+      return models.ueDelayPrepay != null;
+    case "STAGED_PREPAY":
+      return models.stagedPrepay != null;
     default:
       return false;
   }
@@ -58,21 +107,18 @@ function scenarioViewIsAvailable(
 
 export type PrepaySource = "cash" | "pf" | "gold";
 
-/** Lower phrase used in comparison row labels ("cash", "PF", "gold"). */
 export function prepaySourceComparisonWord(source: PrepaySource): string {
   if (source === "cash") return "cash";
   if (source === "pf") return "PF";
   return "gold";
 }
 
-/** Schedule dropdown label ("Cash", "PF", "Gold"). */
 export function prepaySourceScheduleLabel(source: PrepaySource): string {
   if (source === "cash") return "Cash";
   if (source === "pf") return "PF";
   return "Gold";
 }
 
-/** Hint sentence fragment ("Cash", "PF account", "Gold (liquid)"). */
 export function prepaySourceHintLabel(source: PrepaySource): string {
   if (source === "cash") return "Cash";
   if (source === "pf") return "PF account";
@@ -86,41 +132,100 @@ type ComparisonRow = {
   totalInterest: number;
   totalPaid: number;
   deltaVsBaseMonths: number;
+  deltaInterestVsBase: number;
+  minCashBalance?: number;
+};
+
+const SCENARIO_LABELS: Record<ScenarioView, string> = {
+  BASE: "BASE",
+  PREPAY_TENURE: "PREPAY_TENURE",
+  PREPAY_EMI: "PREPAY_EMI",
+  BASE_INFLOW: "BASE_PLUS_MONTHLY_INFLOW",
+  PREPAY_EMI_INFLOW: "PREPAY_EMI_PLUS_MONTHLY_INFLOW",
+  CASHFLOW_NO_PF: "CASHFLOW_NO_PF",
+  CASHFLOW_PLUS_PF: "CASHFLOW_PLUS_PF",
+  UE_PF_TO_LOAN: "UE_PF_TO_LOAN",
+  UE_PF_BRIDGE: "UE_PF_BRIDGE",
+  UE_DELAY_PREPAY: "UE_DELAY_PREPAY",
+  STAGED_PREPAY: "STAGED_PREPAY",
 };
 
 const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
   principal_inr: "",
   annual_interest_rate: "",
   tenure_months: "",
+  start_date: "",
   cash_inr: "",
   monthly_salary_inr: "",
   pf_corpus_inr: "",
   pf_annual_interest_rate_pct: "",
   monthly_pf_addition_inr: "",
   gold_liquid_inr: "",
+  gold_haircut_enabled: "false",
+  gold_haircut_pct: "",
   monthly_cash_to_loan_inr: "",
+  unemployment_mode: "false",
+  unemployment_start_month: "1",
+  monthly_living_expense_inr: "",
+  monthly_income_inr: "",
 };
+
+function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
+  return {
+    principal_inr: v.principal_inr,
+    annual_interest_rate: v.annual_interest_rate,
+    tenure_months: v.tenure_months,
+    cash_inr: v.cash_inr,
+    monthly_income_inr: v.monthly_income_inr,
+    monthly_living_expense_inr: v.monthly_living_expense_inr,
+    monthly_extra_to_loan_inr: recurringToLoan,
+    unemployment_start_month: v.unemployment_start_month,
+    pf_corpus_inr: v.pf_corpus_inr,
+    pf_annual_interest_rate_pct: v.pf_annual_interest_rate_pct,
+    monthly_pf_addition_inr: v.monthly_pf_addition_inr,
+  };
+}
 
 export function useLoanModels() {
   const [inputs, setInputs] =
     useState<Record<keyof LoanInput, string>>(EMPTY_LOAN_FORM);
   const [scenarioView, setScenarioView] = useState<ScenarioView>("BASE");
   const [prepaySource, setPrepaySource] = useState<PrepaySource>("cash");
+  const [stagedPrepays, setStagedPrepays] = useState<StagedPrepayEntry[]>([]);
 
   const parsed = useMemo(() => {
     return loanInputSchema.safeParse({
       principal_inr: inputs.principal_inr,
       annual_interest_rate: inputs.annual_interest_rate,
       tenure_months: inputs.tenure_months,
+      start_date: inputs.start_date || undefined,
       cash_inr: inputs.cash_inr || 0,
       monthly_salary_inr: inputs.monthly_salary_inr || 0,
       pf_corpus_inr: inputs.pf_corpus_inr || 0,
       pf_annual_interest_rate_pct: inputs.pf_annual_interest_rate_pct || 0,
       monthly_pf_addition_inr: inputs.monthly_pf_addition_inr || 0,
       gold_liquid_inr: inputs.gold_liquid_inr || 0,
+      gold_haircut_enabled: inputs.gold_haircut_enabled === "true",
+      gold_haircut_pct: inputs.gold_haircut_pct || 0,
       monthly_cash_to_loan_inr: inputs.monthly_cash_to_loan_inr || 0,
+      unemployment_mode: inputs.unemployment_mode === "true",
+      unemployment_start_month: inputs.unemployment_start_month || 1,
+      monthly_living_expense_inr: inputs.monthly_living_expense_inr || 0,
+      monthly_income_inr: inputs.monthly_income_inr || 0,
     });
   }, [inputs]);
+
+  const effectiveGoldInr = useMemo(() => {
+    if (!parsed.success) return 0;
+    const v = parsed.data;
+    return effectiveGoldLiquidInr(
+      v.gold_liquid_inr,
+      v.gold_haircut_enabled,
+      v.gold_haircut_pct,
+    );
+  }, [parsed]);
+
+  const stagedEvents = useMemo(() => parseStagedPrepays(stagedPrepays), [stagedPrepays]);
 
   const models = useMemo(() => {
     if (!parsed.success) return null;
@@ -139,7 +244,7 @@ export function useLoanModels() {
         ? v.cash_inr
         : prepaySource === "pf"
           ? v.pf_corpus_inr
-          : v.gold_liquid_inr;
+          : effectiveGoldInr;
     const canPrepay = oneTimePrepayInr > 0;
     const prepayTenure = canPrepay
       ? schedulePrepayKeepTenure(
@@ -157,10 +262,7 @@ export function useLoanModels() {
           v.annual_interest_rate,
           v.tenure_months,
           salaryRecurring,
-          {
-            month: 1,
-            amount: oneTimePrepayInr,
-          },
+          { month: 1, amount: oneTimePrepayInr },
         )
       : null;
     const baseInflow =
@@ -179,10 +281,7 @@ export function useLoanModels() {
             v.annual_interest_rate,
             v.tenure_months,
             recurringToLoan,
-            {
-              month: 1,
-              amount: oneTimePrepayInr,
-            },
+            { month: 1, amount: oneTimePrepayInr },
           )
         : null;
     const pfPlan = computePfUnemploymentWithdrawalPlan(
@@ -216,17 +315,38 @@ export function useLoanModels() {
         : null;
     const uePfToLoan =
       v.pf_corpus_inr > 0
+        ? v.unemployment_mode
+          ? simulateUePfToLoanCashflow(cashflowBaseInput(v, salaryRecurring))
+          : scheduleTimedPrepaysKeepEmi(
+              v.principal_inr,
+              v.annual_interest_rate,
+              v.tenure_months,
+              [
+                { month: 1, amount_inr: pfPlan.tranche1_inr },
+                { month: 12, amount_inr: pfPlan.tranche2_inr },
+              ],
+              salaryRecurring,
+            )
+        : null;
+    const uePfBridge =
+      v.unemployment_mode && v.pf_corpus_inr > 0
+        ? simulateUePfBridgeCashflow(cashflowBaseInput(v, recurringToLoan))
+        : null;
+    const ueDelayPrepay =
+      v.unemployment_mode && v.pf_corpus_inr > 0
+        ? simulateUeDelayPrepayCashflow(cashflowBaseInput(v, recurringToLoan))
+        : null;
+    const stagedPrepay =
+      stagedEvents.length > 0
         ? scheduleTimedPrepaysKeepEmi(
             v.principal_inr,
             v.annual_interest_rate,
             v.tenure_months,
-            [
-              { month: 1, amount_inr: pfPlan.tranche1_inr },
-              { month: 12, amount_inr: pfPlan.tranche2_inr },
-            ],
-            salaryRecurring,
+            stagedEvents,
+            recurringToLoan,
           )
         : null;
+
     return {
       v,
       base,
@@ -237,11 +357,15 @@ export function useLoanModels() {
       cashflowNoPf,
       cashflowPlusPf,
       uePfToLoan,
+      uePfBridge,
+      ueDelayPrepay,
+      stagedPrepay,
       canPrepay,
       monthlyExtra: x,
       prepaySource,
+      effectiveGoldInr,
     };
-  }, [parsed, prepaySource]);
+  }, [parsed, prepaySource, effectiveGoldInr, stagedEvents]);
 
   useEffect(() => {
     if (!models) return;
@@ -250,98 +374,158 @@ export function useLoanModels() {
     }
   }, [models, scenarioView]);
 
+  const baseInterest = models?.base.totals.total_interest_inr ?? 0;
+
   const comparisonRows = useMemo((): ComparisonRow[] => {
     if (!models) return [];
     const baseM = models.base.totals.payoff_month;
+    const row = (
+      id: string,
+      label: string,
+      payoffMonth: number,
+      totalInterest: number,
+      totalPaid: number,
+      minCashBalance?: number,
+    ): ComparisonRow => ({
+      id,
+      label,
+      payoffMonth,
+      totalInterest,
+      totalPaid,
+      deltaVsBaseMonths: baseM - payoffMonth,
+      deltaInterestVsBase: baseInterest - totalInterest,
+      minCashBalance,
+    });
+
     const rows: ComparisonRow[] = [
-      {
-        id: "BASE",
-        label: "BASE",
-        payoffMonth: models.base.totals.payoff_month,
-        totalInterest: models.base.totals.total_interest_inr,
-        totalPaid: models.base.totals.total_paid_inr,
-        deltaVsBaseMonths: 0,
-      },
+      row(
+        "BASE",
+        "BASE",
+        models.base.totals.payoff_month,
+        models.base.totals.total_interest_inr,
+        models.base.totals.total_paid_inr,
+      ),
     ];
     if (models.baseInflow) {
-      const p = models.baseInflow.totals.payoff_month;
-      rows.push({
-        id: "BASE_INFLOW",
-        label: `BASE + ${formatInr(models.monthlyExtra)}/mo to loan`,
-        payoffMonth: p,
-        totalInterest: models.baseInflow.totals.total_interest_inr,
-        totalPaid: models.baseInflow.totals.total_paid_inr,
-        deltaVsBaseMonths: baseM - p,
-      });
+      rows.push(
+        row(
+          "BASE_INFLOW",
+          `BASE + ${formatInr(models.monthlyExtra)}/mo to loan`,
+          models.baseInflow.totals.payoff_month,
+          models.baseInflow.totals.total_interest_inr,
+          models.baseInflow.totals.total_paid_inr,
+        ),
+      );
     }
     if (models.prepayTenure) {
-      const p = models.prepayTenure.totals.payoff_month;
-      rows.push({
-        id: "PREPAY_TENURE",
-        label: `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep tenure`,
-        payoffMonth: p,
-        totalInterest: models.prepayTenure.totals.total_interest_inr,
-        totalPaid: models.prepayTenure.totals.total_paid_inr,
-        deltaVsBaseMonths: baseM - p,
-      });
+      rows.push(
+        row(
+          "PREPAY_TENURE",
+          `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep tenure`,
+          models.prepayTenure.totals.payoff_month,
+          models.prepayTenure.totals.total_interest_inr,
+          models.prepayTenure.totals.total_paid_inr,
+        ),
+      );
     }
     if (models.prepayEmi) {
-      const p = models.prepayEmi.totals.payoff_month;
-      rows.push({
-        id: "PREPAY_EMI",
-        label: `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI`,
-        payoffMonth: p,
-        totalInterest: models.prepayEmi.totals.total_interest_inr,
-        totalPaid: models.prepayEmi.totals.total_paid_inr,
-        deltaVsBaseMonths: baseM - p,
-      });
+      rows.push(
+        row(
+          "PREPAY_EMI",
+          `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI`,
+          models.prepayEmi.totals.payoff_month,
+          models.prepayEmi.totals.total_interest_inr,
+          models.prepayEmi.totals.total_paid_inr,
+        ),
+      );
     }
     if (models.prepayEmiInflow) {
-      const p = models.prepayEmiInflow.totals.payoff_month;
-      rows.push({
-        id: "PREPAY_EMI_INFLOW",
-        label: `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI + ${formatInr(models.monthlyExtra)}/mo`,
-        payoffMonth: p,
-        totalInterest: models.prepayEmiInflow.totals.total_interest_inr,
-        totalPaid: models.prepayEmiInflow.totals.total_paid_inr,
-        deltaVsBaseMonths: baseM - p,
-      });
+      rows.push(
+        row(
+          "PREPAY_EMI_INFLOW",
+          `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI + ${formatInr(models.monthlyExtra)}/mo`,
+          models.prepayEmiInflow.totals.payoff_month,
+          models.prepayEmiInflow.totals.total_interest_inr,
+          models.prepayEmiInflow.totals.total_paid_inr,
+        ),
+      );
     }
     if (models.cashflowNoPf) {
-      const p = models.cashflowNoPf.totals.payoff_month;
-      rows.push({
-        id: "CASHFLOW_NO_PF",
-        label: "Cash prepay (month 1) + monthly cashflow",
-        payoffMonth: p,
-        totalInterest: models.cashflowNoPf.totals.total_interest_inr,
-        totalPaid: models.cashflowNoPf.totals.total_paid_inr,
-        deltaVsBaseMonths: baseM - p,
-      });
+      rows.push(
+        row(
+          "CASHFLOW_NO_PF",
+          "Cash prepay (month 1) + monthly cashflow",
+          models.cashflowNoPf.totals.payoff_month,
+          models.cashflowNoPf.totals.total_interest_inr,
+          models.cashflowNoPf.totals.total_paid_inr,
+        ),
+      );
     }
     if (models.cashflowPlusPf) {
-      const p = models.cashflowPlusPf.totals.payoff_month;
-      rows.push({
-        id: "CASHFLOW_PLUS_PF",
-        label: "Cash + monthly cashflow + PF tranches",
-        payoffMonth: p,
-        totalInterest: models.cashflowPlusPf.totals.total_interest_inr,
-        totalPaid: models.cashflowPlusPf.totals.total_paid_inr,
-        deltaVsBaseMonths: baseM - p,
-      });
+      rows.push(
+        row(
+          "CASHFLOW_PLUS_PF",
+          "Cash + monthly cashflow + PF tranches",
+          models.cashflowPlusPf.totals.payoff_month,
+          models.cashflowPlusPf.totals.total_interest_inr,
+          models.cashflowPlusPf.totals.total_paid_inr,
+        ),
+      );
     }
     if (models.uePfToLoan) {
-      const p = models.uePfToLoan.totals.payoff_month;
-      rows.push({
-        id: "UE_PF_TO_LOAN",
-        label: "UE PF to loan (75% m1 + 25%+interest m12)",
-        payoffMonth: p,
-        totalInterest: models.uePfToLoan.totals.total_interest_inr,
-        totalPaid: models.uePfToLoan.totals.total_paid_inr,
-        deltaVsBaseMonths: baseM - p,
-      });
+      const ue = models.uePfToLoan;
+      let minCash: number | undefined;
+      if (isCashflowResult(ue)) {
+        minCash = ue.min_cash_balance_inr;
+      }
+      rows.push(
+        row(
+          "UE_PF_TO_LOAN",
+          "UE PF to loan (75% m1 + 25%+interest m12)",
+          ue.totals.payoff_month,
+          ue.totals.total_interest_inr,
+          ue.totals.total_paid_inr,
+          minCash,
+        ),
+      );
+    }
+    if (models.uePfBridge) {
+      rows.push(
+        row(
+          "UE_PF_BRIDGE",
+          "UE PF bridge (tranche 1 → cash, tranche 2 split)",
+          models.uePfBridge.totals.payoff_month,
+          models.uePfBridge.totals.total_interest_inr,
+          models.uePfBridge.totals.total_paid_inr,
+          models.uePfBridge.min_cash_balance_inr,
+        ),
+      );
+    }
+    if (models.ueDelayPrepay) {
+      rows.push(
+        row(
+          "UE_DELAY_PREPAY",
+          "UE delay prepay (tranche 1 → cash, tranche 2 → loan)",
+          models.ueDelayPrepay.totals.payoff_month,
+          models.ueDelayPrepay.totals.total_interest_inr,
+          models.ueDelayPrepay.totals.total_paid_inr,
+          models.ueDelayPrepay.min_cash_balance_inr,
+        ),
+      );
+    }
+    if (models.stagedPrepay) {
+      rows.push(
+        row(
+          "STAGED_PREPAY",
+          `Custom staged prepay (${stagedEvents.length} event${stagedEvents.length === 1 ? "" : "s"})`,
+          models.stagedPrepay.totals.payoff_month,
+          models.stagedPrepay.totals.total_interest_inr,
+          models.stagedPrepay.totals.total_paid_inr,
+        ),
+      );
     }
     return rows;
-  }, [models]);
+  }, [models, baseInterest, stagedEvents.length]);
 
   const pfWithdrawalPlan = useMemo(() => {
     if (!models) return null;
@@ -352,26 +536,81 @@ export function useLoanModels() {
     );
   }, [models]);
 
-  const activeRows = useMemo(() => {
-    if (!models) return [];
-    if (scenarioView === "BASE") return models.base.rows;
-    if (scenarioView === "PREPAY_TENURE" && models.prepayTenure)
-      return models.prepayTenure.rows;
-    if (scenarioView === "PREPAY_EMI" && models.prepayEmi) return models.prepayEmi.rows;
-    if (scenarioView === "BASE_INFLOW" && models.baseInflow) return models.baseInflow.rows;
-    if (scenarioView === "PREPAY_EMI_INFLOW" && models.prepayEmiInflow)
-      return models.prepayEmiInflow.rows;
-    if (scenarioView === "CASHFLOW_NO_PF" && models.cashflowNoPf)
-      return models.cashflowNoPf.rows;
-    if (scenarioView === "CASHFLOW_PLUS_PF" && models.cashflowPlusPf)
-      return models.cashflowPlusPf.rows;
-    if (scenarioView === "UE_PF_TO_LOAN" && models.uePfToLoan)
-      return models.uePfToLoan.rows;
-    return models.base.rows;
+  const activeBundle = useMemo((): ScheduleBundle | null => {
+    if (!models) return null;
+
+    if (scenarioView === "BASE") {
+      return { rows: models.base.rows, totals: models.base.totals };
+    }
+    if (scenarioView === "PREPAY_TENURE" && models.prepayTenure) {
+      return { rows: models.prepayTenure.rows, totals: models.prepayTenure.totals };
+    }
+    if (scenarioView === "PREPAY_EMI" && models.prepayEmi) {
+      return { rows: models.prepayEmi.rows, totals: models.prepayEmi.totals };
+    }
+    if (scenarioView === "BASE_INFLOW" && models.baseInflow) {
+      return { rows: models.baseInflow.rows, totals: models.baseInflow.totals };
+    }
+    if (scenarioView === "PREPAY_EMI_INFLOW" && models.prepayEmiInflow) {
+      return { rows: models.prepayEmiInflow.rows, totals: models.prepayEmiInflow.totals };
+    }
+    if (scenarioView === "CASHFLOW_NO_PF" && models.cashflowNoPf) {
+      return { rows: models.cashflowNoPf.rows, totals: models.cashflowNoPf.totals };
+    }
+    if (scenarioView === "CASHFLOW_PLUS_PF" && models.cashflowPlusPf) {
+      return { rows: models.cashflowPlusPf.rows, totals: models.cashflowPlusPf.totals };
+    }
+    if (scenarioView === "UE_PF_TO_LOAN" && models.uePfToLoan) {
+      if (isCashflowResult(models.uePfToLoan)) {
+        return {
+          rows: models.uePfToLoan.rows,
+          totals: models.uePfToLoan.totals,
+          cashBalances: models.uePfToLoan.rows.map((r) => r.cash_balance_inr),
+          warnings: models.uePfToLoan.warnings,
+        };
+      }
+      return { rows: models.uePfToLoan.rows, totals: models.uePfToLoan.totals };
+    }
+    if (scenarioView === "UE_PF_BRIDGE" && models.uePfBridge) {
+      return {
+        rows: models.uePfBridge.rows,
+        totals: models.uePfBridge.totals,
+        cashBalances: models.uePfBridge.rows.map((r) => r.cash_balance_inr),
+        warnings: models.uePfBridge.warnings,
+      };
+    }
+    if (scenarioView === "UE_DELAY_PREPAY" && models.ueDelayPrepay) {
+      return {
+        rows: models.ueDelayPrepay.rows,
+        totals: models.ueDelayPrepay.totals,
+        cashBalances: models.ueDelayPrepay.rows.map((r) => r.cash_balance_inr),
+        warnings: models.ueDelayPrepay.warnings,
+      };
+    }
+    if (scenarioView === "STAGED_PREPAY" && models.stagedPrepay) {
+      return { rows: models.stagedPrepay.rows, totals: models.stagedPrepay.totals };
+    }
+    return { rows: models.base.rows, totals: models.base.totals };
   }, [models, scenarioView]);
+
+  const activeRows = activeBundle?.rows ?? [];
+  const activeCashBalances = activeBundle?.cashBalances;
+  const activeWarnings = activeBundle?.warnings ?? [];
+  const principalCurve = useMemo(
+    () => buildPrincipalCurve(activeRows),
+    [activeRows],
+  );
+  const interestCurve = useMemo(
+    () => buildCumulativeInterestCurve(activeRows),
+    [activeRows],
+  );
 
   function setField<K extends keyof LoanInput>(key: K, value: string) {
     setInputs((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function setBoolField(key: "gold_haircut_enabled" | "unemployment_mode", checked: boolean) {
+    setInputs((prev) => ({ ...prev, [key]: checked ? "true" : "false" }));
   }
 
   function loadReference() {
@@ -379,6 +618,7 @@ export function useLoanModels() {
       principal_inr: String(REFERENCE_SCENARIO.principal_inr),
       annual_interest_rate: String(REFERENCE_SCENARIO.annual_interest_rate),
       tenure_months: String(REFERENCE_SCENARIO.tenure_months),
+      start_date: REFERENCE_SCENARIO.start_date ?? "",
       cash_inr: String(REFERENCE_SCENARIO.cash_inr),
       monthly_salary_inr: String(REFERENCE_SCENARIO.monthly_salary_inr),
       pf_corpus_inr: String(REFERENCE_SCENARIO.pf_corpus_inr),
@@ -387,23 +627,97 @@ export function useLoanModels() {
       ),
       monthly_pf_addition_inr: String(REFERENCE_SCENARIO.monthly_pf_addition_inr),
       gold_liquid_inr: String(REFERENCE_SCENARIO.gold_liquid_inr),
+      gold_haircut_enabled: "false",
+      gold_haircut_pct: "0",
       monthly_cash_to_loan_inr: String(REFERENCE_SCENARIO.monthly_cash_to_loan_inr),
+      unemployment_mode: "false",
+      unemployment_start_month: "1",
+      monthly_living_expense_inr: "0",
+      monthly_income_inr: "0",
     });
     setScenarioView("BASE");
+    setStagedPrepays([]);
+  }
+
+  function addStagedPrepay() {
+    setStagedPrepays((prev) => [...prev, newStagedPrepayEntry()]);
+  }
+
+  function removeStagedPrepay(id: string) {
+    setStagedPrepays((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  function updateStagedPrepay(
+    id: string,
+    field: "month" | "amount_inr",
+    value: string,
+  ) {
+    setStagedPrepays((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
+    );
+  }
+
+  function exportScheduleCsv() {
+    if (!models || !activeBundle) return;
+    const csv = scheduleToCsv(activeRows, {
+      includeCashBalance: activeCashBalances !== undefined,
+      cashBalances: activeCashBalances,
+      startDateIso: models.v.start_date,
+    });
+    const slug = SCENARIO_LABELS[scenarioView].toLowerCase();
+    downloadTextFile(`loan-schedule-${slug}.csv`, csv, "text/csv;charset=utf-8");
+  }
+
+  function exportScenarioJson() {
+    if (!models || !activeBundle) return;
+    const comp = comparisonRows.find((r) => r.id === scenarioView);
+    const payload: ScenarioExportPayload = {
+      exported_at: new Date().toISOString(),
+      scenario_id: SCENARIO_LABELS[scenarioView],
+      scenario_label: comp?.label ?? SCENARIO_LABELS[scenarioView],
+      inputs: { ...models.v, prepay_source: prepaySource, staged_prepayments: stagedEvents },
+      totals: {
+        payoff_month: activeBundle.totals.payoff_month,
+        total_interest_inr: activeBundle.totals.total_interest_inr,
+        total_paid_inr: activeBundle.totals.total_paid_inr,
+        total_prepayments_inr: activeBundle.totals.total_prepayments_inr,
+        interest_delta_vs_base_inr: comp?.deltaInterestVsBase,
+        min_cash_balance_inr: comp?.minCashBalance,
+      },
+      staged_prepayments: stagedEvents.length > 0 ? stagedEvents : undefined,
+    };
+    const slug = SCENARIO_LABELS[scenarioView].toLowerCase();
+    downloadTextFile(
+      `loan-scenario-${slug}.json`,
+      scenarioToJson(payload),
+      "application/json;charset=utf-8",
+    );
   }
 
   return {
     inputs,
     setField,
+    setBoolField,
     loadReference,
     parsed,
     models,
     comparisonRows,
     pfWithdrawalPlan,
     activeRows,
+    activeCashBalances,
+    activeWarnings,
+    principalCurve,
+    interestCurve,
     scenarioView,
     setScenarioView,
     prepaySource,
     setPrepaySource,
+    effectiveGoldInr,
+    stagedPrepays,
+    addStagedPrepay,
+    removeStagedPrepay,
+    updateStagedPrepay,
+    exportScheduleCsv,
+    exportScenarioJson,
   };
 }

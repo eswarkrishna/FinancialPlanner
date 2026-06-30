@@ -380,6 +380,78 @@ tbody tr:hover {
   margin: 0;
 }
 
+.schedule-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.subsection-title {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.schedule-chart h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.schedule-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.chart-end-label {
+  margin: 0.35rem 0 0;
+}
+
+.staged-prepay h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.staged-prepay-table input {
+  width: 100%;
+  min-width: 6rem;
+}
+
 .inline {
   display: flex;
   align-items: center;

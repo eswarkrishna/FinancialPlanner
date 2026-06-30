@@ -18,6 +18,7 @@ export function GameSection() {
     parsed,
     result,
     profiles,
+    exportGameJson,
   } = useGamePlanner();
 
   const activeProfile = describeGameProfile(profileId);
@@ -93,7 +94,14 @@ export function GameSection() {
           )}
 
           <section className="card">
-            <h2>Payoff matrix</h2>
+            <div className="schedule-head">
+              <h2>Payoff matrix</h2>
+              <div className="actions inline-actions">
+                <button type="button" className="btn secondary btn-sm" onClick={exportGameJson}>
+                  Export JSON
+                </button>
+              </div>
+            </div>
             <p className="hint">
               {result.payoff_matrix.length} cells · underlying scenarios:{" "}
               {result.underlying_scenario_ids.join(", ")}

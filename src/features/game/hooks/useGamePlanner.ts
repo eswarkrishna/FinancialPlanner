@@ -6,6 +6,7 @@ import {
   type GameProfileId,
   type GameResult,
 } from "../../../lib/game";
+import { downloadTextFile, gameResultToJson } from "../../../lib/export";
 import { REFERENCE_SCENARIO } from "../../../lib/loanInputSchema";
 
 const DEFAULT_PROFILE: GameProfileId = "GAME_BL_SIM_FEE";
@@ -28,6 +29,21 @@ export function useGamePlanner() {
     return runGame(parsed.data);
   }, [parsed]);
 
+  function exportGameJson() {
+    if (!parsed.success || !result) return;
+    const json = gameResultToJson({
+      exported_at: new Date().toISOString(),
+      game_profile_id: profileId,
+      inputs: parsed.data as Record<string, unknown>,
+      payoff_matrix: result.payoff_matrix,
+      equilibria: result.equilibria,
+      recommended_b_action: result.recommended_b_action,
+      warnings: result.warnings,
+      underlying_scenario_ids: result.underlying_scenario_ids,
+    });
+    downloadTextFile(`game-${profileId.toLowerCase()}.json`, json, "application/json;charset=utf-8");
+  }
+
   return {
     profileId,
     setProfileId,
@@ -36,5 +52,6 @@ export function useGamePlanner() {
     parsed,
     result,
     profiles: P0_GAME_PROFILES,
+    exportGameJson,
   };
 }

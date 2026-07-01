@@ -24,6 +24,7 @@ manual smoke checks.
 | 10.15 | Retirement corpus monotonicity by contribution | `src/lib/retirement.test.ts` |
 | 10.16 | Retirement scenario ranking (conservative <= optimistic) | `src/lib/retirement.test.ts` |
 | 10.17 | Retirement inflation increases target corpus | `src/lib/retirement.test.ts` |
+| 10.15 | Latest push footer metadata (§8) | `src/components/AppFooter.test.tsx`, `src/lib/buildInfo.test.ts` |
 
 ## Golden contracts
 
@@ -41,6 +42,7 @@ These tests protect the refactored section boundaries and shell composition:
 - `src/features/debt/DebtSection.test.tsx`
 - `src/features/retirement/RetirementSection.test.tsx`
 - `src/App.test.tsx`
+- `src/components/AppFooter.test.tsx` — §8 / §10.15 latest-push footer metadata
 
 ## Manual smoke checklist (Phase 4)
 
@@ -50,3 +52,4 @@ Run `npm run dev` and verify:
 2. Debt section toggles avalanche/snowball and shows low-budget warning path.
 3. Retirement scenario select updates yearly timeline heading/content.
 4. Footer disclaimer text from SPEC §14 is visible on the main dashboard.
+5. Footer shows **Latest push** with commit date and linked short SHA (§8 deploy metadata).

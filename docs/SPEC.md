@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **Status:** Draft for implementation
@@ -680,6 +680,12 @@ Engineers must add unit tests for off-by-one with an example: `U=1` → tranche2
 4. **Schedule**  
    - Virtualised table for 600 rows max  
 
+### Deploy metadata (footer)
+
+- At **build time**, embed the git commit used for the bundle: full SHA, short SHA (7+ chars), and commit timestamp (ISO 8601).  
+- Show in the **site footer** on every screen: label **“Latest push”**, human-readable commit date, and short SHA linking to `https://github.com/{owner}/{repo}/commit/{sha}`. Default repo: `eswarkrishna/FinancialPlanner` (override via `VITE_GITHUB_REPO` at build).  
+- If git metadata is unavailable (e.g. tarball without `.git`), **omit** the line — do not show placeholders or “unknown”.
+
 ### Comparison table columns
 
 Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows; Min cash balance (if simulated); Notes/warnings.
@@ -726,6 +732,10 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 12. **`GAME_BN_SIM_UE_TIMING`**: **12** cells; max-min borrower action never chooses `B_PREPAY_25` if `min_cash_runway` < 3 months on reference budget fixture (construct in test).  
 13. **Oracle purity**: `src/lib/game/` must not duplicate EMI math; all payoffs call §4.3–§4.8 or §4.12 helpers.  
 14. **Tier P0 goldens** (when implemented): one JSON per profile in `src/test/fixtures/game/`.
+
+### UI / deploy metadata (§8)
+
+15. **Latest push footer:** when built from git, footer shows “Latest push”, commit date, and short SHA; SHA links to the matching GitHub commit URL for the default repo.
 
 ---
 

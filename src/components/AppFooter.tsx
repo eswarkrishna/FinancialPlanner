@@ -1,7 +1,36 @@
 /** Site-wide footer: summary disclaimer + expandable terms (educational tool). */
+import {
+  formatBuildCommitDate,
+  getBuildInfo,
+  githubCommitUrl,
+} from "../lib/buildInfo";
+
+function BuildMetaLine() {
+  const info = getBuildInfo();
+  if (!info) {
+    return null;
+  }
+
+  const commitUrl = githubCommitUrl(info.githubRepo, info.commitSha);
+
+  return (
+    <p className="footer-meta">
+      Latest push:{" "}
+      <time dateTime={info.commitIsoDate}>
+        {formatBuildCommitDate(info.commitIsoDate)}
+      </time>
+      {" · "}
+      <a href={commitUrl} target="_blank" rel="noopener noreferrer">
+        <code>{info.commitShort}</code>
+      </a>
+    </p>
+  );
+}
+
 export function AppFooter() {
   return (
     <footer className="footer">
+      <BuildMetaLine />
       <p className="footer-lead">
         Educational planning only. EPF withdrawal eligibility, taxes, lender
         prepayment charges, and loan terms vary. Verify with EPFO, your lender, and a

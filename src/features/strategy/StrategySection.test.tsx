@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { renderWithLocale } from "../../test/renderWithLocale";
 import { StrategySection } from "./StrategySection";
 
 function fillStrategyBaseline(): void {
@@ -31,7 +32,7 @@ function fillStrategyBaseline(): void {
 
 describe("StrategySection", () => {
   it("renders the strategy planner with comparison + allocation tables", () => {
-    render(<StrategySection />);
+    renderWithLocale(<StrategySection />);
     expect(
       screen.getByRole("heading", { name: "Repayment strategies" }),
     ).toBeInTheDocument();
@@ -44,7 +45,7 @@ describe("StrategySection", () => {
   });
 
   it("applies Tier C preset and surfaces the subsistence warning", () => {
-    render(<StrategySection />);
+    renderWithLocale(<StrategySection />);
     fillStrategyBaseline();
     fireEvent.click(screen.getByRole("button", { name: /Tier C/ }));
     expect(

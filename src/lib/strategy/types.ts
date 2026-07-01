@@ -22,6 +22,8 @@ export interface StrategyInputs {
   expected_equity_return_pct: number;
   horizon_months: number;
   repayment_pct_of_take_home?: number;
+  /** Locale-aware subsistence floor for BELOW_SUBSISTENCE warning. */
+  subsistence_floor_inr?: number;
 }
 
 /** Spec §4.12.4 — per-strategy KPIs surfaced in the comparison row. */
@@ -63,4 +65,10 @@ export const STRATEGY_TIER_PRESETS: readonly StrategyTierPreset[] = [
   { id: "tier_a", label: "Tier A — ₹3L take-home", monthly_take_home_inr: 300_000 },
   { id: "tier_b", label: "Tier B — ₹2L take-home", monthly_take_home_inr: 200_000 },
   { id: "tier_c", label: "Tier C — ₹1L take-home", monthly_take_home_inr: 100_000 },
+];
+
+export const STRATEGY_TIER_PRESETS_US: readonly StrategyTierPreset[] = [
+  { id: "tier_a", label: "Tier A — $18k take-home", monthly_take_home_inr: 18_000 },
+  { id: "tier_b", label: "Tier B — $12k take-home", monthly_take_home_inr: 12_000 },
+  { id: "tier_c", label: "Tier C — $8k take-home", monthly_take_home_inr: 8_000 },
 ];

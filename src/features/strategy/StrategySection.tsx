@@ -1,5 +1,6 @@
-import { formatInr } from "../../lib/formatInr";
+import { formatMoney } from "../../lib/locale/formatMoney";
 import type { StrategyResult, StrategyWarning } from "../../lib/strategy/types";
+import type { Locale } from "../../lib/locale/types";
 import { useStrategyPlanner } from "./hooks/useStrategyPlanner";
 
 const STRATEGY_LABELS: Record<StrategyResult["strategy_id"], string> = {
@@ -8,18 +9,34 @@ const STRATEGY_LABELS: Record<StrategyResult["strategy_id"], string> = {
   STRATEGY_AGGRESSIVE_PREPAY: "Aggressive prepay",
 };
 
-const WARNING_COPY: Record<StrategyWarning, string> = {
-  EMERGENCY_FUND_SHORTFALL:
-    "Cash below emergency-fund floor; deployable set to 0.",
-  FRAGILE_CASH_FLOW: "EMI exceeds 50% of take-home; cash flow is fragile.",
-  BELOW_SUBSISTENCE: "Living budget under ₹15,000/month — too tight.",
-  AGGRESSIVE_PCT_INVALID: "Repayment pct outside 0–100; clamped.",
-  HORIZON_TOO_SHORT: "Horizon ends before loan close; redirection skipped.",
-};
+function warningCopy(locale: Locale): Record<StrategyWarning, string> {
+  return {
+    EMERGENCY_FUND_SHORTFALL:
+      "Cash below emergency-fund floor; deployable set to 0.",
+    FRAGILE_CASH_FLOW: "EMI exceeds 50% of take-home; cash flow is fragile.",
+    BELOW_SUBSISTENCE:
+      locale === "US"
+        ? "Living budget under $2,000/month — too tight."
+        : "Living budget under ₹15,000/month — too tight.",
+    AGGRESSIVE_PCT_INVALID: "Repayment pct outside 0–100; clamped.",
+    HORIZON_TOO_SHORT: "Horizon ends before loan close; redirection skipped.",
+  };
+}
 
 export function StrategySection() {
-  const { form, setField, results, strategyFormReady, tierPresets, applyTierPreset } =
-    useStrategyPlanner();
+  const {
+    form,
+    setField,
+    results,
+    strategyFormReady,
+    tierPresets,
+    applyTierPreset,
+    locale,
+  } = useStrategyPlanner();
+  const money = (value: number) => formatMoney(value, locale);
+  const isUs = locale === "US";
+  const currencyLabel = isUs ? "USD" : "INR";
+  const warnings = warningCopy(locale);
 
   return (
     <>
@@ -59,7 +76,7 @@ export function StrategySection() {
 
         <div className="form-grid">
           <label>
-            Principal (INR)
+            Principal ({currencyLabel})
             <input
               inputMode="decimal"
               value={form.principal_inr}
@@ -83,7 +100,7 @@ export function StrategySection() {
             />
           </label>
           <label>
-            Cash (INR)
+            Cash ({currencyLabel})
             <input
               inputMode="decimal"
               value={form.cash_inr}
@@ -91,7 +108,7 @@ export function StrategySection() {
             />
           </label>
           <label>
-            PF corpus (INR)
+            {isUs ? "401(k) corpus (USD)" : "PF corpus (INR)"}
             <input
               inputMode="decimal"
               value={form.pf_corpus_inr}
@@ -99,7 +116,7 @@ export function StrategySection() {
             />
           </label>
           <label>
-            PF annual rate (%)
+            {isUs ? "401(k) annual return (%)" : "PF annual rate (%)"}
             <input
               inputMode="decimal"
               value={form.pf_annual_interest_rate_pct}
@@ -109,7 +126,7 @@ export function StrategySection() {
             />
           </label>
           <label>
-            Monthly PF addition (INR)
+            {isUs ? "Monthly 401(k) deferral (USD)" : "Monthly PF addition (INR)"}
             <input
               inputMode="decimal"
               value={form.monthly_pf_addition_inr}
@@ -117,7 +134,7 @@ export function StrategySection() {
             />
           </label>
           <label>
-            Take-home (INR/mo)
+            Take-home ({currencyLabel}/mo)
             <input
               inputMode="decimal"
               value={form.monthly_take_home_inr}
@@ -125,7 +142,7 @@ export function StrategySection() {
             />
           </label>
           <label>
-            Living expense (INR/mo)
+            Living expense ({currencyLabel}/mo)
             <input
               inputMode="decimal"
               value={form.monthly_living_expense_inr}
@@ -133,7 +150,7 @@ export function StrategySection() {
             />
           </label>
           <label>
-            Extra income (INR/mo)
+            Extra income ({currencyLabel}/mo)
             <input
               inputMode="decimal"
               value={form.extra_monthly_income_inr}
@@ -268,16 +285,16 @@ export function StrategySection() {
                 <tr key={row.strategy_id}>
                   <td>{STRATEGY_LABELS[row.strategy_id]}</td>
                   <td>{row.loan_close_month}</td>
-                  <td>{formatInr(row.total_interest_inr)}</td>
-                  <td>{formatInr(row.interest_saved_vs_base_inr)}</td>
-                  <td>{formatInr(row.equity_corpus_at_horizon_inr)}</td>
-                  <td>{formatInr(row.net_worth_at_horizon_inr)}</td>
-                  <td>{formatInr(row.min_living_budget_inr)}</td>
+                  <td>{money(row.total_interest_inr)}</td>
+                  <td>{money(row.interest_saved_vs_base_inr)}</td>
+                  <td>{money(row.equity_corpus_at_horizon_inr)}</td>
+                  <td>{money(row.net_worth_at_horizon_inr)}</td>
+                  <td>{money(row.min_living_budget_inr)}</td>
                   <td>
                     {row.warnings.length === 0
                       ? "—"
                       : row.warnings
-                          .map((w) => WARNING_COPY[w] ?? w)
+                          .map((w) => warnings[w] ?? w)
                           .join(" ")}
                   </td>
                 </tr>
@@ -319,13 +336,13 @@ export function StrategySection() {
               {results.map((row) => (
                 <tr key={row.strategy_id}>
                   <td>{STRATEGY_LABELS[row.strategy_id]}</td>
-                  <td>{formatInr(row.one_time_prepay_inr)}</td>
-                  <td>{formatInr(row.equity_lump_inr)}</td>
-                  <td>{formatInr(row.monthly_extra_principal_inr)}</td>
-                  <td>{formatInr(row.monthly_sip_inr)}</td>
-                  <td>{formatInr(row.cash_buffer_remaining_inr)}</td>
-                  <td>{formatInr(row.equity_corpus_at_horizon_post_tax_inr)}</td>
-                  <td>{formatInr(row.pf_corpus_at_horizon_inr)}</td>
+                  <td>{money(row.one_time_prepay_inr)}</td>
+                  <td>{money(row.equity_lump_inr)}</td>
+                  <td>{money(row.monthly_extra_principal_inr)}</td>
+                  <td>{money(row.monthly_sip_inr)}</td>
+                  <td>{money(row.cash_buffer_remaining_inr)}</td>
+                  <td>{money(row.equity_corpus_at_horizon_post_tax_inr)}</td>
+                  <td>{money(row.pf_corpus_at_horizon_inr)}</td>
                 </tr>
               ))}
             </tbody>

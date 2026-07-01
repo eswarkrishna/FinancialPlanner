@@ -1,11 +1,14 @@
 import { useMemo, useState } from "react";
 import { simulateAllStrategies } from "../../../lib/strategy/simulate";
+import { SUBSISTENCE_FLOOR_INR, SUBSISTENCE_FLOOR_USD } from "../../../lib/strategy/constants";
 import {
   STRATEGY_TIER_PRESETS,
+  STRATEGY_TIER_PRESETS_US,
   type StrategyInputs,
   type StrategyResult,
   type StrategyTierPreset,
 } from "../../../lib/strategy/types";
+import { useLocale } from "../../locale/LocaleContext";
 
 type StrategyFormState = {
   principal_inr: string;
@@ -67,7 +70,7 @@ export function strategyFormReady(form: StrategyFormState): boolean {
   return principal > 0 && tenure > 0 && horizon > 0;
 }
 
-function buildInputs(form: StrategyFormState): StrategyInputs {
+function buildInputs(form: StrategyFormState, locale: "IN" | "US"): StrategyInputs {
   const postTax = form.extra_income_post_tax ?? false;
   return {
     principal_inr: Math.max(0, parseNumber(form.principal_inr)),
@@ -104,14 +107,17 @@ function buildInputs(form: StrategyFormState): StrategyInputs {
       0,
       parseNumber(form.repayment_pct_of_take_home),
     ),
+    subsistence_floor_inr:
+      locale === "US" ? SUBSISTENCE_FLOOR_USD : SUBSISTENCE_FLOOR_INR,
   };
 }
 
 export function useStrategyPlanner() {
+  const { locale } = useLocale();
   const [form, setForm] = useState<StrategyFormState>(EMPTY_FORM);
 
   const ready = strategyFormReady(form);
-  const inputs = useMemo(() => buildInputs(form), [form]);
+  const inputs = useMemo(() => buildInputs(form, locale), [form, locale]);
   const results = useMemo((): StrategyResult[] => {
     if (!ready) return [];
     return simulateAllStrategies(inputs);
@@ -137,7 +143,8 @@ export function useStrategyPlanner() {
     inputs,
     results,
     strategyFormReady: ready,
-    tierPresets: STRATEGY_TIER_PRESETS,
+    locale,
+    tierPresets: locale === "US" ? STRATEGY_TIER_PRESETS_US : STRATEGY_TIER_PRESETS,
     applyTierPreset,
   };
 }

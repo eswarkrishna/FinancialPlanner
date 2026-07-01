@@ -9,6 +9,8 @@ export interface RetirementInput {
   years_to_retirement: number;
   annual_expense_today_inr: number;
   safe_withdrawal_rate_pct: number;
+  /** US: expected monthly Social Security benefit (stored in locale-neutral numeric field). */
+  expected_social_security_monthly_inr?: number;
 }
 
 export interface RetirementYearRow {

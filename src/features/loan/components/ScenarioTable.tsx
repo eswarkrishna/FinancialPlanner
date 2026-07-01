@@ -1,10 +1,12 @@
 import { type ScheduleRow } from "../../../lib/loan";
-import { formatInr } from "../../../lib/formatInr";
+import { formatMoney } from "../../../lib/locale/formatMoney";
+import type { Locale } from "../../../lib/locale/types";
 
 interface ScenarioTableProps {
   rows: ScheduleRow[];
   cashBalances?: number[];
   startDateIso?: string;
+  locale?: Locale;
 }
 
 function calendarLabel(monthIndex: number, startDateIso?: string): string | null {
@@ -16,9 +18,15 @@ function calendarLabel(monthIndex: number, startDateIso?: string): string | null
   return d.toLocaleDateString("en-IN", { year: "numeric", month: "short" });
 }
 
-export function ScenarioTable({ rows, cashBalances, startDateIso }: ScenarioTableProps) {
+export function ScenarioTable({
+  rows,
+  cashBalances,
+  startDateIso,
+  locale = "IN",
+}: ScenarioTableProps) {
   const showCash = cashBalances !== undefined && cashBalances.length > 0;
   const showDate = Boolean(startDateIso);
+  const money = (value: number) => formatMoney(value, locale);
 
   return (
     <div className="table-wrap">
@@ -41,19 +49,19 @@ export function ScenarioTable({ rows, cashBalances, startDateIso }: ScenarioTabl
             <tr key={row.month}>
               <td>{row.month}</td>
               {showDate && <td>{calendarLabel(row.month, startDateIso) ?? "—"}</td>}
-              <td>{formatInr(row.opening_inr)}</td>
-              <td>{formatInr(row.interest_inr)}</td>
-              <td>{formatInr(row.principal_inr)}</td>
-              <td>{row.prepayment_inr > 0 ? formatInr(row.prepayment_inr) : "—"}</td>
-              <td>{formatInr(row.closing_inr)}</td>
+              <td>{money(row.opening_inr)}</td>
+              <td>{money(row.interest_inr)}</td>
+              <td>{money(row.principal_inr)}</td>
+              <td>{row.prepayment_inr > 0 ? money(row.prepayment_inr) : "—"}</td>
+              <td>{money(row.closing_inr)}</td>
               {showCash && (
                 <td>
                   {cashBalances![i] !== undefined
-                    ? formatInr(cashBalances![i]!)
+                    ? money(cashBalances![i]!)
                     : "—"}
                 </td>
               )}
-              <td>{formatInr(row.payment_inr)}</td>
+              <td>{money(row.payment_inr)}</td>
             </tr>
           ))}
         </tbody>

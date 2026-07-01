@@ -12,6 +12,7 @@ type RetirementFormState = {
   years_to_retirement: string;
   annual_expense_today_inr: string;
   safe_withdrawal_rate_pct: string;
+  expected_social_security_monthly_inr: string;
 };
 
 function parseNumber(value: string): number {
@@ -32,6 +33,7 @@ export function useRetirementPlanner() {
     years_to_retirement: "",
     annual_expense_today_inr: "",
     safe_withdrawal_rate_pct: "",
+    expected_social_security_monthly_inr: "",
   });
   const [selectedRetirementScenario, setSelectedRetirementScenario] =
     useState("base");
@@ -66,6 +68,10 @@ export function useRetirementPlanner() {
         retirementInputs.safe_withdrawal_rate_pct.trim() === ""
           ? 0
           : Math.max(0.1, parseNumber(retirementInputs.safe_withdrawal_rate_pct)),
+      expected_social_security_monthly_inr: Math.max(
+        0,
+        parseNumber(retirementInputs.expected_social_security_monthly_inr),
+      ),
     };
   }, [retirementInputs]);
 
@@ -92,6 +98,7 @@ export function useRetirementPlanner() {
     setSelectedRetirementScenario,
     retirementScenarios,
     activeRetirementScenario,
+    retirementBaseInput,
     setRetirementField,
     formatPercent,
   };

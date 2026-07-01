@@ -215,7 +215,9 @@ export function simulateStrategy(
         allocation.monthlyExtraPrincipalInr +
         allocation.monthlySipInr),
   );
-  if (minLivingBudget < SUBSISTENCE_FLOOR_INR) warnings.push("BELOW_SUBSISTENCE");
+  if (minLivingBudget < (input.subsistence_floor_inr ?? SUBSISTENCE_FLOOR_INR)) {
+    warnings.push("BELOW_SUBSISTENCE");
+  }
 
   const interestSaved = roundInr(
     baseline.totals.total_interest_inr - loanRun.totals.total_interest_inr,

@@ -3,9 +3,11 @@ import { trackPageView } from "./lib/analytics";
 import { AppFooter } from "./components/AppFooter";
 import { DebtSection } from "./features/debt/DebtSection";
 import { GameSection } from "./features/game/GameSection";
+import { useLocale } from "./features/locale/LocaleContext";
 import { LoanSection } from "./features/loan/LoanSection";
 import { RetirementSection } from "./features/retirement/RetirementSection";
 import { StrategySection } from "./features/strategy/StrategySection";
+import type { Locale } from "./lib/locale/types";
 
 type TabId = "loan" | "debt" | "retirement" | "strategies" | "strategic";
 
@@ -19,6 +21,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabId>("loan");
+  const { locale, switchLocale } = useLocale();
 
   useEffect(() => {
     const label = TABS.find((t) => t.id === activeTab)?.label ?? activeTab;
@@ -29,6 +32,10 @@ export function App() {
     setActiveTab(tabId);
   }
 
+  function onLocaleChange(next: Locale) {
+    switchLocale(next);
+  }
+
   return (
     <div className="app-shell">
       <a href="#main-content" className="skip-link">
@@ -37,7 +44,20 @@ export function App() {
 
       <header className="app-header">
         <div className="app-header-inner app-brand">
-          <h1>FinancialPlanner</h1>
+          <div className="app-brand-row">
+            <h1>FinancialPlanner</h1>
+            <label className="locale-switch inline">
+              Locale{" "}
+              <select
+                value={locale}
+                onChange={(e) => onLocaleChange(e.target.value as Locale)}
+                aria-label="Country locale"
+              >
+                <option value="IN">India (INR)</option>
+                <option value="US">United States (USD)</option>
+              </select>
+            </label>
+          </div>
           <p className="lede">
             Plan your home loan, compare prepayment options, model debt and retirement
             savings, and explore what-if strategies—all in one place. Numbers are for

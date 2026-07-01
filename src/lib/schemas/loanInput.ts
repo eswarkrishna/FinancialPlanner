@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT } from "../pf/constants";
+import {
+  DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT,
+  DEFAULT_EMPLOYER_MATCH_CAP_PCT,
+  DEFAULT_EMPLOYER_MATCH_RATE_PCT,
+} from "../k401/constants";
+import { REFERENCE_SCENARIO_IN } from "../locale/constants";
 
-/** Spec §4.1–4.2 — parse form strings to numbers where needed */
+/** Spec §4.1–4.2 / SPEC-US §4.2 — parse form strings to numbers where needed */
 export const loanInputSchema = z.object({
   principal_inr: z.coerce.number().positive("Principal must be positive"),
   annual_interest_rate: z.coerce
@@ -20,6 +26,8 @@ export const loanInputSchema = z.object({
     .refine((s) => !s || !Number.isNaN(Date.parse(s)), "Invalid start date"),
   cash_inr: z.coerce.number().min(0).optional().default(0),
   monthly_salary_inr: z.coerce.number().min(0).optional().default(0),
+  /** US: annual salary for employer match; IN: optional. */
+  annual_salary_inr: z.coerce.number().min(0).optional().default(0),
   pf_corpus_inr: z.coerce.number().min(0).optional().default(0),
   pf_annual_interest_rate_pct: z.coerce.number().min(0).max(50).optional().default(
     DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT,
@@ -35,7 +43,7 @@ export const loanInputSchema = z.object({
     .default(0),
   /** Recurring amount applied as extra principal after each month's EMI (§4.5). */
   monthly_cash_to_loan_inr: z.coerce.number().min(0).optional().default(0),
-  /** Unemployment + cashflow module (§4.7–4.8). */
+  /** Unemployment / job-loss + cashflow module (§4.7–4.8 / SPEC-US §4.7–4.8). */
   unemployment_mode: z.coerce.boolean().optional().default(false),
   unemployment_start_month: z.coerce
     .number()
@@ -45,29 +53,33 @@ export const loanInputSchema = z.object({
     .default(1),
   monthly_living_expense_inr: z.coerce.number().min(0).optional().default(0),
   monthly_income_inr: z.coerce.number().min(0).optional().default(0),
+  /** US: unemployment insurance benefit (SPEC-US §4.8). */
+  monthly_uib_inr: z.coerce.number().min(0).optional().default(0),
+  vested_fraction_pct: z.coerce.number().min(0).max(100).optional().default(100),
+  early_withdrawal_tax_withholding_pct: z.coerce
+    .number()
+    .min(0)
+    .max(100)
+    .optional()
+    .default(DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT),
+  employer_match_rate_pct: z.coerce
+    .number()
+    .min(0)
+    .max(200)
+    .optional()
+    .default(DEFAULT_EMPLOYER_MATCH_RATE_PCT),
+  employer_match_cap_pct_of_salary: z.coerce
+    .number()
+    .min(0)
+    .max(100)
+    .optional()
+    .default(DEFAULT_EMPLOYER_MATCH_CAP_PCT),
 });
 
 export type LoanInput = z.infer<typeof loanInputSchema>;
 
-export const REFERENCE_SCENARIO: LoanInput = {
-  principal_inr: 5_000_000,
-  annual_interest_rate: 7.9,
-  tenure_months: 168,
-  start_date: undefined,
-  cash_inr: 2_500_000,
-  monthly_salary_inr: 100_000,
-  pf_corpus_inr: 2_500_000,
-  pf_annual_interest_rate_pct: DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT,
-  monthly_pf_addition_inr: 0,
-  gold_liquid_inr: 2_500_000,
-  gold_haircut_enabled: false,
-  gold_haircut_pct: 0,
-  monthly_cash_to_loan_inr: 0,
-  unemployment_mode: false,
-  unemployment_start_month: 1,
-  monthly_living_expense_inr: 0,
-  monthly_income_inr: 0,
-};
+/** @deprecated Use REFERENCE_SCENARIO_IN from locale/constants */
+export const REFERENCE_SCENARIO: LoanInput = REFERENCE_SCENARIO_IN;
 
 /** Spec §4.2 (extended fields) + §4.12 — household + strategy planner inputs. */
 export const strategyInputSchema = z.object({

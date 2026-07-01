@@ -25,8 +25,8 @@ export function App() {
 
   useEffect(() => {
     const label = TABS.find((t) => t.id === activeTab)?.label ?? activeTab;
-    trackPageView(`tab/${activeTab}`, `FinancialPlanner — ${label}`);
-  }, [activeTab]);
+    trackPageView(`tab/${activeTab}`, `FinancialPlanner — ${label}`, locale);
+  }, [activeTab, locale]);
 
   function selectTab(tabId: TabId) {
     setActiveTab(tabId);

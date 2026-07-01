@@ -11,7 +11,7 @@
 **Version:** 1.2  
 **Audience:** Engineers / Cursor agents implementing the US locale  
 **Locale:** United States (USD; optional thousands separators in UI)  
-**Status:** Draft for implementation (research-backed v1.1)  
+**Status:** Draft for implementation (research-backed v1.2)  
 **Parity target:** Same planner tabs and decision surfaces as India locale for **employed US workers** modeling mortgage payoff, multi-debt, retirement, repayment strategies, and strategic games.
 
 ---
@@ -562,7 +562,7 @@ All IN §9 cases plus:
 
 ### 15.1 Strategy golden matrix
 
-Regenerate: `npm run goldens:update:us` (to be added).  
+Regenerate: `npm run goldens:update:us`.  
 Paths: `src/test/fixtures/strategy-us/tier_{a,b,c}_{equity_blend,prepay_heavy,aggressive_prepay}.json`.
 
 ### 15.2 Game profile golden matrix

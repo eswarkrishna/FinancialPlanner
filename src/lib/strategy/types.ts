@@ -24,6 +24,10 @@ export interface StrategyInputs {
   repayment_pct_of_take_home?: number;
   /** Locale-aware subsistence floor for BELOW_SUBSISTENCE warning. */
   subsistence_floor_inr?: number;
+  /** SPEC-US §4.12 — long-term cap gains rate on brokerage gain (default 15% US, 12.5% IN). */
+  ltcg_rate_pct?: number;
+  /** Annual LTCG exemption (default ₹1.25L IN; 0 US). */
+  ltcg_exemption_inr?: number;
 }
 
 /** Spec §4.12.4 — per-strategy KPIs surfaced in the comparison row. */

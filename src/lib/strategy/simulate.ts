@@ -188,8 +188,10 @@ export function simulateStrategy(
   }
 
   const equityGain = Math.max(0, roundInr(equityCorpus - totalInvested));
-  const taxableGain = Math.max(0, equityGain - LTCG_EXEMPTION_INR);
-  const ltcgTax = roundInr((taxableGain * LTCG_RATE_PCT) / 100);
+  const ltcgRate = input.ltcg_rate_pct ?? LTCG_RATE_PCT;
+  const ltcgExemption = input.ltcg_exemption_inr ?? LTCG_EXEMPTION_INR;
+  const taxableGain = Math.max(0, equityGain - ltcgExemption);
+  const ltcgTax = roundInr((taxableGain * ltcgRate) / 100);
   const equityCorpusPostTax = roundInr(equityCorpus - ltcgTax);
 
   const pfCorpusAtHorizon = projectPfCorpusMonths(

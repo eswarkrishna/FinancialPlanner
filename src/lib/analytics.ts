@@ -42,9 +42,10 @@ export function initAnalytics(): void {
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer ?? [];
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer?.push(args);
-  };
+  // gtag.js expects dataLayer entries as `arguments` objects, not Arrays.
+  window.gtag = function gtag() {
+    window.dataLayer?.push(arguments);
+  } as Gtag;
   window.gtag("js", new Date());
   window.gtag("config", id, {
     send_page_view: false,

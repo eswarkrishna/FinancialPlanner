@@ -13,6 +13,9 @@ import {
   simulateUeDelayPrepayCashflow,
   simulateUePfBridgeCashflow,
   simulateUePfToLoanCashflow,
+  simulateUs401kTranchesToLoanCashflow,
+  simulateUsCashPlus401kCashflow,
+  simulateUsCashflowSchedule,
   type CashflowSimResult,
   type ScheduleRow,
   type UsCashflowSimResult,
@@ -35,7 +38,11 @@ import {
   type LoanInput,
 } from "../../../lib/schemas/index";
 import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf/index";
-import { computeK401JobLossWithdrawalPlan } from "../../../lib/k401/index";
+import {
+  computeK401JobLossWithdrawalPlan,
+  computeMonthlyEmployerMatchUsd,
+} from "../../../lib/k401/index";
+import { trancheMonthsFromStart } from "../../../lib/shared/trancheMonths";
 import {
   newStagedPrepayEntry,
   parseStagedPrepays,
@@ -204,6 +211,17 @@ const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
   monthly_health_premium_inr: "",
 };
 
+function monthly401kWithEmployerMatch(v: LoanInput): number {
+  const match = computeMonthlyEmployerMatchUsd({
+    annual_salary_usd: v.annual_salary_inr,
+    monthly_401k_deferral_usd: v.monthly_pf_addition_inr,
+    employer_match_rate_pct: v.employer_match_rate_pct,
+    employer_match_cap_pct_of_salary: v.employer_match_cap_pct_of_salary,
+    employment_type: v.employment_type,
+  });
+  return v.monthly_pf_addition_inr + match;
+}
+
 function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
   return {
     principal_inr: v.principal_inr,
@@ -223,6 +241,28 @@ function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
     hsa_balance_inr: v.hsa_balance_inr,
     monthly_health_premium_inr: v.monthly_health_premium_inr,
   };
+}
+
+function pfTrancheEvents(
+  tranche1Amount: number,
+  tranche2Amount: number,
+  startMonth: number,
+): { month: number; amount_inr: number }[] {
+  const { tranche1Month, tranche2Month } = trancheMonthsFromStart(startMonth);
+  return [
+    { month: tranche1Month, amount_inr: tranche1Amount },
+    { month: tranche2Month, amount_inr: tranche2Amount },
+  ];
+}
+
+function usPfTrancheLabel(startMonth: number): string {
+  const { tranche1Month, tranche2Month } = trancheMonthsFromStart(startMonth);
+  return `JL 401(k) to loan (50% m${tranche1Month} + 50% m${tranche2Month})`;
+}
+
+function inPfTrancheLabel(startMonth: number): string {
+  const { tranche1Month, tranche2Month } = trancheMonthsFromStart(startMonth);
+  return `UE PF to loan (75% m${tranche1Month} + 25%+interest m${tranche2Month})`;
 }
 
 function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
@@ -316,31 +356,49 @@ export function useLoanModels() {
       v.tenure_months,
       salaryRecurring,
     );
+    const k401Plan = computeK401JobLossWithdrawalPlan(
+      v.pf_corpus_inr,
+      v.vested_fraction_pct,
+    );
+    const isUs = locale === "US";
+    const vested401kBalance = isUs ? k401Plan.vested_balance_usd : v.pf_corpus_inr;
     const oneTimePrepayInr =
       prepaySource === "cash"
         ? v.cash_inr
         : prepaySource === "pf"
-          ? v.pf_corpus_inr
+          ? vested401kBalance
           : effectiveLiquidInr;
     const canPrepay = oneTimePrepayInr > 0;
+    const usEmployed401kPrepay =
+      isUs && prepaySource === "pf" && canPrepay
+        ? simulateUsCashflowSchedule({
+            ...usCashflowBaseInput(v, salaryRecurring),
+            job_loss_enabled: false,
+            employed_401k_prepayments: [{ month: 1, gross_usd: oneTimePrepayInr }],
+          })
+        : null;
     const prepayTenure = canPrepay
-      ? schedulePrepayKeepTenure(
-          v.principal_inr,
-          v.annual_interest_rate,
-          v.tenure_months,
-          1,
-          oneTimePrepayInr,
-          salaryRecurring,
-        )
+      ? isUs && prepaySource === "pf"
+        ? usEmployed401kPrepay
+        : schedulePrepayKeepTenure(
+            v.principal_inr,
+            v.annual_interest_rate,
+            v.tenure_months,
+            1,
+            oneTimePrepayInr,
+            salaryRecurring,
+          )
       : null;
     const prepayEmi = canPrepay
-      ? scheduleFixedEmiWithMonthlyExtra(
-          v.principal_inr,
-          v.annual_interest_rate,
-          v.tenure_months,
-          salaryRecurring,
-          { month: 1, amount: oneTimePrepayInr },
-        )
+      ? isUs && prepaySource === "pf"
+        ? usEmployed401kPrepay
+        : scheduleFixedEmiWithMonthlyExtra(
+            v.principal_inr,
+            v.annual_interest_rate,
+            v.tenure_months,
+            salaryRecurring,
+            { month: 1, amount: oneTimePrepayInr },
+          )
       : null;
     const baseInflow =
       x > 0
@@ -353,24 +411,25 @@ export function useLoanModels() {
         : null;
     const prepayEmiInflow =
       canPrepay && x > 0
-        ? scheduleFixedEmiWithMonthlyExtra(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            recurringToLoan,
-            { month: 1, amount: oneTimePrepayInr },
-          )
+        ? isUs && prepaySource === "pf"
+          ? simulateUsCashflowSchedule({
+              ...usCashflowBaseInput(v, recurringToLoan),
+              job_loss_enabled: false,
+              employed_401k_prepayments: [{ month: 1, gross_usd: oneTimePrepayInr }],
+            })
+          : scheduleFixedEmiWithMonthlyExtra(
+              v.principal_inr,
+              v.annual_interest_rate,
+              v.tenure_months,
+              recurringToLoan,
+              { month: 1, amount: oneTimePrepayInr },
+            )
         : null;
     const pfPlan = computePfUnemploymentWithdrawalPlan(
       v.pf_corpus_inr,
       v.pf_annual_interest_rate_pct,
       v.monthly_pf_addition_inr,
     );
-    const k401Plan = computeK401JobLossWithdrawalPlan(
-      v.pf_corpus_inr,
-      v.vested_fraction_pct,
-    );
-    const isUs = locale === "US";
     const cashflowNoPf =
       v.cash_inr > 0 || x > 0
         ? scheduleTimedPrepaysKeepEmi(
@@ -383,45 +442,47 @@ export function useLoanModels() {
         : null;
     const cashflowPlusPf =
       (v.cash_inr > 0 || x > 0) && v.pf_corpus_inr > 0
-        ? scheduleTimedPrepaysKeepEmi(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            isUs
-              ? [
-                  { month: 1, amount_inr: v.cash_inr },
-                  { month: 1, amount_inr: k401Plan.tranche1_gross_usd },
-                  { month: 12, amount_inr: k401Plan.tranche2_gross_usd },
-                ]
-              : [
-                  { month: 1, amount_inr: v.cash_inr },
-                  { month: 1, amount_inr: pfPlan.tranche1_inr },
-                  { month: 12, amount_inr: pfPlan.tranche2_inr },
-                ],
-            recurringToLoan,
-          )
+        ? isUs
+          ? simulateUsCashPlus401kCashflow({
+              ...usCashflowBaseInput(v, recurringToLoan),
+              cash_prepay_month1_inr: v.cash_inr,
+            })
+          : scheduleTimedPrepaysKeepEmi(
+              v.principal_inr,
+              v.annual_interest_rate,
+              v.tenure_months,
+              [
+                { month: 1, amount_inr: v.cash_inr },
+                ...pfTrancheEvents(
+                  pfPlan.tranche1_inr,
+                  pfPlan.tranche2_inr,
+                  v.unemployment_start_month,
+                ),
+              ],
+              recurringToLoan,
+            )
         : null;
     const uePfToLoan =
       v.pf_corpus_inr > 0
         ? v.unemployment_mode
           ? isUs
-            ? simulateJl401kToLoanCashflow(usCashflowBaseInput(v, salaryRecurring))
-            : simulateUePfToLoanCashflow(cashflowBaseInput(v, salaryRecurring))
-          : scheduleTimedPrepaysKeepEmi(
-              v.principal_inr,
-              v.annual_interest_rate,
-              v.tenure_months,
-              isUs
-                ? [
-                    { month: 1, amount_inr: k401Plan.tranche1_gross_usd },
-                    { month: 12, amount_inr: k401Plan.tranche2_gross_usd },
-                  ]
-                : [
-                    { month: 1, amount_inr: pfPlan.tranche1_inr },
-                    { month: 12, amount_inr: pfPlan.tranche2_inr },
-                  ],
-              salaryRecurring,
-            )
+            ? simulateJl401kToLoanCashflow(usCashflowBaseInput(v, recurringToLoan))
+            : simulateUePfToLoanCashflow(cashflowBaseInput(v, recurringToLoan))
+          : isUs
+            ? simulateUs401kTranchesToLoanCashflow(
+                usCashflowBaseInput(v, recurringToLoan),
+              )
+            : scheduleTimedPrepaysKeepEmi(
+                v.principal_inr,
+                v.annual_interest_rate,
+                v.tenure_months,
+                pfTrancheEvents(
+                  pfPlan.tranche1_inr,
+                  pfPlan.tranche2_inr,
+                  v.unemployment_start_month,
+                ),
+                recurringToLoan,
+              )
         : null;
     const uePfBridge =
       v.unemployment_mode && v.pf_corpus_inr > 0
@@ -464,6 +525,7 @@ export function useLoanModels() {
       prepaySource,
       effectiveLiquidInr,
       k401Plan,
+      monthly401kWithMatch: monthly401kWithEmployerMatch(v),
     };
   }, [parsed, prepaySource, effectiveLiquidInr, stagedEvents, locale]);
 
@@ -580,12 +642,13 @@ export function useLoanModels() {
       if (isCashflowResult(ue)) {
         minCash = ue.min_cash_balance_inr;
       }
+      const startMonth = models.v.unemployment_start_month;
       rows.push(
         row(
           "UE_PF_TO_LOAN",
           locale === "US"
-            ? "JL 401(k) to loan (50% m1 + 50% m12)"
-            : "UE PF to loan (75% m1 + 25%+interest m12)",
+            ? usPfTrancheLabel(startMonth)
+            : inPfTrancheLabel(startMonth),
           ue.totals.payoff_month,
           ue.totals.total_interest_inr,
           ue.totals.total_paid_inr,
@@ -657,21 +720,56 @@ export function useLoanModels() {
       return { rows: models.base.rows, totals: models.base.totals };
     }
     if (scenarioView === "PREPAY_TENURE" && models.prepayTenure) {
+      if (isCashflowResult(models.prepayTenure)) {
+        return {
+          rows: models.prepayTenure.rows,
+          totals: models.prepayTenure.totals,
+          cashBalances: models.prepayTenure.rows.map((r) => r.cash_balance_inr),
+          warnings: models.prepayTenure.warnings,
+        };
+      }
       return { rows: models.prepayTenure.rows, totals: models.prepayTenure.totals };
     }
     if (scenarioView === "PREPAY_EMI" && models.prepayEmi) {
+      if (isCashflowResult(models.prepayEmi)) {
+        return {
+          rows: models.prepayEmi.rows,
+          totals: models.prepayEmi.totals,
+          cashBalances: models.prepayEmi.rows.map((r) => r.cash_balance_inr),
+          warnings: models.prepayEmi.warnings,
+        };
+      }
       return { rows: models.prepayEmi.rows, totals: models.prepayEmi.totals };
     }
     if (scenarioView === "BASE_INFLOW" && models.baseInflow) {
       return { rows: models.baseInflow.rows, totals: models.baseInflow.totals };
     }
     if (scenarioView === "PREPAY_EMI_INFLOW" && models.prepayEmiInflow) {
-      return { rows: models.prepayEmiInflow.rows, totals: models.prepayEmiInflow.totals };
+      if (isCashflowResult(models.prepayEmiInflow)) {
+        return {
+          rows: models.prepayEmiInflow.rows,
+          totals: models.prepayEmiInflow.totals,
+          cashBalances: models.prepayEmiInflow.rows.map((r) => r.cash_balance_inr),
+          warnings: models.prepayEmiInflow.warnings,
+        };
+      }
+      return {
+        rows: models.prepayEmiInflow.rows,
+        totals: models.prepayEmiInflow.totals,
+      };
     }
     if (scenarioView === "CASHFLOW_NO_PF" && models.cashflowNoPf) {
       return { rows: models.cashflowNoPf.rows, totals: models.cashflowNoPf.totals };
     }
     if (scenarioView === "CASHFLOW_PLUS_PF" && models.cashflowPlusPf) {
+      if (isCashflowResult(models.cashflowPlusPf)) {
+        return {
+          rows: models.cashflowPlusPf.rows,
+          totals: models.cashflowPlusPf.totals,
+          cashBalances: models.cashflowPlusPf.rows.map((r) => r.cash_balance_inr),
+          warnings: models.cashflowPlusPf.warnings,
+        };
+      }
       return { rows: models.cashflowPlusPf.rows, totals: models.cashflowPlusPf.totals };
     }
     if (scenarioView === "UE_PF_TO_LOAN" && models.uePfToLoan) {

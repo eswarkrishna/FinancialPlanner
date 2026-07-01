@@ -2,6 +2,7 @@ import { computeEmi, monthlyRateFromAnnualPercent } from "./emi";
 import type { ScheduleRow, ScheduleTotals, TimedPrepaymentEvent } from "./amortisation";
 import { roundUsd } from "../money";
 import { BALANCE_EPSILON_INR } from "../shared/constants";
+import { trancheMonthsFromStart } from "../shared/trancheMonths";
 import {
   computeEarlyWithdrawalCost,
   computeK401JobLossWithdrawalPlan,
@@ -12,6 +13,11 @@ export type K401TrancheDestination = "loan_prepay" | "cash_buffer" | "split";
 export interface UsCashflowScheduleRow extends ScheduleRow {
   cash_balance_inr: number;
   events: string[];
+}
+
+export interface Employed401kPrepayment {
+  month: number;
+  gross_usd: number;
 }
 
 export interface UsCashflowSimInput {
@@ -25,6 +31,8 @@ export interface UsCashflowSimInput {
   monthly_uib_inr: number;
   job_loss_enabled: boolean;
   job_loss_start_month: number;
+  /** When true, schedule 401(k) tranches at U / U+11 even if job_loss_enabled is false. */
+  schedule_k401_tranches?: boolean;
   k401_balance_inr: number;
   vested_fraction_pct: number;
   early_withdrawal_tax_withholding_pct: number;
@@ -36,7 +44,10 @@ export interface UsCashflowSimInput {
   k401_tranche2_destination?: K401TrancheDestination;
   k401_tranche1_loan_fraction?: number;
   k401_tranche2_loan_fraction?: number;
+  /** Bridge preset: tranche 1 net covers living + EMI shortfall before prepay. */
+  k401_tranche1_bridge_liquidity_first?: boolean;
   extra_prepayments?: TimedPrepaymentEvent[];
+  employed_401k_prepayments?: Employed401kPrepayment[];
 }
 
 export interface UsCashflowSimResult {
@@ -110,7 +121,12 @@ export function simulateUsCashflowSchedule(
   let m = 0;
   const cap = input.tenure_months * 8;
   const monthlyExtra = Math.max(0, input.monthly_extra_to_loan_inr);
-  const uStart = input.job_loss_enabled
+  const scheduleTranches =
+    input.schedule_k401_tranches ?? input.job_loss_enabled;
+  const { tranche1Month, tranche2Month } = scheduleTranches
+    ? trancheMonthsFromStart(input.job_loss_start_month)
+    : { tranche1Month: null as number | null, tranche2Month: null as number | null };
+  const uStart = scheduleTranches
     ? Math.max(1, input.job_loss_start_month)
     : null;
 
@@ -118,12 +134,11 @@ export function simulateUsCashflowSchedule(
     input.k401_balance_inr,
     input.vested_fraction_pct,
   );
-  const tranche1Month = uStart;
-  const tranche2Month = uStart !== null ? uStart + 11 : null;
   const dest1 = input.k401_tranche1_destination ?? "cash_buffer";
   const dest2 = input.k401_tranche2_destination ?? "loan_prepay";
   const frac1 = loanFractionFromDestination(dest1, input.k401_tranche1_loan_fraction);
   const frac2 = loanFractionFromDestination(dest2, input.k401_tranche2_loan_fraction);
+  const bridgeLiquidityFirst = input.k401_tranche1_bridge_liquidity_first === true;
   const withholdingPct = input.early_withdrawal_tax_withholding_pct;
   const pmiMonthly =
     input.pmi_active !== false ? Math.max(0, input.pmi_monthly_inr ?? 0) : 0;
@@ -135,6 +150,13 @@ export function simulateUsCashflowSchedule(
     if (event.month < 1 || event.amount_inr <= 0) continue;
     const existing = monthlyPrepay.get(event.month) ?? 0;
     monthlyPrepay.set(event.month, roundUsd(existing + event.amount_inr));
+  }
+
+  const employed401kByMonth = new Map<number, number>();
+  for (const event of input.employed_401k_prepayments ?? []) {
+    if (event.month < 1 || event.gross_usd <= 0) continue;
+    const existing = employed401kByMonth.get(event.month) ?? 0;
+    employed401kByMonth.set(event.month, roundUsd(existing + event.gross_usd));
   }
 
   if (
@@ -150,8 +172,7 @@ export function simulateUsCashflowSchedule(
   while (balance > BALANCE_EPS && m < cap) {
     m++;
     const events: string[] = [];
-    const inJobLoss =
-      uStart !== null && m >= uStart;
+    const inJobLoss = uStart !== null && input.job_loss_enabled && m >= uStart;
 
     if (input.monthly_income_inr > 0) {
       cashBalance = roundUsd(cashBalance + input.monthly_income_inr);
@@ -187,26 +208,84 @@ export function simulateUsCashflowSchedule(
     const principal = roundUsd(Math.min(opening, emi0 - interest));
     const emiDue = roundUsd(interest + principal);
 
+    let interestPaid = 0;
+    let principalPaid = 0;
+
     if (cashBalance >= emiDue) {
       cashBalance = roundUsd(cashBalance - emiDue);
+      interestPaid = interest;
+      principalPaid = principal;
     } else if (emiDue > 0) {
       events.push("payment_shortfall");
-      if (cashBalance > 0) cashBalance = 0;
+      const available = cashBalance;
+      interestPaid = roundUsd(Math.min(interest, available));
+      const afterInterest = roundUsd(available - interestPaid);
+      principalPaid = roundUsd(Math.min(principal, Math.max(0, afterInterest)));
+      cashBalance = 0;
       if (!warnings.includes("CASH_SHORTFALL")) warnings.push("CASH_SHORTFALL");
       if (!warnings.includes("MORTGAGE_DEFAULT_RISK")) {
         warnings.push("MORTGAGE_DEFAULT_RISK");
       }
     }
 
-    balance = roundUsd(opening - principal);
+    balance = roundUsd(opening - principalPaid);
     let prepay = 0;
+    let emiPaid = roundUsd(interestPaid + principalPaid);
 
     const applyK401Tranche = (
       gross: number,
       frac: number,
       label: string,
+      options?: { bridgeLiquidityFirst?: boolean },
     ) => {
       if (gross <= 0) return;
+
+      if (options?.bridgeLiquidityFirst) {
+        const cost = computeEarlyWithdrawalCost(gross, withholdingPct);
+        totalPenalty = roundUsd(totalPenalty + cost.penalty_usd);
+        let net = cost.net_to_cash_usd;
+
+        const livingShortfall = cashBalance < 0 ? roundUsd(-cashBalance) : 0;
+        const toLiving = roundUsd(Math.min(net, livingShortfall));
+        cashBalance = roundUsd(cashBalance + toLiving);
+        net = roundUsd(net - toLiving);
+        if (toLiving > 0) {
+          events.push(`${label}:living_shortfall:${toLiving}`);
+        }
+
+        const paymentShortfall = roundUsd(Math.max(0, emiDue - emiPaid));
+        const toPayment = roundUsd(Math.min(net, paymentShortfall));
+        cashBalance = roundUsd(cashBalance + toPayment);
+        emiPaid = roundUsd(emiPaid + toPayment);
+        net = roundUsd(net - toPayment);
+        if (toPayment > 0) {
+          events.push(`${label}:payment_shortfall:${toPayment}`);
+        }
+
+        const remainingEmi = roundUsd(Math.max(0, emiDue - emiPaid));
+        if (remainingEmi > 0 && cashBalance >= remainingEmi) {
+          cashBalance = roundUsd(cashBalance - remainingEmi);
+          emiPaid = roundUsd(emiPaid + remainingEmi);
+        }
+
+        if (net > 0 && balance > BALANCE_EPS) {
+          const applied = roundUsd(Math.min(net, balance));
+          prepay = roundUsd(prepay + applied);
+          balance = roundUsd(balance - applied);
+          totalPrepay += applied;
+          net = roundUsd(net - applied);
+          events.push(`${label}:loan:remainder_prepay:${applied}`);
+        }
+        if (net > 0) {
+          cashBalance = roundUsd(cashBalance + net);
+          events.push(`${label}:cash:remainder:${net}`);
+        }
+        events.push(
+          `${label}:bridge:gross=${gross},penalty=${cost.penalty_usd},net=${cost.net_to_cash_usd}`,
+        );
+        return;
+      }
+
       const toLoanGross = roundUsd(gross * frac);
       const toCashGross = roundUsd(gross - toLoanGross);
 
@@ -219,9 +298,9 @@ export function simulateUsCashflowSchedule(
         );
       }
       if (toLoanGross > 0 && balance > BALANCE_EPS) {
-        const cost = computeEarlyWithdrawalCost(toLoanGross, withholdingPct);
-        totalPenalty = roundUsd(totalPenalty + cost.penalty_usd);
         const applied = roundUsd(Math.min(toLoanGross, balance));
+        const cost = computeEarlyWithdrawalCost(applied, withholdingPct);
+        totalPenalty = roundUsd(totalPenalty + cost.penalty_usd);
         prepay = roundUsd(prepay + applied);
         balance = roundUsd(balance - applied);
         totalPrepay += applied;
@@ -232,42 +311,56 @@ export function simulateUsCashflowSchedule(
     };
 
     if (tranche1Month !== null && m === tranche1Month) {
-      applyK401Tranche(k401Plan.tranche1_gross_usd, frac1, "k401_tranche1");
+      applyK401Tranche(k401Plan.tranche1_gross_usd, frac1, "k401_tranche1", {
+        bridgeLiquidityFirst: bridgeLiquidityFirst && frac1 === 0,
+      });
     }
     if (tranche2Month !== null && m === tranche2Month) {
       applyK401Tranche(k401Plan.tranche2_gross_usd, frac2, "k401_tranche2");
     }
 
-    const configuredForMonth = monthlyPrepay.get(m) ?? 0;
-    if (configuredForMonth > 0 && balance > BALANCE_EPS) {
-      const applied = roundUsd(Math.min(configuredForMonth, balance));
-      prepay = roundUsd(prepay + applied);
-      balance = roundUsd(balance - applied);
-      totalPrepay += applied;
-      events.push(`scheduled_prepay:+${applied}`);
+    const employedGross = employed401kByMonth.get(m) ?? 0;
+    if (employedGross > 0) {
+      applyK401Tranche(employedGross, 1, "employed_401k_prepay");
     }
 
-    if (monthlyExtra > 0 && balance > BALANCE_EPS) {
-      const extra = roundUsd(Math.min(monthlyExtra, balance));
-      prepay = roundUsd(prepay + extra);
-      balance = roundUsd(balance - extra);
-      totalPrepay += extra;
+    const configuredForMonth = monthlyPrepay.get(m) ?? 0;
+    if (configuredForMonth > 0 && balance > BALANCE_EPS) {
+      const applied = roundUsd(Math.min(configuredForMonth, balance, cashBalance));
+      if (applied > 0) {
+        prepay = roundUsd(prepay + applied);
+        balance = roundUsd(balance - applied);
+        totalPrepay += applied;
+        cashBalance = roundUsd(cashBalance - applied);
+        events.push(`scheduled_prepay:+${applied}`);
+      }
+    }
+
+    if (monthlyExtra > 0 && balance > BALANCE_EPS && cashBalance > 0) {
+      const extra = roundUsd(Math.min(monthlyExtra, balance, cashBalance));
+      if (extra > 0) {
+        prepay = roundUsd(prepay + extra);
+        balance = roundUsd(balance - extra);
+        totalPrepay += extra;
+        cashBalance = roundUsd(cashBalance - extra);
+        events.push(`monthly_extra:+${extra}`);
+      }
     }
 
     pushRow(
       rows,
       m,
       opening,
-      interest,
-      principal,
+      interestPaid,
+      principalPaid,
       prepay,
       balance,
       emi0,
       cashBalance,
       events,
     );
-    totalInterest += interest;
-    totalPaid += roundUsd(interest + principal + prepay);
+    totalInterest += interestPaid;
+    totalPaid += roundUsd(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPS) break;
   }
@@ -295,15 +388,18 @@ export function simulateJl401kToLoanCashflow(
   input: Omit<
     UsCashflowSimInput,
     | "job_loss_enabled"
+    | "schedule_k401_tranches"
     | "k401_tranche1_destination"
     | "k401_tranche2_destination"
     | "k401_tranche1_loan_fraction"
     | "k401_tranche2_loan_fraction"
+    | "k401_tranche1_bridge_liquidity_first"
   >,
 ): UsCashflowSimResult {
   return simulateUsCashflowSchedule({
     ...input,
     job_loss_enabled: true,
+    schedule_k401_tranches: true,
     k401_tranche1_destination: "loan_prepay",
     k401_tranche2_destination: "loan_prepay",
   });
@@ -313,18 +409,22 @@ export function simulateJl401kBridgeCashflow(
   input: Omit<
     UsCashflowSimInput,
     | "job_loss_enabled"
+    | "schedule_k401_tranches"
     | "k401_tranche1_destination"
     | "k401_tranche2_destination"
     | "k401_tranche1_loan_fraction"
     | "k401_tranche2_loan_fraction"
+    | "k401_tranche1_bridge_liquidity_first"
   >,
 ): UsCashflowSimResult {
   return simulateUsCashflowSchedule({
     ...input,
     job_loss_enabled: true,
+    schedule_k401_tranches: true,
     k401_tranche1_destination: "cash_buffer",
     k401_tranche2_destination: "split",
     k401_tranche2_loan_fraction: 0.5,
+    k401_tranche1_bridge_liquidity_first: true,
   });
 }
 
@@ -332,16 +432,70 @@ export function simulateJlDelayPrepayCashflow(
   input: Omit<
     UsCashflowSimInput,
     | "job_loss_enabled"
+    | "schedule_k401_tranches"
     | "k401_tranche1_destination"
     | "k401_tranche2_destination"
     | "k401_tranche1_loan_fraction"
     | "k401_tranche2_loan_fraction"
+    | "k401_tranche1_bridge_liquidity_first"
   >,
 ): UsCashflowSimResult {
   return simulateUsCashflowSchedule({
     ...input,
     job_loss_enabled: true,
+    schedule_k401_tranches: true,
     k401_tranche1_destination: "cash_buffer",
+    k401_tranche2_destination: "loan_prepay",
+  });
+}
+
+/** US 401(k) tranches to loan without full job-loss cashflow (penalties applied). */
+export function simulateUs401kTranchesToLoanCashflow(
+  input: Omit<
+    UsCashflowSimInput,
+    | "job_loss_enabled"
+    | "schedule_k401_tranches"
+    | "k401_tranche1_destination"
+    | "k401_tranche2_destination"
+    | "k401_tranche1_loan_fraction"
+    | "k401_tranche2_loan_fraction"
+    | "k401_tranche1_bridge_liquidity_first"
+  >,
+): UsCashflowSimResult {
+  return simulateUsCashflowSchedule({
+    ...input,
+    job_loss_enabled: false,
+    schedule_k401_tranches: true,
+    k401_tranche1_destination: "loan_prepay",
+    k401_tranche2_destination: "loan_prepay",
+  });
+}
+
+/** Cash + 401(k) tranches with penalties (SPEC-US CASHFLOW_PLUS_PF equivalent). */
+export function simulateUsCashPlus401kCashflow(
+  input: Omit<
+    UsCashflowSimInput,
+    | "job_loss_enabled"
+    | "schedule_k401_tranches"
+    | "k401_tranche1_destination"
+    | "k401_tranche2_destination"
+    | "k401_tranche1_loan_fraction"
+    | "k401_tranche2_loan_fraction"
+    | "k401_tranche1_bridge_liquidity_first"
+    | "extra_prepayments"
+  > & { cash_prepay_month1_inr: number },
+): UsCashflowSimResult {
+  const extra_prepayments =
+    input.cash_prepay_month1_inr > 0
+      ? [{ month: 1, amount_inr: input.cash_prepay_month1_inr }]
+      : [];
+  const { cash_prepay_month1_inr: _, ...rest } = input;
+  return simulateUsCashflowSchedule({
+    ...rest,
+    extra_prepayments,
+    job_loss_enabled: false,
+    schedule_k401_tranches: true,
+    k401_tranche1_destination: "loan_prepay",
     k401_tranche2_destination: "loan_prepay",
   });
 }

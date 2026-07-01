@@ -27,27 +27,37 @@ function readStoredLocale(): Locale {
   return stored === "US" ? "US" : "IN";
 }
 
+function localeSwitchMessage(next: Locale): string {
+  return next === "US"
+    ? "Switch to United States (USD)? Form values will reset to the US reference scenario."
+    : "Switch to India (INR)? Form values will reset to the India reference scenario.";
+}
+
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(readStoredLocale);
 
-  const setLocale = useCallback((next: Locale) => {
+  const applyLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
   }, []);
 
+  const setLocale = useCallback(
+    (next: Locale) => {
+      if (next === locale) return;
+      if (!window.confirm(localeSwitchMessage(next))) return;
+      applyLocale(next);
+    },
+    [locale, applyLocale],
+  );
+
   const switchLocale = useCallback(
     (next: Locale) => {
       if (next === locale) return true;
-      const confirmed = window.confirm(
-        next === "US"
-          ? "Switch to United States (USD)? Form values will reset to the US reference scenario."
-          : "Switch to India (INR)? Form values will reset to the India reference scenario.",
-      );
-      if (!confirmed) return false;
-      setLocale(next);
+      if (!window.confirm(localeSwitchMessage(next))) return false;
+      applyLocale(next);
       return true;
     },
-    [locale, setLocale],
+    [locale, applyLocale],
   );
 
   const value = useMemo(
@@ -87,8 +97,8 @@ export function loanFormFromScenario(
     pf_annual_interest_rate_pct: String(scenario.pf_annual_interest_rate_pct),
     monthly_pf_addition_inr: String(scenario.monthly_pf_addition_inr),
     gold_liquid_inr: String(scenario.gold_liquid_inr),
-    gold_haircut_enabled: "false",
-    gold_haircut_pct: "0",
+    gold_haircut_enabled: scenario.gold_haircut_enabled ? "true" : "false",
+    gold_haircut_pct: String(scenario.gold_haircut_pct ?? 0),
     monthly_cash_to_loan_inr: String(scenario.monthly_cash_to_loan_inr),
     unemployment_mode: "false",
     unemployment_start_month: String(scenario.unemployment_start_month),

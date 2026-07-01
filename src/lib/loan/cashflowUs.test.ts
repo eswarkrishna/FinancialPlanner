@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { simulateUsCashflowSchedule } from "./cashflowUs";
+import { computeEarlyWithdrawalCost } from "../k401/jobLoss";
+import {
+  simulateUsCashflowSchedule,
+  simulateUs401kTranchesToLoanCashflow,
+} from "./cashflowUs";
 
 const baseJobLossInput = {
   principal_inr: 400_000,
@@ -26,15 +30,15 @@ describe("simulateUsCashflowSchedule (SPEC-US §4.8)", () => {
     expect(result.warnings).toContain("MORTGAGE_DEFAULT_RISK");
   });
 
-  it("reduces min cash when PMI is active", () => {
+  it("reduces month-1 cash when PMI is active", () => {
     const withoutPmi = simulateUsCashflowSchedule(baseJobLossInput);
     const withPmi = simulateUsCashflowSchedule({
       ...baseJobLossInput,
       pmi_monthly_inr: 200,
       pmi_active: true,
     });
-    expect(withPmi.min_cash_balance_inr).toBeLessThan(
-      withoutPmi.min_cash_balance_inr,
+    expect(withPmi.rows[0]?.cash_balance_inr).toBeLessThan(
+      withoutPmi.rows[0]?.cash_balance_inr ?? 0,
     );
     expect(withPmi.rows[0]?.events.some((e) => e.startsWith("pmi:-200"))).toBe(
       true,
@@ -61,5 +65,65 @@ describe("simulateUsCashflowSchedule (SPEC-US §4.8)", () => {
     });
     expect(result.rows[0]?.events).toContain("hsa:premium:200");
     expect(result.rows[0]?.events).toContain("health_premium:cash:200");
+  });
+
+  it("schedules tranche 2 at U + 11 when U is not 1", () => {
+    const result = simulateUsCashflowSchedule({
+      ...baseJobLossInput,
+      job_loss_start_month: 6,
+      k401_balance_inr: 100_000,
+      vested_fraction_pct: 100,
+      k401_tranche1_destination: "loan_prepay",
+      k401_tranche2_destination: "loan_prepay",
+    });
+    const tranche1Row = result.rows.find((r) =>
+      r.events.some((e) => e.startsWith("k401_tranche1")),
+    );
+    const tranche2Row = result.rows.find((r) =>
+      r.events.some((e) => e.startsWith("k401_tranche2")),
+    );
+    expect(tranche1Row?.month).toBe(6);
+    expect(tranche2Row?.month).toBe(17);
+  });
+
+  it("applies early withdrawal penalty and net cash for 40k gross (SPEC-US §10)", () => {
+    const cost = computeEarlyWithdrawalCost(40_000, 22);
+    expect(cost.penalty_usd).toBe(4_000);
+    expect(cost.net_to_cash_usd).toBe(27_200);
+
+    const result = simulateUs401kTranchesToLoanCashflow({
+      ...baseJobLossInput,
+      cash_inr: 0,
+      k401_balance_inr: 80_000,
+      job_loss_start_month: 1,
+    });
+    expect(result.warnings).toContain("EARLY_401K_WITHDRAWAL");
+    expect(result.total_early_withdrawal_penalty_inr).toBeGreaterThan(0);
+  });
+
+  it("does not apply monthly extra prepay without cash balance", () => {
+    const result = simulateUsCashflowSchedule({
+      ...baseJobLossInput,
+      cash_inr: 0,
+      monthly_extra_to_loan_inr: 500,
+      monthly_uib_inr: 0,
+      monthly_living_expense_inr: 5_000,
+    });
+    expect(
+      result.rows.some((r) => r.events.some((e) => e.startsWith("monthly_extra:"))),
+    ).toBe(false);
+  });
+
+  it("does not amortize principal when EMI cannot be paid from cash", () => {
+    const result = simulateUsCashflowSchedule({
+      ...baseJobLossInput,
+      cash_inr: 100,
+      monthly_living_expense_inr: 0,
+    });
+    const shortfallRow = result.rows.find((r) =>
+      r.events.includes("payment_shortfall"),
+    );
+    expect(shortfallRow).toBeDefined();
+    expect(shortfallRow?.principal_inr).toBe(0);
   });
 });

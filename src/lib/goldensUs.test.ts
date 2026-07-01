@@ -26,10 +26,13 @@ describe("US golden scenario snapshots (SPEC-US §10)", () => {
     expect(computed.JL_401K_TO_LOAN).toEqual(jl401kGolden as GoldenSnapshot);
   });
 
-  it("JL_401K_TO_LOAN applies 50/50 tranches at months 1 and 12", () => {
+  it("JL_401K_TO_LOAN applies 50/50 tranches at months 1 and 12 with penalties", () => {
     const computed = computeUsGoldenScenarios() as UsGoldenScenarioMap;
     expect(computed.JL_401K_TO_LOAN.totals.total_prepayments_inr).toBe(80_000);
     expect(computed.JL_401K_TO_LOAN.first_row.prepayment_inr).toBe(40_000);
     expect(computed.JL_401K_TO_LOAN.row_12?.prepayment_inr).toBe(40_000);
+    expect(computed.JL_401K_TO_LOAN.first_row.events?.some((e) =>
+      e.includes("penalty=4000"),
+    )).toBe(true);
   });
 });

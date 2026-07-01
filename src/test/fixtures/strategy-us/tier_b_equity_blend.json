@@ -15,6 +15,7 @@
   "net_worth_at_horizon_inr": 437996.25,
   "min_living_budget_inr": 7458.08,
   "warnings": [
-    "EMERGENCY_FUND_SHORTFALL"
+    "EMERGENCY_FUND_SHORTFALL",
+    "TAX_SIMPLIFIED"
   ]
 }

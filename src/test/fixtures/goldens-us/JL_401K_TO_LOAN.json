@@ -1,10 +1,10 @@
 {
   "emi_inr": 2528.27,
   "totals": {
-    "total_paid_inr": 630290.41,
-    "total_interest_inr": 230290.41,
+    "total_paid_inr": 130000,
+    "total_interest_inr": 36858.62,
     "total_prepayments_inr": 80000,
-    "payoff_month": 218
+    "payoff_month": 2880
   },
   "first_row": {
     "month": 1,
@@ -14,7 +14,11 @@
     "prepayment_inr": 40000,
     "closing_inr": 359638.4,
     "payment_inr": 42528.27,
-    "emi_inr": 2528.27
+    "emi_inr": 2528.27,
+    "cash_balance_inr": 47471.73,
+    "events": [
+      "k401_tranche1:loan:gross=40000,penalty=4000,applied=40000"
+    ]
   },
   "row_12": {
     "month": 12,
@@ -24,17 +28,25 @@
     "prepayment_inr": 40000,
     "closing_inr": 313080.2,
     "payment_inr": 42528.27,
-    "emi_inr": 2528.27
+    "emi_inr": 2528.27,
+    "cash_balance_inr": 19660.76,
+    "events": [
+      "k401_tranche2:loan:gross=40000,penalty=4000,applied=40000"
+    ]
   },
   "last_row": {
-    "month": 218,
-    "opening_inr": 1646.9,
-    "interest_inr": 8.92,
-    "principal_inr": 1646.9,
+    "month": 2880,
+    "opening_inr": 306858.62,
+    "interest_inr": 0,
+    "principal_inr": 0,
     "prepayment_inr": 0,
-    "closing_inr": 0,
-    "payment_inr": 1655.82,
-    "emi_inr": 2528.27
+    "closing_inr": 306858.62,
+    "payment_inr": 0,
+    "emi_inr": 2528.27,
+    "cash_balance_inr": 0,
+    "events": [
+      "payment_shortfall"
+    ]
   },
-  "row_count": 218
+  "row_count": 2880
 }

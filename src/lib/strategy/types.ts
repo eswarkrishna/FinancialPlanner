@@ -56,7 +56,8 @@ export type StrategyWarning =
   | "FRAGILE_CASH_FLOW"
   | "BELOW_SUBSISTENCE"
   | "AGGRESSIVE_PCT_INVALID"
-  | "HORIZON_TOO_SHORT";
+  | "HORIZON_TOO_SHORT"
+  | "TAX_SIMPLIFIED";
 
 /** Spec §4.12.6 — three take-home tier presets surfaced in the UI. */
 export interface StrategyTierPreset {

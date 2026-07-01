@@ -1,9 +1,8 @@
 import {
   baselineSchedule,
   schedulePrepayKeepTenure,
-  scheduleTimedPrepaysKeepEmi,
+  simulateUs401kTranchesToLoanCashflow,
 } from "../../../lib/loan";
-import { computeK401JobLossWithdrawalPlan } from "../../../lib/k401";
 import { REFERENCE_SCENARIO_US } from "../../../lib/locale/constants";
 import type { GoldenSnapshot } from "../goldens/buildGoldens";
 
@@ -57,19 +56,20 @@ export function computeUsGoldenScenarios(): UsGoldenScenarioMap {
     1,
     50_000,
   );
-  const k401Plan = computeK401JobLossWithdrawalPlan(
-    loan.pf_corpus_inr,
-    loan.vested_fraction_pct,
-  );
-  const jl401kToLoan = scheduleTimedPrepaysKeepEmi(
-    loan.principal_inr,
-    loan.annual_interest_rate,
-    loan.tenure_months,
-    [
-      { month: 1, amount_inr: k401Plan.tranche1_gross_usd },
-      { month: 12, amount_inr: k401Plan.tranche2_gross_usd },
-    ],
-  );
+  const jl401kToLoan = simulateUs401kTranchesToLoanCashflow({
+    principal_inr: loan.principal_inr,
+    annual_interest_rate: loan.annual_interest_rate,
+    tenure_months: loan.tenure_months,
+    cash_inr: loan.cash_inr,
+    monthly_income_inr: loan.monthly_income_inr,
+    monthly_living_expense_inr: loan.monthly_living_expense_inr,
+    monthly_extra_to_loan_inr: 0,
+    monthly_uib_inr: loan.monthly_uib_inr,
+    job_loss_start_month: loan.unemployment_start_month,
+    k401_balance_inr: loan.pf_corpus_inr,
+    vested_fraction_pct: loan.vested_fraction_pct,
+    early_withdrawal_tax_withholding_pct: loan.early_withdrawal_tax_withholding_pct,
+  });
 
   return {
     BASE: compactPayload(base),

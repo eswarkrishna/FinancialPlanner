@@ -3,12 +3,12 @@
 **Project:** `FinancialPlanner`  
 **Canonical spec (this file):** `docs/SPEC-US.md`  
 **India locale spec:** [`docs/SPEC.md`](SPEC.md) (shared solver architecture; section numbers align where features are parallel)  
-**Research:** [`docs/research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) (summary) · [`docs/research/2026-07-us-employee-locale-deep-dive.md`](research/2026-07-us-employee-locale-deep-dive.md) (full per-topic)  
+**Research:** [`docs/research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) (summary) · [`docs/research/2026-07-us-employee-locale-deep-dive.md`](research/2026-07-us-employee-locale-deep-dive.md) (full per-topic) · [`docs/research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) (IN symmetry, HSA, PMI, locales, Tier P2)  
 **Spec-driven workflow:** See `AGENTS.md`.
 
 ---
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Audience:** Engineers / Cursor agents implementing the US locale  
 **Locale:** United States (USD; optional thousands separators in UI)  
 **Status:** Draft for implementation (research-backed v1.1)  
@@ -57,7 +57,15 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 2. **Job-loss stress tester:** Models unemployment, UI income, staged 401(k) access, and mortgage default risk.  
 3. **Debt snowball/avalanche comparator:** Multiple consumer debts + budget constraint.  
 4. **Retirement gap checker:** Projects 401(k) + brokerage + optional Social Security vs expense target.  
-5. **Strategic planner:** Household split and lender-fee games (US§4.13).
+5. **Strategic planner:** Household split and lender-fee games (US§4.13).  
+6. **Self-employed / 1099:** Solo 401(k) or SEP-IRA; no employer match; no UI income — use `employment_type: self_employed` preset (US§4.2).
+
+**Employment preset (`employment_type`):**
+
+| Value | Effect |
+|-------|--------|
+| `w2` (default) | Employer match formula enabled; UI benefit field shown in job-loss mode |
+| `self_employed` | `employer_match_usd = 0`; UI benefit defaults to `0`; user may enter `monthly_other_income_usd` via `monthly_income_usd` |
 
 ---
 
@@ -84,6 +92,8 @@ All monetary fields use suffix `_usd` instead of IN `_inr`. Minimum prepayment: 
 | `start_date` | date | optional | Default today |
 | `prepayment_fee_usd` | number | optional | Default `0` |
 | `rate_type` | enum | optional | `fixed` (v1) |
+| `pmi_monthly_usd` | number | optional | Default `0`. Flat private mortgage insurance added to monthly cashflow outflows when &gt; 0 (v1.1). Auto LTV-based cancellation deferred |
+| `pmi_active` | boolean | optional | Default `true` when `pmi_monthly_usd > 0`; user may toggle off to model PMI already cancelled |
 
 ---
 
@@ -102,8 +112,11 @@ All monetary fields use suffix `_usd` instead of IN `_inr`. Minimum prepayment: 
 | `employer_match_rate_pct` | number | no | Default **50** (50% of deferral) |
 | `employer_match_cap_pct_of_salary` | number | no | Default **6** → match on deferral up to 6% of annual salary / 12 per month |
 | `monthly_employer_match_usd` | number | no | Optional override; if set, ignores match formula |
+| `employment_type` | enum | no | `w2` (default) \| `self_employed` — see §3 preset table |
+| `hsa_balance_usd` | number | no | Health savings account balance (v1.2) |
+| `monthly_health_premium_usd` | number | no | Health insurance premium during job loss; HSA may cover tax-free per IRS qualified expense rules (v1.2) |
 
-**Employer match (monthly):** when formula enabled,
+**Employer match (monthly):** when formula enabled **and** `employment_type = w2`,
 
 ```text
 cap_monthly = (annual_salary_usd × employer_match_cap_pct_of_salary / 100) / 12
@@ -215,7 +228,7 @@ The UI **must** show: “Simplified job-loss scenario — not IRS hardship or pl
 |------|------|------|
 | `monthly_living_expense_usd` | number | |
 | `monthly_income_usd` | number | Default `0` in job loss |
-| `monthly_uib_usd` | number | Unemployment insurance benefit; default `0` (user must enter — varies by state). UI hint only: **$1,800/mo** (~$450/wk) as illustrative mid-range |
+| `monthly_uib_usd` | number | Unemployment insurance benefit; default `0` (user must enter — varies by state). UI hint only: **$1,800/mo** (~$450/wk) as illustrative mid-range. Hidden or zero when `employment_type = self_employed` |
 | `mortgage_payment_usd_override` | number | Optional |
 
 **Simulation order each month:**
@@ -223,9 +236,11 @@ The UI **must** show: “Simplified job-loss scenario — not IRS hardship or pl
 1. Accrue interest on loan opening balance.  
 2. Add `monthly_uib_usd` + other income to `cash_balance`.  
 3. Subtract living expenses.  
-4. Pay mortgage payment if `cash_balance >= payment` else apply `SHORTFALL_ACTION` (`skip_payment`, `draw_cash_buffer`).  
-5. Apply 401(k) distributions on scheduled months per destination split (net of penalty/withholding for cash).  
-6. Apply scheduled prepayments.
+4. Subtract `pmi_monthly_usd` when `pmi_active` and amount &gt; 0.  
+5. During job loss: draw `min(hsa_balance, monthly_health_premium_usd)` from HSA for qualified premiums (tax-free); remainder of premium from cash.  
+6. Pay mortgage payment if `cash_balance >= payment` else apply `SHORTFALL_ACTION` (`skip_payment`, `draw_cash_buffer`).  
+7. Apply 401(k) distributions on scheduled months per destination split (net of penalty/withholding for cash).  
+8. Apply scheduled prepayments.
 
 Warn `MORTGAGE_DEFAULT_RISK` when payment skipped with positive balance.
 
@@ -363,6 +378,14 @@ Nine golden fixtures: each tier × each strategy under `src/test/fixtures/strate
 
 Payoff metrics use `_usd` fields. Collapsed cell counts match IN §4.13.8.
 
+**Tier P2 — research / non-shipping:** See IN §4.13.8 Tier P2 and [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) §4–§5. When promoted:
+
+| Profile ID | Product note |
+|------------|--------------|
+| `GAME_FLOATING_N` | Deterministic rate paths only (`N_RATE_PATH_{UP,FLAT,DOWN}`); no Monte Carlo |
+| `GAME_MULTI_CREDITOR` | Max **2 loans** in v1 promotion; reuse debt avalanche oracle |
+| `GAME_REPEATED_LENDER` | Document only until P0 ships |
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -467,7 +490,10 @@ All IN §9 cases plus:
 10. **Strategy equity blend:** 40/60 deployable split on US§15 inputs.  
 11. **Nine US strategy goldens** under `src/test/fixtures/strategy-us/`.  
 12. **`GAME_US_BL_SIM_FEE`:** 10 collapsed cells; oracle purity — no duplicate EMI math in `src/lib/game/`.  
-13. **Locale switch:** IN golden unchanged when `locale=IN`; US fixtures pass when `locale=US`.
+13. **Locale switch:** IN golden unchanged when `locale=IN`; US fixtures pass when `locale=US`.  
+14. **PMI cashflow:** with `pmi_monthly_usd=200`, `pmi_active=true`, job-loss cashflow reduces `min_cash_balance` by ~$200 × months vs same fixture without PMI.  
+15. **HSA premium draw:** job-loss fixture with `hsa_balance_usd=500`, `monthly_health_premium_usd=400` → HSA event `400` from HSA, cash unchanged for premium portion; remainder from cash when premium &gt; balance.  
+16. **`employment_type=self_employed`:** employer match computes to **$0** regardless of salary/deferral inputs.
 
 ### Golden files
 
@@ -481,15 +507,19 @@ All IN §9 cases plus:
 - State income tax, NIIT, or AMT modeling.  
 - Roth vs Traditional tax arbitrage (single 401(k) bucket only).  
 - SSA PIA calculation engine (user enters expected benefit).  
-- HSA, 529, ESPP, stock options.  
+- 529, ESPP, stock options.  
 - Chapter 7/13 bankruptcy outcomes.  
-- Floating-rate ARM stochastic paths.  
+- Floating-rate ARM **stochastic** simulation (deterministic stress paths only — see Tier P2 research).  
 - Multi-loan creditor games until promoted from IN §4.13 Tier P2.  
 - SECURE 2.0 $1,000 emergency withdrawal engine (v1.1).  
 - 401(k) loan as prepay funding source (v1.2).  
-- State-by-state unemployment insurance tables (user enters `monthly_uib_usd` in v1).
+- State-by-state unemployment insurance tables (user enters `monthly_uib_usd` in v1).  
+- **UK / Canada / other country locales** (desk research in [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) §3).  
+- **Wash-sale** / lot-level capital gains tracking (flat `ltcg_rate_pct` only).  
+- **Auto PMI cancellation** at 78% LTV (user flat `pmi_monthly_usd` or manual toggle in v1.1).  
+- **Property tax / escrow** modeling.
 
-**In scope:** US§4.13 Tier P0 profiles with discrete actions and deterministic payoffs. **Mortgage prepayment fee default $0** (QM primary loans rarely have penalties per HMDA desk research).
+**In scope (v1.1–v1.2):** optional flat PMI (§4.1); HSA premium bridge in job-loss cashflow (§4.2 / §4.8); `employment_type` preset (§3). **Mortgage prepayment fee default $0** (QM primary loans rarely have penalties per HMDA desk research).
 
 ---
 
@@ -506,8 +536,9 @@ All IN §9 cases plus:
 1. Include Roth IRA as separate bucket in v1.1? → **Likely yes** (research §3.2 Option C).  
 2. Model 401(k) loan as prepay funding source? → **v1.2** (research §3.2 Option D).  
 3. Default job-loss tranche split: liquidity-first auto-default like IN? → **Yes for `JL_401K_BRIDGE` preset**; user chooses otherwise.  
-4. Show itemized penalty + withholding in schedule rows vs summary only? → **Both**: `events[]` per month + summary KPIs.  
-5. Promote debt/retirement sections into IN `SPEC.md` for symmetry? → **Follow-up doc task**.
+4. Show itemized penalty + withholding in schedule rows vs summary only? → **Both**: `events[]` per month + summary KPIs.
+
+**Resolved:** IN §4.10–§4.11 promoted to [`SPEC.md`](SPEC.md) (symmetry). UK/CA locales deferred per [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md).
 
 ---
 

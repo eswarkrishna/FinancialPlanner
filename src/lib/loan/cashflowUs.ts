@@ -28,6 +28,10 @@ export interface UsCashflowSimInput {
   k401_balance_inr: number;
   vested_fraction_pct: number;
   early_withdrawal_tax_withholding_pct: number;
+  pmi_monthly_inr?: number;
+  pmi_active?: boolean;
+  hsa_balance_inr?: number;
+  monthly_health_premium_inr?: number;
   k401_tranche1_destination?: K401TrancheDestination;
   k401_tranche2_destination?: K401TrancheDestination;
   k401_tranche1_loan_fraction?: number;
@@ -121,6 +125,10 @@ export function simulateUsCashflowSchedule(
   const frac1 = loanFractionFromDestination(dest1, input.k401_tranche1_loan_fraction);
   const frac2 = loanFractionFromDestination(dest2, input.k401_tranche2_loan_fraction);
   const withholdingPct = input.early_withdrawal_tax_withholding_pct;
+  const pmiMonthly =
+    input.pmi_active !== false ? Math.max(0, input.pmi_monthly_inr ?? 0) : 0;
+  let hsaBalance = roundUsd(Math.max(0, input.hsa_balance_inr ?? 0));
+  const healthPremiumMonthly = Math.max(0, input.monthly_health_premium_inr ?? 0);
 
   const monthlyPrepay = new Map<number, number>();
   for (const event of input.extra_prepayments ?? []) {
@@ -156,6 +164,22 @@ export function simulateUsCashflowSchedule(
     if (input.monthly_living_expense_inr > 0) {
       cashBalance = roundUsd(cashBalance - input.monthly_living_expense_inr);
       events.push(`living:-${input.monthly_living_expense_inr}`);
+    }
+    if (pmiMonthly > 0) {
+      cashBalance = roundUsd(cashBalance - pmiMonthly);
+      events.push(`pmi:-${pmiMonthly}`);
+    }
+    if (inJobLoss && healthPremiumMonthly > 0) {
+      const fromHsa = roundUsd(Math.min(hsaBalance, healthPremiumMonthly));
+      hsaBalance = roundUsd(hsaBalance - fromHsa);
+      const fromCash = roundUsd(healthPremiumMonthly - fromHsa);
+      if (fromHsa > 0) {
+        events.push(`hsa:premium:${fromHsa}`);
+      }
+      if (fromCash > 0) {
+        cashBalance = roundUsd(cashBalance - fromCash);
+        events.push(`health_premium:cash:${fromCash}`);
+      }
     }
 
     const opening = balance;

@@ -8,10 +8,10 @@
 
 ---
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Audience:** Engineers / Cursor agents implementing the US locale  
 **Locale:** United States (USD; optional thousands separators in UI)  
-**Status:** Draft for implementation  
+**Status:** Draft for implementation (research-backed v1.1)  
 **Parity target:** Same planner tabs and decision surfaces as India locale for **employed US workers** modeling mortgage payoff, multi-debt, retirement, repayment strategies, and strategic games.
 
 ---
@@ -99,8 +99,8 @@ All monetary fields use suffix `_usd` instead of IN `_inr`. Minimum prepayment: 
 | `monthly_cash_to_loan_usd` | number | no | Recurring extra principal after scheduled payment (US§4.5) |
 | `monthly_401k_deferral_usd` | number | no | Employee pre-tax deferral (projection only) |
 | `annual_salary_usd` | number | no | For employer match formula |
-| `employer_match_rate_pct` | number | no | e.g. `50` means 50% of deferral |
-| `employer_match_cap_pct_of_salary` | number | no | e.g. `6` → match on deferral up to 6% of annual salary / 12 per month |
+| `employer_match_rate_pct` | number | no | Default **50** (50% of deferral) |
+| `employer_match_cap_pct_of_salary` | number | no | Default **6** → match on deferral up to 6% of annual salary / 12 per month |
 | `monthly_employer_match_usd` | number | no | Optional override; if set, ignores match formula |
 
 **Employer match (monthly):** when formula enabled,
@@ -110,6 +110,8 @@ cap_monthly = (annual_salary_usd × employer_match_cap_pct_of_salary / 100) / 12
 eligible_deferral = min(monthly_401k_deferral_usd, cap_monthly)
 employer_match_usd = eligible_deferral × (employer_match_rate_pct / 100)
 ```
+
+**Reference example (US§15):** `annual_salary_usd = 120_000`, `monthly_401k_deferral_usd = 1_000` → `cap_monthly = 600`, `eligible_deferral = 600`, **`employer_match_usd = 300`/mo** (most common US formula per desk research).
 
 ---
 
@@ -194,6 +196,17 @@ Default `early_withdrawal_tax_withholding_pct = 22`. Amounts routed **directly**
 
 **401(k) balance projection during employment** (for strategy module US§4.12): monthly additions = `monthly_401k_deferral_usd + employer_match_usd`; annual growth at `k401_annual_return_pct` (default `7`) credited once per year after 12 months of additions — same cadence as IN PF projection in §4.12 / `projectPfCorpusMonths`.
 
+#### 4.7.1 Educational model (not IRS / plan compliance)
+
+This module is a **stress-test fiction** parallel to IN §4.7’s user-specified EPFO 75/25 rule. Real 401(k) plans:
+
+- Do **not** allow general penalty-free withdrawals solely because of job loss ([IRS Topic 558](https://www.irs.gov/taxtopics/tc558); [hardship FAQs](https://www.irs.gov/retirement-plans/retirement-plans-faqs-regarding-hardship-distributions)).
+- Hardship withdrawals require specific “immediate and heavy” needs (foreclosure risk, medical, etc.) and usually still incur the 10% penalty if under age 59½.
+
+The UI **must** show: “Simplified job-loss scenario — not IRS hardship or plan rules.” See research: [`2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) §3.
+
+**v1.1 optional overlay:** `secure2_emergency_1k` — up to $1,000/yr penalty-free (SECURE 2.0; income tax still applies; plan adoption assumed).
+
 ---
 
 ### 4.8 Monthly budget / cashflow (job loss)
@@ -202,7 +215,7 @@ Default `early_withdrawal_tax_withholding_pct = 22`. Amounts routed **directly**
 |------|------|------|
 | `monthly_living_expense_usd` | number | |
 | `monthly_income_usd` | number | Default `0` in job loss |
-| `monthly_uib_usd` | number | Unemployment insurance benefit; default `0` |
+| `monthly_uib_usd` | number | Unemployment insurance benefit; default `0` (user must enter — varies by state). UI hint only: **$1,800/mo** (~$450/wk) as illustrative mid-range |
 | `mortgage_payment_usd_override` | number | Optional |
 
 **Simulation order each month:**
@@ -257,13 +270,15 @@ Each debt: `name`, `balance_usd`, `apr_pct`, `minimum_payment_usd`.
 | `years_to_retirement` | number | yes | |
 | `annual_expense_today_usd` | number | yes | |
 | `safe_withdrawal_rate_pct` | number | no | Default classic 4% when user enters value |
-| `expected_social_security_monthly_usd` | number | no | Added to income capacity at retirement; does not compound in corpus |
+| `expected_social_security_monthly_usd` | number | no | User-entered; UI placeholder **$2,000** (≈ SSA avg retired worker 2025). Does not compound in corpus |
 
 **Scenarios:** `base`, `conservative` (−2% return, +1% inflation), `optimistic` (+2% return, −1% inflation, +20% contribution) — same deltas as IN.
 
 **Outputs:** projected corpus, real corpus, expense at retirement, target corpus (expense / SWR), funded ratio, yearly timeline.
 
 **Funded ratio v1:** `corpus_usd / target_corpus_usd` (Social Security shown separately as `annual_ss_income_usd = expected_social_security_monthly_usd × 12`, not in funded ratio numerator).
+
+**v1.1 optional KPI:** `ss_adjusted_funded_ratio` using `expense_gap = max(0, annual_expense_at_retirement − annual_ss_income)` and `ss_adjusted_target = expense_gap / SWR`.
 
 ---
 
@@ -319,6 +334,7 @@ Nine golden fixtures: each tier × each strategy under `src/test/fixtures/strate
 | `AGGRESSIVE_PCT_INVALID` | repayment pct outside 0–100 |
 | `HORIZON_TOO_SHORT` | horizon < loan close month |
 | `EARLY_401K_WITHDRAWAL` | job loss mode uses 401(k) distributions |
+| `TAX_SIMPLIFIED` | brokerage post-tax uses flat `ltcg_rate_pct`; short-term gains not modeled |
 
 ---
 
@@ -442,10 +458,10 @@ All IN §9 cases plus:
 1. **Mortgage payment** matches reference: `P=400_000`, `annual=6.5`, `n=360` within **$0.01** after rounding.  
 2. **Prepay $50,000 month 1 + keep payment:** payoff month materially less than baseline (document reference in test).  
 3. **Prepay $50,000 month 1 + keep tenure:** new payment ~ half baseline within **$1**.  
-4. **401(k) job loss:** for `K0=100_000`, verify gross inflows **50,000** then **50,000** on months `U` and `U+11`; net cash reflects penalty + withholding on cash-bound tranches.  
+4. **401(k) job loss:** for `K0=100_000`, verify gross inflows **50,000** then **50,000** on months `U` and `U+11`; cash-bound tranche net **$27,200** each at 10% penalty + 22% withholding ($40k gross).  
 5. **Cashflow shortfall** fixture flags warning.  
 6. **Monthly inflow** shortens payoff vs BASE.  
-7. **Employer match:** formula matches hand calculation for reference salary/deferral.  
+7. **Employer match:** $120k salary, $1k deferral, 50%/6% → **$300/mo** match.  
 8. **Debt avalanche** total interest ≤ snowball for reference debts.  
 9. **Retirement:** contribution monotonicity and conservative ≤ optimistic funded ratio.  
 10. **Strategy equity blend:** 40/60 deployable split on US§15 inputs.  
@@ -468,9 +484,12 @@ All IN §9 cases plus:
 - HSA, 529, ESPP, stock options.  
 - Chapter 7/13 bankruptcy outcomes.  
 - Floating-rate ARM stochastic paths.  
-- Multi-loan creditor games until promoted from IN §4.13 Tier P2.
+- Multi-loan creditor games until promoted from IN §4.13 Tier P2.  
+- SECURE 2.0 $1,000 emergency withdrawal engine (v1.1).  
+- 401(k) loan as prepay funding source (v1.2).  
+- State-by-state unemployment insurance tables (user enters `monthly_uib_usd` in v1).
 
-**In scope:** US§4.13 Tier P0 profiles with discrete actions and deterministic payoffs.
+**In scope:** US§4.13 Tier P0 profiles with discrete actions and deterministic payoffs. **Mortgage prepayment fee default $0** (QM primary loans rarely have penalties per HMDA desk research).
 
 ---
 
@@ -484,11 +503,11 @@ All IN §9 cases plus:
 
 ## 13. Open Questions
 
-1. Include Roth IRA as separate bucket in v1.1?  
-2. Model 401(k) loan (borrow from self) as prepay funding source?  
-3. Default job-loss tranche split: liquidity-first auto-default like IN?  
-4. Show itemized penalty + withholding in schedule rows vs summary only?  
-5. Promote debt/retirement sections into IN `SPEC.md` for symmetry?
+1. Include Roth IRA as separate bucket in v1.1? → **Likely yes** (research §3.2 Option C).  
+2. Model 401(k) loan as prepay funding source? → **v1.2** (research §3.2 Option D).  
+3. Default job-loss tranche split: liquidity-first auto-default like IN? → **Yes for `JL_401K_BRIDGE` preset**; user chooses otherwise.  
+4. Show itemized penalty + withholding in schedule rows vs summary only? → **Both**: `events[]` per month + summary KPIs.  
+5. Promote debt/retirement sections into IN `SPEC.md` for symmetry? → **Follow-up doc task**.
 
 ---
 
@@ -507,6 +526,8 @@ All IN §9 cases plus:
 - Salary **$120,000**; deferral **$1,000**/mo; employer match **50%** up to **6%** salary  
 - Job loss 401(k) rule: **50% month 1**, **50% month 12** of unemployment window  
 - Early withdrawal: **10%** penalty, **22%** withholding on cash-bound amounts  
+- `prepayment_fee_usd`: **0** (default for conforming primary mortgage)  
+- `expected_social_security_monthly_usd` UI placeholder: **$2,000**  
 
 ### 15.1 Strategy golden matrix
 

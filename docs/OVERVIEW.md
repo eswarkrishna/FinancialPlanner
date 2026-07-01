@@ -78,4 +78,4 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 
 | Doc | Topic |
 |-----|--------|
-| [2026-07-us-employee-benefits-mapping.md](research/2026-07-us-employee-benefits-mapping.md) | India → US employee benefit parity (PF/401(k), unemployment) |
+| [2026-07-us-employee-benefits-mapping.md](research/2026-07-us-employee-benefits-mapping.md) | US locale research spike: 401(k)/UI/mortgage/SS desk research + spec recommendations |

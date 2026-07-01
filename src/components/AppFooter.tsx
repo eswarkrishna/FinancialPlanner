@@ -4,6 +4,8 @@ import {
   getBuildInfo,
   githubCommitUrl,
 } from "../lib/buildInfo";
+import { getFeedbackFormUrl, githubIssuesUrl } from "../lib/feedback";
+import { useLocale } from "../features/locale/LocaleContext";
 
 function BuildMetaLine() {
   const info = getBuildInfo();
@@ -27,7 +29,45 @@ function BuildMetaLine() {
   );
 }
 
-import { useLocale } from "../features/locale/LocaleContext";
+function FooterFeedback() {
+  const issuesUrl = githubIssuesUrl();
+  const formUrl = getFeedbackFormUrl();
+
+  return (
+    <section className="footer-feedback" aria-label="Feedback">
+      <p className="footer-feedback-lead">Help us improve</p>
+      <p className="footer-feedback-actions">
+        <a href={issuesUrl} target="_blank" rel="noopener noreferrer">
+          Report on GitHub
+        </a>
+        {formUrl ? (
+          <>
+            {" · "}
+            <a href={formUrl} target="_blank" rel="noopener noreferrer">
+              Open feedback form
+            </a>
+          </>
+        ) : null}
+      </p>
+      {formUrl ? (
+        <details className="footer-feedback-form">
+          <summary className="footer-feedback-form-summary">Send feedback via form</summary>
+          <iframe
+            className="footer-feedback-iframe"
+            src={formUrl}
+            title="Feedback form"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+          <p className="footer-feedback-note">
+            Submissions are handled by the form provider; do not include loan amounts or
+            other personal data unless you choose to.
+          </p>
+        </details>
+      ) : null}
+    </section>
+  );
+}
 
 function DisclaimerLead() {
   const { locale } = useLocale();
@@ -54,6 +94,7 @@ export function AppFooter() {
     <footer className="footer">
       <BuildMetaLine />
       <DisclaimerLead />
+      <FooterFeedback />
 
       <details className="footer-terms">
         <summary className="footer-terms-summary">Terms and conditions</summary>
@@ -113,6 +154,12 @@ export function AppFooter() {
                 Google&apos;s opt-out add-on
               </a>
               .
+            </li>
+            <li>
+              <strong>Feedback.</strong> GitHub issue reports and optional embedded
+              feedback forms are voluntary. Form submissions are processed by the
+              third-party provider you use (e.g. Google Forms, Typeform), not stored in
+              this app.
             </li>
             <li>
               <strong>Third parties.</strong> References to institutions (e.g. EPFO,

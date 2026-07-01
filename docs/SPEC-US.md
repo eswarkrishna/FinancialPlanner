@@ -3,7 +3,7 @@
 **Project:** `FinancialPlanner`  
 **Canonical spec (this file):** `docs/SPEC-US.md`  
 **India locale spec:** [`docs/SPEC.md`](SPEC.md) (shared solver architecture; section numbers align where features are parallel)  
-**Research:** [`docs/research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md)  
+**Research:** [`docs/research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) (summary) · [`docs/research/2026-07-us-employee-locale-deep-dive.md`](research/2026-07-us-employee-locale-deep-dive.md) (full per-topic)  
 **Spec-driven workflow:** See `AGENTS.md`.
 
 ---
@@ -203,7 +203,7 @@ This module is a **stress-test fiction** parallel to IN §4.7’s user-specified
 - Do **not** allow general penalty-free withdrawals solely because of job loss ([IRS Topic 558](https://www.irs.gov/taxtopics/tc558); [hardship FAQs](https://www.irs.gov/retirement-plans/retirement-plans-faqs-regarding-hardship-distributions)).
 - Hardship withdrawals require specific “immediate and heavy” needs (foreclosure risk, medical, etc.) and usually still incur the 10% penalty if under age 59½.
 
-The UI **must** show: “Simplified job-loss scenario — not IRS hardship or plan rules.” See research: [`2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) §3.
+The UI **must** show: “Simplified job-loss scenario — not IRS hardship or plan rules.” See research: [`2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) §3; full topic coverage: [`2026-07-us-employee-locale-deep-dive.md`](research/2026-07-us-employee-locale-deep-dive.md) Topic 1.
 
 **v1.1 optional overlay:** `secure2_emergency_1k` — up to $1,000/yr penalty-free (SECURE 2.0; income tax still applies; plan adoption assumed).
 

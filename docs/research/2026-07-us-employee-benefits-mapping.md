@@ -2,6 +2,7 @@
 
 **Date:** 2026-07-01 (expanded 2026-07-01)  
 **Status:** Recommendation accepted for v1; v1.1 items flagged  
+**Deep dive:** [`2026-07-us-employee-locale-deep-dive.md`](2026-07-us-employee-locale-deep-dive.md) — 16-topic per-area research  
 **Question:** How should FinancialPlanner model US employee finances so the US locale delivers the same planner surfaces as India (IN), while staying honest about simplified assumptions?  
 **Constraints:** SPEC-US §11 non-goals; offline-first; no legal/tax advice; mirror IN tabs without duplicating solver cores.
 

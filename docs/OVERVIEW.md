@@ -78,4 +78,5 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 
 | Doc | Topic |
 |-----|--------|
-| [2026-07-us-employee-benefits-mapping.md](research/2026-07-us-employee-benefits-mapping.md) | US locale research spike: 401(k)/UI/mortgage/SS desk research + spec recommendations |
+| [2026-07-us-employee-benefits-mapping.md](research/2026-07-us-employee-benefits-mapping.md) | US locale summary spike (parity matrix + recommendations) |
+| [2026-07-us-employee-locale-deep-dive.md](research/2026-07-us-employee-locale-deep-dive.md) | US locale deep-dive: 401(k), UI, mortgage, LTCG, SS, Roth, vesting, games |

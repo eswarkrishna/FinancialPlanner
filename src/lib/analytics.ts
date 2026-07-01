@@ -11,7 +11,10 @@ declare global {
 
 type Gtag = (...args: unknown[]) => void;
 
+type ClickParams = Record<string, string | number | boolean>;
+
 let initialized = false;
+let clickTrackingBound = false;
 
 function measurementId(): string {
   return import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() ?? "";
@@ -52,17 +55,87 @@ export function initAnalytics(): void {
 function pagePath(suffix: string): string {
   const base = import.meta.env.BASE_URL ?? "/";
   const normalized = base.endsWith("/") ? base : `${base}/`;
+  if (!suffix || suffix === "/") {
+    return normalized.replace(/\/{2,}/g, "/");
+  }
   const path = suffix.startsWith("/") ? suffix.slice(1) : suffix;
   return `${normalized}${path}`.replace(/\/{2,}/g, "/");
 }
 
-/** Virtual page view (SPA tabs). */
+function currentPagePath(): string {
+  if (typeof window === "undefined") {
+    return pagePath("/");
+  }
+  return window.location.pathname || pagePath("/");
+}
+
+function truncate(value: string, max = 100): string {
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  return trimmed.length <= max ? trimmed : `${trimmed.slice(0, max - 1)}…`;
+}
+
+/** Build GA4 click parameters from a DOM element (no PII from form values). */
+export function buildClickParams(
+  element: Element,
+  pagePathOverride?: string,
+): ClickParams {
+  const html = element as HTMLElement;
+  const tag = element.tagName.toLowerCase();
+  const params: ClickParams = {
+    element_tag: tag,
+    page_path: pagePathOverride ?? currentPagePath(),
+  };
+
+  if (element.id) {
+    params.element_id = element.id;
+  }
+
+  const role = element.getAttribute("role");
+  if (role) {
+    params.element_role = role;
+  }
+
+  const ariaLabel = element.getAttribute("aria-label");
+  if (ariaLabel) {
+    params.element_label = truncate(ariaLabel);
+  }
+
+  const type = element.getAttribute("type");
+  if (type) {
+    params.element_type = type;
+  }
+
+  if (tag === "a" && element instanceof HTMLAnchorElement && element.href) {
+    params.link_url = element.href;
+  }
+
+  const text =
+    ariaLabel ??
+    html.innerText ??
+    element.textContent ??
+    element.getAttribute("name") ??
+    element.getAttribute("value") ??
+    "";
+  if (text) {
+    params.element_text = truncate(text);
+  }
+
+  return params;
+}
+
+/** Initial landing page view (home). */
+export function trackHomePageView(): void {
+  trackPageView("/", "FinancialPlanner — Home");
+}
+
+/** Virtual page view (SPA tabs and routes). */
 export function trackPageView(pageSuffix: string, pageTitle?: string): void {
   if (!initialized || !window.gtag) return;
   const page_path = pagePath(pageSuffix);
   window.gtag("event", "page_view", {
     page_path,
     page_title: pageTitle ?? `FinancialPlanner — ${pageSuffix}`,
+    page_location: typeof window !== "undefined" ? window.location.href : page_path,
   });
 }
 
@@ -72,4 +145,35 @@ export function trackEvent(
 ): void {
   if (!initialized || !window.gtag) return;
   window.gtag("event", eventName, params ?? {});
+}
+
+/** Send a GA4 click event for a DOM element. */
+export function trackClick(element: Element, pagePathOverride?: string): void {
+  trackEvent("click", buildClickParams(element, pagePathOverride));
+}
+
+function onDocumentClick(event: MouseEvent): void {
+  const target = event.target;
+  if (!(target instanceof Element)) {
+    return;
+  }
+  trackClick(target);
+}
+
+/** Delegated listener: records every click in the app (inputs excluded from values). */
+export function initClickTracking(): void {
+  if (!initialized || clickTrackingBound || typeof document === "undefined") {
+    return;
+  }
+  clickTrackingBound = true;
+  document.addEventListener("click", onDocumentClick, true);
+}
+
+/** Reset module state for tests. */
+export function resetAnalyticsForTests(): void {
+  if (clickTrackingBound && typeof document !== "undefined") {
+    document.removeEventListener("click", onDocumentClick, true);
+  }
+  clickTrackingBound = false;
+  initialized = false;
 }

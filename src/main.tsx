@@ -1,10 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { initAnalytics } from "./lib/analytics";
+import { initAnalytics, initClickTracking, trackHomePageView } from "./lib/analytics";
 import "./index.css";
 
 initAnalytics();
+initClickTracking();
+trackHomePageView();
 
 const el = document.getElementById("root");
 if (!el) {

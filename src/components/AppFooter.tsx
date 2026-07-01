@@ -54,8 +54,9 @@ export function AppFooter() {
             </li>
             <li>
               <strong>Analytics.</strong> The public site may use Google Analytics 4 to
-              collect anonymous usage (e.g. which tab you open). No loan amounts or
-              personal data are sent. You can block this with a browser extension or
+              collect anonymous usage (e.g. which page or tab you open and which
+              controls you click). No loan amounts or personal data are sent. You can
+              block this with a browser extension or
               opt out via{" "}
               <a
                 href="https://tools.google.com/dlpage/gaoptout"

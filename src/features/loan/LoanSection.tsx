@@ -18,6 +18,8 @@ const WARNING_LABELS: Record<string, string> = {
   CASH_SHORTFALL: "Cash shortfall: payment could not be fully funded from cash balance.",
   EARLY_401K_WITHDRAWAL:
     "Early 401(k) withdrawal costs (penalty/withholding) apply in this scenario.",
+  LOAN_NOT_PAID_OFF:
+    "Loan balance remains after the simulation horizon; payoff month is not reached.",
 };
 
 export function LoanSection() {
@@ -193,6 +195,12 @@ export function LoanSection() {
                   onChange={(e) => setField("monthly_pf_addition_inr", e.target.value)}
                 />
               </label>
+              {models && models.monthly401kWithMatch > models.v.monthly_pf_addition_inr && (
+                <p className="field-hint">
+                  Total monthly 401(k) incl. employer match:{" "}
+                  {money(models.monthly401kWithMatch)}
+                </p>
+              )}
             </>
           ) : (
             <>
@@ -405,7 +413,7 @@ export function LoanSection() {
                   {comparisonRows.map((row) => (
                     <tr key={row.id}>
                       <td>{row.label}</td>
-                      <td>{row.payoffMonth}</td>
+                      <td>{row.payoffMonth > 0 ? row.payoffMonth : "—"}</td>
                       <td>
                         {row.deltaVsBaseMonths === 0
                           ? "—"

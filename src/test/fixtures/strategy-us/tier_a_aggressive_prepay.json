@@ -16,6 +16,7 @@
   "min_living_budget_inr": 1800,
   "warnings": [
     "EMERGENCY_FUND_SHORTFALL",
+    "TAX_SIMPLIFIED",
     "BELOW_SUBSISTENCE"
   ]
 }

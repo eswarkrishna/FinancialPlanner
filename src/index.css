@@ -512,6 +512,31 @@ tbody tr:hover {
   max-width: 52rem;
 }
 
+.footer-feedback {
+  margin: 0 0 1rem;
+  max-width: 52rem;
+}
+
+.footer-feedback-lead {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.footer-feedback-actions {
+  margin: 0;
+}
+
+.footer-feedback-actions a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer-feedback-actions a:hover {
+  text-decoration: underline;
+}
+
 .footer-terms {
   max-width: 52rem;
   border: 1px solid #e2e8f0;

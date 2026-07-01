@@ -94,6 +94,10 @@ The measurement ID is baked in at **build time** (or dev-server start). Defaults
 
 The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/tab/loan`, etc.). Clicks are recorded with element labels only—loan inputs and personal data are not transmitted. See footer terms for the privacy note.
 
+### User feedback
+
+Every page footer includes **Report on GitHub**, which opens a new issue on the repo (`VITE_GITHUB_REPO`, default `eswarkrishna/FinancialPlanner`).
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).

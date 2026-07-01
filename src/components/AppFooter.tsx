@@ -4,6 +4,8 @@ import {
   getBuildInfo,
   githubCommitUrl,
 } from "../lib/buildInfo";
+import { githubIssuesUrl } from "../lib/feedback";
+import { useLocale } from "../features/locale/LocaleContext";
 
 function BuildMetaLine() {
   const info = getBuildInfo();
@@ -27,7 +29,20 @@ function BuildMetaLine() {
   );
 }
 
-import { useLocale } from "../features/locale/LocaleContext";
+function FooterFeedback() {
+  const issuesUrl = githubIssuesUrl();
+
+  return (
+    <section className="footer-feedback" aria-label="Feedback">
+      <p className="footer-feedback-lead">Help us improve</p>
+      <p className="footer-feedback-actions">
+        <a href={issuesUrl} target="_blank" rel="noopener noreferrer">
+          Report on GitHub
+        </a>
+      </p>
+    </section>
+  );
+}
 
 function DisclaimerLead() {
   const { locale } = useLocale();
@@ -54,6 +69,7 @@ export function AppFooter() {
     <footer className="footer">
       <BuildMetaLine />
       <DisclaimerLead />
+      <FooterFeedback />
 
       <details className="footer-terms">
         <summary className="footer-terms-summary">Terms and conditions</summary>
@@ -113,6 +129,10 @@ export function AppFooter() {
                 Google&apos;s opt-out add-on
               </a>
               .
+            </li>
+            <li>
+              <strong>Feedback.</strong> GitHub issue reports are voluntary and processed
+              on GitHub, not stored in this app.
             </li>
             <li>
               <strong>Third parties.</strong> References to institutions (e.g. EPFO,

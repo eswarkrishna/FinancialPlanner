@@ -470,6 +470,25 @@ tbody tr:hover {
   border-top: 1px solid #cbd5e1;
 }
 
+.footer-meta {
+  margin: 0 0 0.75rem;
+  max-width: 52rem;
+}
+
+.footer-meta a {
+  color: #475569;
+  text-decoration: none;
+}
+
+.footer-meta a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.footer-meta code {
+  font-size: inherit;
+}
+
 .footer-lead {
   margin: 0 0 1rem;
   max-width: 52rem;

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit -p tsconfig.json",
-    "goldens:update": "npx tsx scripts/update-goldens.ts"
+    "goldens:update": "npx tsx scripts/update-goldens.ts",
+    "goldens:update:us": "npx tsx scripts/update-goldens-us.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

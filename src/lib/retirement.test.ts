@@ -33,6 +33,25 @@ describe("projectRetirementCorpus", () => {
       lowInflation.target_corpus_inr,
     );
   });
+
+  it("computes ss_adjusted_funded_ratio when Social Security is provided (SPEC-US §4.11)", () => {
+    const projection = projectRetirementCorpus({
+      ...makeReferenceRetirementInput(),
+      expected_social_security_monthly_inr: 2_000,
+      safe_withdrawal_rate_pct: 4,
+      annual_expense_today_inr: 120_000,
+      years_to_retirement: 20,
+      inflation_pct: 6,
+    });
+    expect(projection.ss_adjusted_target_corpus_inr).toBeGreaterThan(0);
+    expect(projection.ss_adjusted_funded_ratio).toBeGreaterThan(0);
+    expect(projection.ss_adjusted_target_corpus_inr!).toBeLessThan(
+      projection.target_corpus_inr,
+    );
+    expect(projection.ss_adjusted_funded_ratio!).toBeGreaterThan(
+      projection.funded_ratio,
+    );
+  });
 });
 
 describe("buildRetirementScenarios", () => {

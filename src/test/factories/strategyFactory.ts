@@ -1,4 +1,5 @@
 import type { StrategyInputs } from "../../lib/strategy/types";
+import { LTCG_RATE_PCT_US } from "../../lib/strategy/constants";
 
 /** Spec §15.1 — common loan + assets shared across the three reference tiers. */
 const REFERENCE_LOAN_BASE = {
@@ -64,3 +65,63 @@ export const REFERENCE_TIERS: readonly ReferenceTier[] = [
   "tier_b",
   "tier_c",
 ];
+
+/** SPEC-US §15 / §4.12 — US reference loan + assets for strategy goldens. */
+const REFERENCE_LOAN_BASE_US = {
+  principal_inr: 400_000,
+  annual_interest_rate: 6.5,
+  tenure_months: 120,
+  cash_inr: 50_000,
+  pf_corpus_inr: 80_000,
+  pf_annual_interest_rate_pct: 7,
+  monthly_pf_addition_inr: 1_300,
+  extra_monthly_income_inr: 0,
+  extra_income_post_tax: true,
+  marginal_tax_rate_pct: 0,
+  expected_equity_return_pct: 9,
+  horizon_months: 120,
+  ltcg_rate_pct: LTCG_RATE_PCT_US,
+  ltcg_exemption_inr: 0,
+} as const;
+
+const TIER_OVERRIDES_US: Record<
+  ReferenceTier,
+  Pick<
+    StrategyInputs,
+    | "monthly_take_home_inr"
+    | "monthly_living_expense_inr"
+    | "emergency_months_buffer"
+    | "repayment_pct_of_take_home"
+  >
+> = {
+  tier_a: {
+    monthly_take_home_inr: 18_000,
+    monthly_living_expense_inr: 4_500,
+    emergency_months_buffer: 6,
+    repayment_pct_of_take_home: 90,
+  },
+  tier_b: {
+    monthly_take_home_inr: 12_000,
+    monthly_living_expense_inr: 4_000,
+    emergency_months_buffer: 8,
+    repayment_pct_of_take_home: 80,
+  },
+  tier_c: {
+    monthly_take_home_inr: 8_000,
+    monthly_living_expense_inr: 3_000,
+    emergency_months_buffer: 12,
+    repayment_pct_of_take_home: 75,
+  },
+};
+
+export function makeStrategyInputForTierUs(
+  tier: ReferenceTier,
+  overrides: Partial<StrategyInputs> = {},
+): StrategyInputs {
+  return {
+    ...REFERENCE_LOAN_BASE_US,
+    ...TIER_OVERRIDES_US[tier],
+    subsistence_floor_inr: 2_000,
+    ...overrides,
+  };
+}

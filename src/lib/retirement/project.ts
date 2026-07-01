@@ -25,6 +25,9 @@ export interface RetirementProjection {
   annual_expense_at_retirement_inr: number;
   target_corpus_inr: number;
   funded_ratio: number;
+  /** SPEC-US §4.11 v1.1 — expense gap after Social Security, divided by SWR. */
+  ss_adjusted_target_corpus_inr?: number;
+  ss_adjusted_funded_ratio?: number;
   yearly: RetirementYearRow[];
 }
 
@@ -77,12 +80,27 @@ export function projectRetirementCorpus(input: RetirementInput): RetirementProje
   const realCorpus = roundInr(corpus / inflation);
   const fundedRatio = targetCorpus <= 0 ? 0 : corpus / targetCorpus;
 
+  const annualSsIncome = Math.max(
+    0,
+    (input.expected_social_security_monthly_inr ?? 0) * 12,
+  );
+  let ssAdjustedTarget: number | undefined;
+  let ssAdjustedFundedRatio: number | undefined;
+  if (annualSsIncome > 0 && swr > 0) {
+    const expenseGap = Math.max(0, expenseAtRetirement - annualSsIncome);
+    ssAdjustedTarget = roundInr(expenseGap / swr);
+    ssAdjustedFundedRatio =
+      ssAdjustedTarget <= 0 ? 1 : corpus / ssAdjustedTarget;
+  }
+
   return {
     projected_corpus_inr: corpus,
     projected_real_corpus_inr: realCorpus,
     annual_expense_at_retirement_inr: expenseAtRetirement,
     target_corpus_inr: targetCorpus,
     funded_ratio: fundedRatio,
+    ss_adjusted_target_corpus_inr: ssAdjustedTarget,
+    ss_adjusted_funded_ratio: ssAdjustedFundedRatio,
     yearly,
   };
 }

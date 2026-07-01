@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { simulateAllStrategies } from "../../../lib/strategy/simulate";
-import { SUBSISTENCE_FLOOR_INR, SUBSISTENCE_FLOOR_USD } from "../../../lib/strategy/constants";
+import {
+  LTCG_EXEMPTION_INR,
+  LTCG_RATE_PCT,
+  LTCG_RATE_PCT_US,
+  SUBSISTENCE_FLOOR_INR,
+  SUBSISTENCE_FLOOR_USD,
+} from "../../../lib/strategy/constants";
 import {
   STRATEGY_TIER_PRESETS,
   STRATEGY_TIER_PRESETS_US,
@@ -109,6 +115,8 @@ function buildInputs(form: StrategyFormState, locale: "IN" | "US"): StrategyInpu
     ),
     subsistence_floor_inr:
       locale === "US" ? SUBSISTENCE_FLOOR_USD : SUBSISTENCE_FLOOR_INR,
+    ltcg_rate_pct: locale === "US" ? LTCG_RATE_PCT_US : LTCG_RATE_PCT,
+    ltcg_exemption_inr: locale === "US" ? 0 : LTCG_EXEMPTION_INR,
   };
 }
 

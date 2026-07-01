@@ -123,7 +123,8 @@ export function RetirementSection() {
             <>
               {" "}
               <strong>Social Security</strong> is shown separately and does not compound in
-              the corpus projection.
+              the corpus projection. When SS is entered, <strong>SS-adjusted funded</strong>{" "}
+              measures corpus against the expense gap remaining after SS, divided by your SWR.
             </>
           )}
         </p>
@@ -142,7 +143,13 @@ export function RetirementSection() {
                 <th>Expense at retirement</th>
                 <th>Target corpus</th>
                 <th>Funded ratio</th>
-                {isUs && annualSsIncome > 0 && <th>Annual SS income</th>}
+                {isUs && annualSsIncome > 0 && (
+                  <>
+                    <th>Annual SS income</th>
+                    <th>SS-adjusted target</th>
+                    <th>SS-adjusted funded</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -161,7 +168,21 @@ export function RetirementSection() {
                   </td>
                   <td>{money(scenario.projection.target_corpus_inr)}</td>
                   <td>{formatPercent(scenario.projection.funded_ratio)}</td>
-                  {isUs && annualSsIncome > 0 && <td>{money(annualSsIncome)}</td>}
+                  {isUs && annualSsIncome > 0 && (
+                    <>
+                      <td>{money(annualSsIncome)}</td>
+                      <td>
+                        {scenario.projection.ss_adjusted_target_corpus_inr !== undefined
+                          ? money(scenario.projection.ss_adjusted_target_corpus_inr)
+                          : "—"}
+                      </td>
+                      <td>
+                        {scenario.projection.ss_adjusted_funded_ratio !== undefined
+                          ? formatPercent(scenario.projection.ss_adjusted_funded_ratio)
+                          : "—"}
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

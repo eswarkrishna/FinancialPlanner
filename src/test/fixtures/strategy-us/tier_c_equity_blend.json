@@ -1,0 +1,21 @@
+{
+  "strategy_id": "STRATEGY_EQUITY_BLEND",
+  "loan_close_month": 120,
+  "total_interest_inr": 145030.3,
+  "interest_saved_vs_base_inr": 0,
+  "one_time_prepay_inr": 0,
+  "monthly_extra_principal_inr": 0,
+  "monthly_sip_inr": 0,
+  "equity_lump_inr": 0,
+  "equity_corpus_at_horizon_inr": 0,
+  "equity_corpus_at_horizon_post_tax_inr": 0,
+  "pf_corpus_at_horizon_inr": 387996.25,
+  "cash_buffer_remaining_inr": 50000,
+  "loan_balance_at_horizon_inr": 0,
+  "net_worth_at_horizon_inr": 437996.25,
+  "min_living_budget_inr": 3458.08,
+  "warnings": [
+    "EMERGENCY_FUND_SHORTFALL",
+    "FRAGILE_CASH_FLOW"
+  ]
+}

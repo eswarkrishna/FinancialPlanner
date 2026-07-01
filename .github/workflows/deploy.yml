@@ -43,9 +43,12 @@ jobs:
         run: npm run test
 
       - name: Build
-        env:
-          VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
-        run: npm run build
+        run: |
+          # Only export when set; an empty env var would override .env.production.
+          if [ -n "${{ secrets.VITE_GA_MEASUREMENT_ID }}" ]; then
+            export VITE_GA_MEASUREMENT_ID="${{ secrets.VITE_GA_MEASUREMENT_ID }}"
+          fi
+          npm run build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

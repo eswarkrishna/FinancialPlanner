@@ -26,6 +26,10 @@ import {
 import { formatMoney } from "../../../lib/locale/formatMoney";
 import type { Locale } from "../../../lib/locale/types";
 import {
+  trackJobLossMode,
+  trackLoadReferenceScenario,
+} from "../../../lib/analytics";
+import {
   loanFormFromScenario,
   referenceScenarioForLocale,
   useLocale,
@@ -709,10 +713,16 @@ export function useLoanModels() {
   }
 
   function setBoolField(key: "gold_haircut_enabled" | "unemployment_mode", checked: boolean) {
-    setInputs((prev) => ({ ...prev, [key]: checked ? "true" : "false" }));
+    setInputs((prev) => {
+      if (key === "unemployment_mode" && prev.unemployment_mode !== (checked ? "true" : "false")) {
+        trackJobLossMode(locale, checked);
+      }
+      return { ...prev, [key]: checked ? "true" : "false" };
+    });
   }
 
   function loadReference() {
+    trackLoadReferenceScenario(locale);
     const ref = referenceScenarioForLocale(locale);
     setInputs(loanFormFromScenario(ref) as Record<keyof LoanInput, string>);
     setScenarioView("BASE");

@@ -5,8 +5,13 @@ import {
   initClickTracking,
   isAnalyticsEnabled,
   resetAnalyticsForTests,
+  setAnalyticsLocale,
   trackClick,
+  trackEvent,
   trackHomePageView,
+  trackJobLossMode,
+  trackLoadReferenceScenario,
+  trackLocaleSwitch,
   trackPageView,
 } from "./analytics";
 
@@ -118,6 +123,88 @@ describe("analytics", () => {
       expect(clickEvents[0]?.[2]).toMatchObject({
         element_tag: "button",
         element_text: "Go",
+      });
+    });
+
+    it("sets user_properties locale via setAnalyticsLocale", () => {
+      setAnalyticsLocale("US");
+
+      expect(gtagSpy).toHaveBeenCalledWith("set", "user_properties", {
+        locale: "US",
+      });
+    });
+
+    it("includes locale on page views and events when set", () => {
+      setAnalyticsLocale("IN");
+      trackHomePageView();
+      trackPageView("tab/loan", "FinancialPlanner — Loan");
+      trackEvent("custom_event", { foo: "bar" });
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "page_view", {
+        page_path: "/",
+        page_title: "FinancialPlanner — Home",
+        page_location: expect.any(String),
+        locale: "IN",
+      });
+      expect(gtagSpy).toHaveBeenCalledWith("event", "page_view", {
+        page_path: "/tab/loan",
+        page_title: "FinancialPlanner — Loan",
+        page_location: expect.any(String),
+        locale: "IN",
+      });
+      expect(gtagSpy).toHaveBeenCalledWith("event", "custom_event", {
+        foo: "bar",
+        locale: "IN",
+      });
+    });
+
+    it("includes explicit locale param over module state", () => {
+      setAnalyticsLocale("IN");
+      trackPageView("tab/debt", "Debt", "US");
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "page_view", {
+        page_path: "/tab/debt",
+        page_title: "Debt",
+        page_location: expect.any(String),
+        locale: "US",
+      });
+    });
+
+    it("includes locale in buildClickParams when set", () => {
+      setAnalyticsLocale("US");
+      const button = document.createElement("button");
+      button.textContent = "Save";
+
+      expect(buildClickParams(button)).toMatchObject({
+        element_tag: "button",
+        element_text: "Save",
+        locale: "US",
+      });
+    });
+
+    it("tracks locale_switch event", () => {
+      trackLocaleSwitch("IN", "US");
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "locale_switch", {
+        from: "IN",
+        to: "US",
+      });
+    });
+
+    it("tracks load_reference_scenario event", () => {
+      trackLoadReferenceScenario("IN");
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "load_reference_scenario", {
+        locale: "IN",
+      });
+    });
+
+    it("tracks job_loss_mode event", () => {
+      trackJobLossMode("US", true);
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "job_loss_mode", {
+        locale: "US",
+        enabled: true,
       });
     });
   });

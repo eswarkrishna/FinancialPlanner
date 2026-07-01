@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -12,6 +13,7 @@ import {
   REFERENCE_SCENARIO_US,
   type Locale,
 } from "../../lib/locale";
+import { setAnalyticsLocale, trackLocaleSwitch } from "../../lib/analytics";
 
 interface LocaleContextValue {
   locale: Locale;
@@ -30,6 +32,10 @@ function readStoredLocale(): Locale {
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(readStoredLocale);
 
+  useEffect(() => {
+    setAnalyticsLocale(locale);
+  }, []);
+
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
@@ -44,7 +50,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
           : "Switch to India (INR)? Form values will reset to the India reference scenario.",
       );
       if (!confirmed) return false;
+      const from = locale;
       setLocale(next);
+      setAnalyticsLocale(next);
+      trackLocaleSwitch(from, next);
       return true;
     },
     [locale, setLocale],

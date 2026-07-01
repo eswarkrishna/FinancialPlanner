@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { LocaleProvider } from "./features/locale/LocaleContext";
 import { initAnalytics, initClickTracking, trackHomePageView } from "./lib/analytics";
 import "./index.css";
 
@@ -15,6 +16,8 @@ if (!el) {
 
 createRoot(el).render(
   <StrictMode>
-    <App />
+    <LocaleProvider>
+      <App />
+    </LocaleProvider>
   </StrictMode>,
 );

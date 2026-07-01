@@ -1,7 +1,12 @@
-import { formatInr } from "../../lib/formatInr";
+import { formatMoney } from "../../lib/locale/formatMoney";
+import { useLocale } from "../locale/LocaleContext";
 import { useRetirementPlanner } from "./hooks/useRetirementPlanner";
 
 export function RetirementSection() {
+  const { locale } = useLocale();
+  const money = (value: number) => formatMoney(value, locale);
+  const isUs = locale === "US";
+  const currencyLabel = isUs ? "USD" : "INR";
   const {
     retirementInputs,
     selectedRetirementScenario,
@@ -10,7 +15,11 @@ export function RetirementSection() {
     activeRetirementScenario,
     setRetirementField,
     formatPercent,
+    retirementBaseInput,
   } = useRetirementPlanner();
+
+  const annualSsIncome =
+    (retirementBaseInput.expected_social_security_monthly_inr ?? 0) * 12;
 
   return (
     <>
@@ -18,7 +27,7 @@ export function RetirementSection() {
         <h2>Retirement planner</h2>
         <div className="form-grid">
           <label>
-            Current corpus (INR)
+            Current corpus ({currencyLabel})
             <input
               inputMode="decimal"
               value={retirementInputs.current_corpus_inr}
@@ -26,7 +35,7 @@ export function RetirementSection() {
             />
           </label>
           <label>
-            Monthly contribution (INR)
+            Monthly contribution ({currencyLabel})
             <input
               inputMode="decimal"
               value={retirementInputs.monthly_contribution_inr}
@@ -60,7 +69,7 @@ export function RetirementSection() {
             />
           </label>
           <label>
-            Annual expense today (INR)
+            Annual expense today ({currencyLabel})
             <input
               inputMode="decimal"
               value={retirementInputs.annual_expense_today_inr}
@@ -79,6 +88,19 @@ export function RetirementSection() {
               }
             />
           </label>
+          {isUs && (
+            <label>
+              Expected Social Security (USD/mo)
+              <input
+                inputMode="decimal"
+                placeholder="2000"
+                value={retirementInputs.expected_social_security_monthly_inr}
+                onChange={(event) =>
+                  setRetirementField("expected_social_security_monthly_inr", event)
+                }
+              />
+            </label>
+          )}
           <label>
             Yearly timeline scenario
             <select
@@ -97,6 +119,13 @@ export function RetirementSection() {
           <strong>Safe withdrawal %:</strong> leaving it blank stores 0 for this form; the
           retirement engine still enforces a small minimum rate so expense targets stay
           numerically stable (enter e.g. 4 once you want classic “% of portfolio” semantics).
+          {isUs && (
+            <>
+              {" "}
+              <strong>Social Security</strong> is shown separately and does not compound in
+              the corpus projection.
+            </>
+          )}
         </p>
       </section>
 
@@ -113,6 +142,7 @@ export function RetirementSection() {
                 <th>Expense at retirement</th>
                 <th>Target corpus</th>
                 <th>Funded ratio</th>
+                {isUs && annualSsIncome > 0 && <th>Annual SS income</th>}
               </tr>
             </thead>
             <tbody>
@@ -122,15 +152,16 @@ export function RetirementSection() {
                   <td>
                     Return {scenario.assumptions.annual_return_pct}% / Inflation{" "}
                     {scenario.assumptions.inflation_pct}% / SIP{" "}
-                    {formatInr(scenario.assumptions.monthly_contribution_inr)}
+                    {money(scenario.assumptions.monthly_contribution_inr)}
                   </td>
-                  <td>{formatInr(scenario.projection.projected_corpus_inr)}</td>
-                  <td>{formatInr(scenario.projection.projected_real_corpus_inr)}</td>
+                  <td>{money(scenario.projection.projected_corpus_inr)}</td>
+                  <td>{money(scenario.projection.projected_real_corpus_inr)}</td>
                   <td>
-                    {formatInr(scenario.projection.annual_expense_at_retirement_inr)}
+                    {money(scenario.projection.annual_expense_at_retirement_inr)}
                   </td>
-                  <td>{formatInr(scenario.projection.target_corpus_inr)}</td>
+                  <td>{money(scenario.projection.target_corpus_inr)}</td>
                   <td>{formatPercent(scenario.projection.funded_ratio)}</td>
+                  {isUs && annualSsIncome > 0 && <td>{money(annualSsIncome)}</td>}
                 </tr>
               ))}
             </tbody>
@@ -146,15 +177,15 @@ export function RetirementSection() {
               <tr>
                 <th>Year</th>
                 <th>Nominal corpus</th>
-                <th>Real corpus (today INR)</th>
+                <th>Real corpus (today {currencyLabel})</th>
               </tr>
             </thead>
             <tbody>
               {activeRetirementScenario.projection.yearly.map((row) => (
                 <tr key={row.year}>
                   <td>{row.year}</td>
-                  <td>{formatInr(row.corpus_nominal_inr)}</td>
-                  <td>{formatInr(row.corpus_real_inr)}</td>
+                  <td>{money(row.corpus_nominal_inr)}</td>
+                  <td>{money(row.corpus_real_inr)}</td>
                 </tr>
               ))}
             </tbody>

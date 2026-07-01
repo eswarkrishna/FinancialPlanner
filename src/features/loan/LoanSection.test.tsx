@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { renderWithLocale } from "../../test/renderWithLocale";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LoanSection } from "./LoanSection";
@@ -6,7 +7,7 @@ import { LoanSection } from "./LoanSection";
 describe("LoanSection", () => {
   it("starts without comparison tables until reference scenario is loaded", async () => {
     const user = userEvent.setup();
-    render(<LoanSection />);
+    renderWithLocale(<LoanSection />);
 
     expect(screen.getByRole("heading", { name: "Loan & assets" })).toBeInTheDocument();
     expect(
@@ -25,7 +26,7 @@ describe("LoanSection", () => {
 
   it("updates one-time prepay source labels when switching to PF", async () => {
     const user = userEvent.setup();
-    render(<LoanSection />);
+    renderWithLocale(<LoanSection />);
 
     await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
 
@@ -41,7 +42,7 @@ describe("LoanSection", () => {
 
   it("updates one-time prepay source labels when switching to gold", async () => {
     const user = userEvent.setup();
-    render(<LoanSection />);
+    renderWithLocale(<LoanSection />);
 
     await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
 
@@ -57,7 +58,7 @@ describe("LoanSection", () => {
 
   it("resets amortisation schedule view when prepay scenarios disappear", async () => {
     const user = userEvent.setup();
-    render(<LoanSection />);
+    renderWithLocale(<LoanSection />);
     await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
 
     const comboBoxes = screen.getAllByRole("combobox");

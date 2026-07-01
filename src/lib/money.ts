@@ -4,3 +4,12 @@ export function roundInr(value: number): number {
   const rounded = Math.sign(scaled) * Math.round(Math.abs(scaled));
   return rounded / 100;
 }
+
+/** Half-up rounding to cents (SPEC-US §4.0). */
+export function roundUsd(value: number): number {
+  return roundInr(value);
+}
+
+export function roundMoney(value: number, locale: "IN" | "US"): number {
+  return locale === "US" ? roundUsd(value) : roundInr(value);
+}

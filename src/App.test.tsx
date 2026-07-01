@@ -1,11 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { renderWithLocale } from "./test/renderWithLocale";
 import { App } from "./App";
 
 describe("App shell composition", () => {
   it("renders tab navigation and shows only the loan planner by default", () => {
-    render(<App />);
+    renderWithLocale(<App />);
 
     expect(screen.getByRole("heading", { name: "FinancialPlanner" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Loan" })).toHaveAttribute(
@@ -24,7 +25,7 @@ describe("App shell composition", () => {
 
   it("switches planners via tabs", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderWithLocale(<App />);
 
     await user.click(screen.getByRole("tab", { name: "Multi-debt" }));
     expect(screen.getByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();

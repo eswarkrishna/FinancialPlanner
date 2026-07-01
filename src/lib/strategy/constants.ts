@@ -7,6 +7,9 @@ export const EQUITY_BLEND_EXTRA_TO_PRINCIPAL_FRACTION = 0.6;
 /** Spec §9 BELOW_SUBSISTENCE — strategy rows whose min living budget falls below this fire a warning. */
 export const SUBSISTENCE_FLOOR_INR = 15_000;
 
+/** SPEC-US §9 — US subsistence floor in USD (stored in locale-neutral numeric fields). */
+export const SUBSISTENCE_FLOOR_USD = 2_000;
+
 /** Spec §9 FRAGILE_CASH_FLOW — EMI/THM ratio above this fires a warning on every strategy. */
 export const FRAGILE_CASH_FLOW_RATIO = 0.5;
 

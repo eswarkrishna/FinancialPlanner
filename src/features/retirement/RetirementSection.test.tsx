@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { renderWithLocale } from "../../test/renderWithLocale";
 import { RetirementSection } from "./RetirementSection";
 
 describe("RetirementSection", () => {
   it("renders scenarios table and yearly timeline", () => {
-    render(<RetirementSection />);
+    renderWithLocale(<RetirementSection />);
 
     expect(
       screen.getByRole("heading", { name: "Retirement scenarios" }),
@@ -17,7 +18,7 @@ describe("RetirementSection", () => {
   });
 
   it("updates yearly timeline when scenario selection changes", () => {
-    render(<RetirementSection />);
+    renderWithLocale(<RetirementSection />);
 
     fireEvent.change(screen.getByLabelText("Yearly timeline scenario"), {
       target: { value: "optimistic" },

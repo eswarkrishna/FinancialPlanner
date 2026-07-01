@@ -1,0 +1,62 @@
+import type { LoanInput } from "../schemas/loanInput";
+import { DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT } from "../pf/constants";
+import {
+  DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT,
+  DEFAULT_EMPLOYER_MATCH_CAP_PCT,
+  DEFAULT_EMPLOYER_MATCH_RATE_PCT,
+  DEFAULT_K401_ANNUAL_RETURN_PCT,
+} from "../k401/constants";
+
+/** Spec §15 reference (IN) */
+export const REFERENCE_SCENARIO_IN: LoanInput = {
+  principal_inr: 5_000_000,
+  annual_interest_rate: 7.9,
+  tenure_months: 168,
+  start_date: undefined,
+  cash_inr: 2_500_000,
+  monthly_salary_inr: 100_000,
+  pf_corpus_inr: 2_500_000,
+  pf_annual_interest_rate_pct: DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT,
+  monthly_pf_addition_inr: 0,
+  gold_liquid_inr: 2_500_000,
+  gold_haircut_enabled: false,
+  gold_haircut_pct: 0,
+  monthly_cash_to_loan_inr: 0,
+  unemployment_mode: false,
+  unemployment_start_month: 1,
+  monthly_living_expense_inr: 0,
+  monthly_income_inr: 0,
+  monthly_uib_inr: 0,
+  vested_fraction_pct: 100,
+  early_withdrawal_tax_withholding_pct: DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT,
+  employer_match_rate_pct: DEFAULT_EMPLOYER_MATCH_RATE_PCT,
+  employer_match_cap_pct_of_salary: DEFAULT_EMPLOYER_MATCH_CAP_PCT,
+  annual_salary_inr: 0,
+};
+
+/** Spec-US §15 reference — amounts stored in locale-neutral numeric fields */
+export const REFERENCE_SCENARIO_US: LoanInput = {
+  principal_inr: 400_000,
+  annual_interest_rate: 6.5,
+  tenure_months: 360,
+  start_date: undefined,
+  cash_inr: 50_000,
+  monthly_salary_inr: 10_000,
+  annual_salary_inr: 120_000,
+  pf_corpus_inr: 80_000,
+  pf_annual_interest_rate_pct: DEFAULT_K401_ANNUAL_RETURN_PCT,
+  monthly_pf_addition_inr: 1_000,
+  gold_liquid_inr: 30_000,
+  gold_haircut_enabled: false,
+  gold_haircut_pct: 0,
+  monthly_cash_to_loan_inr: 0,
+  unemployment_mode: false,
+  unemployment_start_month: 1,
+  monthly_living_expense_inr: 0,
+  monthly_income_inr: 0,
+  monthly_uib_inr: 0,
+  vested_fraction_pct: 100,
+  early_withdrawal_tax_withholding_pct: DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT,
+  employer_match_rate_pct: DEFAULT_EMPLOYER_MATCH_RATE_PCT,
+  employer_match_cap_pct_of_salary: DEFAULT_EMPLOYER_MATCH_CAP_PCT,
+};

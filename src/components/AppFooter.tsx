@@ -27,15 +27,33 @@ function BuildMetaLine() {
   );
 }
 
+import { useLocale } from "../features/locale/LocaleContext";
+
+function DisclaimerLead() {
+  const { locale } = useLocale();
+  if (locale === "US") {
+    return (
+      <p className="footer-lead">
+        Educational planning only. 401(k) withdrawal rules, taxes, lender prepayment
+        charges, and mortgage terms vary. Verify with your plan administrator, lender,
+        and a qualified financial adviser.
+      </p>
+    );
+  }
+  return (
+    <p className="footer-lead">
+      Educational planning only. EPF withdrawal eligibility, taxes, lender prepayment
+      charges, and loan terms vary. Verify with EPFO, your lender, and a qualified
+      financial adviser.
+    </p>
+  );
+}
+
 export function AppFooter() {
   return (
     <footer className="footer">
       <BuildMetaLine />
-      <p className="footer-lead">
-        Educational planning only. EPF withdrawal eligibility, taxes, lender
-        prepayment charges, and loan terms vary. Verify with EPFO, your lender, and a
-        qualified financial adviser.
-      </p>
+      <DisclaimerLead />
 
       <details className="footer-terms">
         <summary className="footer-terms-summary">Terms and conditions</summary>

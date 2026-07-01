@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { renderWithLocale } from "../test/renderWithLocale";
 import { AppFooter } from "./AppFooter";
 import { getBuildInfo } from "../lib/buildInfo";
 
@@ -8,7 +9,7 @@ describe("AppFooter", () => {
     const info = getBuildInfo();
     expect(info).not.toBeNull();
 
-    render(<AppFooter />);
+    renderWithLocale(<AppFooter />);
 
     expect(screen.getByText(/Latest push:/)).toBeInTheDocument();
     expect(screen.getByRole("time")).toHaveAttribute("dateTime", info!.commitIsoDate);
@@ -20,7 +21,7 @@ describe("AppFooter", () => {
   });
 
   it("shows the educational disclaimer and terms", () => {
-    render(<AppFooter />);
+    renderWithLocale(<AppFooter />);
 
     expect(
       screen.getByText(/Educational planning only\. EPF withdrawal eligibility/),

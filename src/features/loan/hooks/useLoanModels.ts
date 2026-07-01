@@ -1,16 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildCumulativeInterestCurve,
   buildPrincipalCurve,
+  effectiveBrokerageLiquidUsd,
   effectiveGoldLiquidInr,
   scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepTenure,
   scheduleTimedPrepaysKeepEmi,
+  simulateJl401kBridgeCashflow,
+  simulateJl401kToLoanCashflow,
+  simulateJlDelayPrepayCashflow,
   simulateUeDelayPrepayCashflow,
   simulateUePfBridgeCashflow,
   simulateUePfToLoanCashflow,
   type CashflowSimResult,
   type ScheduleRow,
+  type UsCashflowSimResult,
 } from "../../../lib/loan";
 import {
   downloadTextFile,
@@ -18,13 +23,19 @@ import {
   scenarioToJson,
   type ScenarioExportPayload,
 } from "../../../lib/export";
-import { formatInr } from "../../../lib/formatInr";
+import { formatMoney } from "../../../lib/locale/formatMoney";
+import type { Locale } from "../../../lib/locale/types";
 import {
-  REFERENCE_SCENARIO,
+  loanFormFromScenario,
+  referenceScenarioForLocale,
+  useLocale,
+} from "../../locale/LocaleContext";
+import {
   loanInputSchema,
   type LoanInput,
 } from "../../../lib/schemas/index";
 import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf/index";
+import { computeK401JobLossWithdrawalPlan } from "../../../lib/k401/index";
 import {
   newStagedPrepayEntry,
   parseStagedPrepays,
@@ -57,8 +68,11 @@ type ScheduleBundle = {
 };
 
 function isCashflowResult(
-  value: { rows: ScheduleRow[]; totals: ScheduleBundle["totals"] } | CashflowSimResult,
-): value is CashflowSimResult {
+  value:
+    | { rows: ScheduleRow[]; totals: ScheduleBundle["totals"] }
+    | CashflowSimResult
+    | UsCashflowSimResult,
+): value is CashflowSimResult | UsCashflowSimResult {
   return "min_cash_balance_inr" in value;
 }
 
@@ -107,22 +121,31 @@ function scenarioViewIsAvailable(
 
 export type PrepaySource = "cash" | "pf" | "gold";
 
-export function prepaySourceComparisonWord(source: PrepaySource): string {
+export function prepaySourceComparisonWord(
+  source: PrepaySource,
+  locale: Locale = "IN",
+): string {
   if (source === "cash") return "cash";
-  if (source === "pf") return "PF";
-  return "gold";
+  if (source === "pf") return locale === "US" ? "401(k)" : "PF";
+  return locale === "US" ? "brokerage" : "gold";
 }
 
-export function prepaySourceScheduleLabel(source: PrepaySource): string {
+export function prepaySourceScheduleLabel(
+  source: PrepaySource,
+  locale: Locale = "IN",
+): string {
   if (source === "cash") return "Cash";
-  if (source === "pf") return "PF";
-  return "Gold";
+  if (source === "pf") return locale === "US" ? "401(k)" : "PF";
+  return locale === "US" ? "Brokerage" : "Gold";
 }
 
-export function prepaySourceHintLabel(source: PrepaySource): string {
+export function prepaySourceHintLabel(
+  source: PrepaySource,
+  locale: Locale = "IN",
+): string {
   if (source === "cash") return "Cash";
-  if (source === "pf") return "PF account";
-  return "Gold (liquid)";
+  if (source === "pf") return locale === "US" ? "401(k) vested" : "PF account";
+  return locale === "US" ? "Brokerage (liquid)" : "Gold (liquid)";
 }
 
 type ComparisonRow = {
@@ -168,7 +191,30 @@ const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
   unemployment_start_month: "1",
   monthly_living_expense_inr: "",
   monthly_income_inr: "",
+  monthly_uib_inr: "",
+  vested_fraction_pct: "100",
+  early_withdrawal_tax_withholding_pct: "22",
+  employer_match_rate_pct: "50",
+  employer_match_cap_pct_of_salary: "6",
+  annual_salary_inr: "",
 };
+
+function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
+  return {
+    principal_inr: v.principal_inr,
+    annual_interest_rate: v.annual_interest_rate,
+    tenure_months: v.tenure_months,
+    cash_inr: v.cash_inr,
+    monthly_income_inr: v.monthly_income_inr,
+    monthly_living_expense_inr: v.monthly_living_expense_inr,
+    monthly_extra_to_loan_inr: recurringToLoan,
+    monthly_uib_inr: v.monthly_uib_inr,
+    job_loss_start_month: v.unemployment_start_month,
+    k401_balance_inr: v.pf_corpus_inr,
+    vested_fraction_pct: v.vested_fraction_pct,
+    early_withdrawal_tax_withholding_pct: v.early_withdrawal_tax_withholding_pct,
+  };
+}
 
 function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
   return {
@@ -187,6 +233,7 @@ function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
 }
 
 export function useLoanModels() {
+  const { locale } = useLocale();
   const [inputs, setInputs] =
     useState<Record<keyof LoanInput, string>>(EMPTY_LOAN_FORM);
   const [scenarioView, setScenarioView] = useState<ScenarioView>("BASE");
@@ -212,18 +259,33 @@ export function useLoanModels() {
       unemployment_start_month: inputs.unemployment_start_month || 1,
       monthly_living_expense_inr: inputs.monthly_living_expense_inr || 0,
       monthly_income_inr: inputs.monthly_income_inr || 0,
+      monthly_uib_inr: inputs.monthly_uib_inr || 0,
+      vested_fraction_pct: inputs.vested_fraction_pct || 100,
+      early_withdrawal_tax_withholding_pct:
+        inputs.early_withdrawal_tax_withholding_pct || 22,
+      employer_match_rate_pct: inputs.employer_match_rate_pct || 50,
+      employer_match_cap_pct_of_salary:
+        inputs.employer_match_cap_pct_of_salary || 6,
+      annual_salary_inr: inputs.annual_salary_inr || 0,
     });
   }, [inputs]);
 
-  const effectiveGoldInr = useMemo(() => {
+  const effectiveLiquidInr = useMemo(() => {
     if (!parsed.success) return 0;
     const v = parsed.data;
+    if (locale === "US") {
+      return effectiveBrokerageLiquidUsd(
+        v.gold_liquid_inr,
+        v.gold_haircut_enabled,
+        v.gold_haircut_pct,
+      );
+    }
     return effectiveGoldLiquidInr(
       v.gold_liquid_inr,
       v.gold_haircut_enabled,
       v.gold_haircut_pct,
     );
-  }, [parsed]);
+  }, [parsed, locale]);
 
   const stagedEvents = useMemo(() => parseStagedPrepays(stagedPrepays), [stagedPrepays]);
 
@@ -244,7 +306,7 @@ export function useLoanModels() {
         ? v.cash_inr
         : prepaySource === "pf"
           ? v.pf_corpus_inr
-          : effectiveGoldInr;
+          : effectiveLiquidInr;
     const canPrepay = oneTimePrepayInr > 0;
     const prepayTenure = canPrepay
       ? schedulePrepayKeepTenure(
@@ -289,6 +351,11 @@ export function useLoanModels() {
       v.pf_annual_interest_rate_pct,
       v.monthly_pf_addition_inr,
     );
+    const k401Plan = computeK401JobLossWithdrawalPlan(
+      v.pf_corpus_inr,
+      v.vested_fraction_pct,
+    );
+    const isUs = locale === "US";
     const cashflowNoPf =
       v.cash_inr > 0 || x > 0
         ? scheduleTimedPrepaysKeepEmi(
@@ -305,36 +372,53 @@ export function useLoanModels() {
             v.principal_inr,
             v.annual_interest_rate,
             v.tenure_months,
-            [
-              { month: 1, amount_inr: v.cash_inr },
-              { month: 1, amount_inr: pfPlan.tranche1_inr },
-              { month: 12, amount_inr: pfPlan.tranche2_inr },
-            ],
+            isUs
+              ? [
+                  { month: 1, amount_inr: v.cash_inr },
+                  { month: 1, amount_inr: k401Plan.tranche1_gross_usd },
+                  { month: 12, amount_inr: k401Plan.tranche2_gross_usd },
+                ]
+              : [
+                  { month: 1, amount_inr: v.cash_inr },
+                  { month: 1, amount_inr: pfPlan.tranche1_inr },
+                  { month: 12, amount_inr: pfPlan.tranche2_inr },
+                ],
             recurringToLoan,
           )
         : null;
     const uePfToLoan =
       v.pf_corpus_inr > 0
         ? v.unemployment_mode
-          ? simulateUePfToLoanCashflow(cashflowBaseInput(v, salaryRecurring))
+          ? isUs
+            ? simulateJl401kToLoanCashflow(usCashflowBaseInput(v, salaryRecurring))
+            : simulateUePfToLoanCashflow(cashflowBaseInput(v, salaryRecurring))
           : scheduleTimedPrepaysKeepEmi(
               v.principal_inr,
               v.annual_interest_rate,
               v.tenure_months,
-              [
-                { month: 1, amount_inr: pfPlan.tranche1_inr },
-                { month: 12, amount_inr: pfPlan.tranche2_inr },
-              ],
+              isUs
+                ? [
+                    { month: 1, amount_inr: k401Plan.tranche1_gross_usd },
+                    { month: 12, amount_inr: k401Plan.tranche2_gross_usd },
+                  ]
+                : [
+                    { month: 1, amount_inr: pfPlan.tranche1_inr },
+                    { month: 12, amount_inr: pfPlan.tranche2_inr },
+                  ],
               salaryRecurring,
             )
         : null;
     const uePfBridge =
       v.unemployment_mode && v.pf_corpus_inr > 0
-        ? simulateUePfBridgeCashflow(cashflowBaseInput(v, recurringToLoan))
+        ? isUs
+          ? simulateJl401kBridgeCashflow(usCashflowBaseInput(v, recurringToLoan))
+          : simulateUePfBridgeCashflow(cashflowBaseInput(v, recurringToLoan))
         : null;
     const ueDelayPrepay =
       v.unemployment_mode && v.pf_corpus_inr > 0
-        ? simulateUeDelayPrepayCashflow(cashflowBaseInput(v, recurringToLoan))
+        ? isUs
+          ? simulateJlDelayPrepayCashflow(usCashflowBaseInput(v, recurringToLoan))
+          : simulateUeDelayPrepayCashflow(cashflowBaseInput(v, recurringToLoan))
         : null;
     const stagedPrepay =
       stagedEvents.length > 0
@@ -363,9 +447,10 @@ export function useLoanModels() {
       canPrepay,
       monthlyExtra: x,
       prepaySource,
-      effectiveGoldInr,
+      effectiveLiquidInr,
+      k401Plan,
     };
-  }, [parsed, prepaySource, effectiveGoldInr, stagedEvents]);
+  }, [parsed, prepaySource, effectiveLiquidInr, stagedEvents, locale]);
 
   useEffect(() => {
     if (!models) return;
@@ -410,7 +495,7 @@ export function useLoanModels() {
       rows.push(
         row(
           "BASE_INFLOW",
-          `BASE + ${formatInr(models.monthlyExtra)}/mo to loan`,
+          `BASE + ${formatMoney(models.monthlyExtra, locale)}/mo to loan`,
           models.baseInflow.totals.payoff_month,
           models.baseInflow.totals.total_interest_inr,
           models.baseInflow.totals.total_paid_inr,
@@ -421,7 +506,7 @@ export function useLoanModels() {
       rows.push(
         row(
           "PREPAY_TENURE",
-          `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep tenure`,
+          `Prepay from ${prepaySourceComparisonWord(models.prepaySource, locale)} + keep tenure`,
           models.prepayTenure.totals.payoff_month,
           models.prepayTenure.totals.total_interest_inr,
           models.prepayTenure.totals.total_paid_inr,
@@ -432,7 +517,7 @@ export function useLoanModels() {
       rows.push(
         row(
           "PREPAY_EMI",
-          `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI`,
+          `Prepay from ${prepaySourceComparisonWord(models.prepaySource, locale)} + keep EMI`,
           models.prepayEmi.totals.payoff_month,
           models.prepayEmi.totals.total_interest_inr,
           models.prepayEmi.totals.total_paid_inr,
@@ -443,7 +528,7 @@ export function useLoanModels() {
       rows.push(
         row(
           "PREPAY_EMI_INFLOW",
-          `Prepay from ${prepaySourceComparisonWord(models.prepaySource)} + keep EMI + ${formatInr(models.monthlyExtra)}/mo`,
+          `Prepay from ${prepaySourceComparisonWord(models.prepaySource, locale)} + keep EMI + ${formatMoney(models.monthlyExtra, locale)}/mo`,
           models.prepayEmiInflow.totals.payoff_month,
           models.prepayEmiInflow.totals.total_interest_inr,
           models.prepayEmiInflow.totals.total_paid_inr,
@@ -465,7 +550,9 @@ export function useLoanModels() {
       rows.push(
         row(
           "CASHFLOW_PLUS_PF",
-          "Cash + monthly cashflow + PF tranches",
+          locale === "US"
+            ? "Cash + monthly cashflow + 401(k) tranches"
+            : "Cash + monthly cashflow + PF tranches",
           models.cashflowPlusPf.totals.payoff_month,
           models.cashflowPlusPf.totals.total_interest_inr,
           models.cashflowPlusPf.totals.total_paid_inr,
@@ -481,7 +568,9 @@ export function useLoanModels() {
       rows.push(
         row(
           "UE_PF_TO_LOAN",
-          "UE PF to loan (75% m1 + 25%+interest m12)",
+          locale === "US"
+            ? "JL 401(k) to loan (50% m1 + 50% m12)"
+            : "UE PF to loan (75% m1 + 25%+interest m12)",
           ue.totals.payoff_month,
           ue.totals.total_interest_inr,
           ue.totals.total_paid_inr,
@@ -493,7 +582,9 @@ export function useLoanModels() {
       rows.push(
         row(
           "UE_PF_BRIDGE",
-          "UE PF bridge (tranche 1 → cash, tranche 2 split)",
+          locale === "US"
+            ? "JL 401(k) bridge (tranche 1 → cash, tranche 2 split)"
+            : "UE PF bridge (tranche 1 → cash, tranche 2 split)",
           models.uePfBridge.totals.payoff_month,
           models.uePfBridge.totals.total_interest_inr,
           models.uePfBridge.totals.total_paid_inr,
@@ -505,7 +596,9 @@ export function useLoanModels() {
       rows.push(
         row(
           "UE_DELAY_PREPAY",
-          "UE delay prepay (tranche 1 → cash, tranche 2 → loan)",
+          locale === "US"
+            ? "JL delay prepay (tranche 1 → cash, tranche 2 → loan)"
+            : "UE delay prepay (tranche 1 → cash, tranche 2 → loan)",
           models.ueDelayPrepay.totals.payoff_month,
           models.ueDelayPrepay.totals.total_interest_inr,
           models.ueDelayPrepay.totals.total_paid_inr,
@@ -525,16 +618,22 @@ export function useLoanModels() {
       );
     }
     return rows;
-  }, [models, baseInterest, stagedEvents.length]);
+  }, [models, baseInterest, stagedEvents.length, locale]);
 
-  const pfWithdrawalPlan = useMemo(() => {
+  const withdrawalPlan = useMemo(() => {
     if (!models) return null;
+    if (locale === "US") {
+      return computeK401JobLossWithdrawalPlan(
+        models.v.pf_corpus_inr,
+        models.v.vested_fraction_pct,
+      );
+    }
     return computePfUnemploymentWithdrawalPlan(
       models.v.pf_corpus_inr,
       models.v.pf_annual_interest_rate_pct,
       models.v.monthly_pf_addition_inr,
     );
-  }, [models]);
+  }, [models, locale]);
 
   const activeBundle = useMemo((): ScheduleBundle | null => {
     if (!models) return null;
@@ -614,30 +713,27 @@ export function useLoanModels() {
   }
 
   function loadReference() {
-    setInputs({
-      principal_inr: String(REFERENCE_SCENARIO.principal_inr),
-      annual_interest_rate: String(REFERENCE_SCENARIO.annual_interest_rate),
-      tenure_months: String(REFERENCE_SCENARIO.tenure_months),
-      start_date: REFERENCE_SCENARIO.start_date ?? "",
-      cash_inr: String(REFERENCE_SCENARIO.cash_inr),
-      monthly_salary_inr: String(REFERENCE_SCENARIO.monthly_salary_inr),
-      pf_corpus_inr: String(REFERENCE_SCENARIO.pf_corpus_inr),
-      pf_annual_interest_rate_pct: String(
-        REFERENCE_SCENARIO.pf_annual_interest_rate_pct,
-      ),
-      monthly_pf_addition_inr: String(REFERENCE_SCENARIO.monthly_pf_addition_inr),
-      gold_liquid_inr: String(REFERENCE_SCENARIO.gold_liquid_inr),
-      gold_haircut_enabled: "false",
-      gold_haircut_pct: "0",
-      monthly_cash_to_loan_inr: String(REFERENCE_SCENARIO.monthly_cash_to_loan_inr),
-      unemployment_mode: "false",
-      unemployment_start_month: "1",
-      monthly_living_expense_inr: "0",
-      monthly_income_inr: "0",
-    });
+    const ref = referenceScenarioForLocale(locale);
+    setInputs(loanFormFromScenario(ref) as Record<keyof LoanInput, string>);
     setScenarioView("BASE");
     setStagedPrepays([]);
   }
+
+  const prevLocaleRef = useRef<Locale | null>(null);
+  useEffect(() => {
+    if (prevLocaleRef.current === null) {
+      prevLocaleRef.current = locale;
+      return;
+    }
+    if (prevLocaleRef.current === locale) return;
+    prevLocaleRef.current = locale;
+    setInputs(loanFormFromScenario(referenceScenarioForLocale(locale)) as Record<
+      keyof LoanInput,
+      string
+    >);
+    setScenarioView("BASE");
+    setStagedPrepays([]);
+  }, [locale]);
 
   function addStagedPrepay() {
     setStagedPrepays((prev) => [...prev, newStagedPrepayEntry()]);
@@ -700,9 +796,10 @@ export function useLoanModels() {
     setBoolField,
     loadReference,
     parsed,
+    locale,
     models,
     comparisonRows,
-    pfWithdrawalPlan,
+    withdrawalPlan,
     activeRows,
     activeCashBalances,
     activeWarnings,
@@ -712,7 +809,7 @@ export function useLoanModels() {
     setScenarioView,
     prepaySource,
     setPrepaySource,
-    effectiveGoldInr,
+    effectiveLiquidInr,
     stagedPrepays,
     addStagedPrepay,
     removeStagedPrepay,

@@ -1,4 +1,5 @@
-import { formatInr } from "../../lib/formatInr";
+import { formatMoney } from "../../lib/locale/formatMoney";
+import { useLocale } from "../locale/LocaleContext";
 import { ScheduleChart } from "./components/ScheduleChart";
 import { ScenarioTable } from "./components/ScenarioTable";
 import { StagedPrepayEditor } from "./components/StagedPrepayEditor";
@@ -12,10 +13,17 @@ import {
 
 const WARNING_LABELS: Record<string, string> = {
   EMI_DEFAULT_RISK: "EMI default risk: no cash or income while unemployment is on.",
-  CASH_SHORTFALL: "Cash shortfall: EMI could not be fully funded from cash balance.",
+  MORTGAGE_DEFAULT_RISK:
+    "Mortgage default risk: no cash, UI, or income while job loss mode is on.",
+  CASH_SHORTFALL: "Cash shortfall: payment could not be fully funded from cash balance.",
+  EARLY_401K_WITHDRAWAL:
+    "Early 401(k) withdrawal costs (penalty/withholding) apply in this scenario.",
 };
 
 export function LoanSection() {
+  const { locale } = useLocale();
+  const money = (value: number) => formatMoney(value, locale);
+  const isUs = locale === "US";
   const {
     inputs,
     setField,
@@ -24,7 +32,7 @@ export function LoanSection() {
     parsed,
     models,
     comparisonRows,
-    pfWithdrawalPlan,
+    withdrawalPlan,
     activeRows,
     activeCashBalances,
     activeWarnings,
@@ -34,7 +42,7 @@ export function LoanSection() {
     setScenarioView,
     prepaySource,
     setPrepaySource,
-    effectiveGoldInr,
+    effectiveLiquidInr,
     stagedPrepays,
     addStagedPrepay,
     removeStagedPrepay,
@@ -45,6 +53,20 @@ export function LoanSection() {
 
   const goldHaircutOn = inputs.gold_haircut_enabled === "true";
   const unemploymentOn = inputs.unemployment_mode === "true";
+  const currencyLabel = isUs ? "USD" : "INR";
+
+  const tranche1 =
+    withdrawalPlan && "tranche1_gross_usd" in withdrawalPlan
+      ? withdrawalPlan.tranche1_gross_usd
+      : withdrawalPlan && "tranche1_inr" in withdrawalPlan
+        ? withdrawalPlan.tranche1_inr
+        : 0;
+  const tranche2 =
+    withdrawalPlan && "tranche2_gross_usd" in withdrawalPlan
+      ? withdrawalPlan.tranche2_gross_usd
+      : withdrawalPlan && "tranche2_inr" in withdrawalPlan
+        ? withdrawalPlan.tranche2_inr
+        : 0;
 
   return (
     <>
@@ -52,7 +74,7 @@ export function LoanSection() {
         <h2>Loan &amp; assets</h2>
         <div className="form-grid">
           <label>
-            Principal (INR)
+            Principal ({currencyLabel})
             <input
               inputMode="decimal"
               value={inputs.principal_inr}
@@ -84,7 +106,7 @@ export function LoanSection() {
             />
           </label>
           <label>
-            Monthly cash to loan (INR)
+            Monthly {isUs ? "payment" : "cash"} to loan ({currencyLabel})
             <input
               inputMode="decimal"
               value={inputs.monthly_cash_to_loan_inr}
@@ -92,7 +114,7 @@ export function LoanSection() {
             />
           </label>
           <label>
-            Cash (INR)
+            Cash ({currencyLabel})
             <input
               inputMode="decimal"
               value={inputs.cash_inr}
@@ -100,39 +122,76 @@ export function LoanSection() {
             />
           </label>
           <label>
-            Monthly salary (INR)
+            Monthly salary ({currencyLabel})
             <input
               inputMode="decimal"
               value={inputs.monthly_salary_inr}
               onChange={(e) => setField("monthly_salary_inr", e.target.value)}
             />
           </label>
+          {isUs && (
+            <label>
+              Annual salary (USD)
+              <input
+                inputMode="decimal"
+                value={inputs.annual_salary_inr}
+                onChange={(e) => setField("annual_salary_inr", e.target.value)}
+              />
+            </label>
+          )}
           <label>
-            PF corpus (INR)
+            {isUs ? "401(k) vested balance (USD)" : "PF corpus (INR)"}
             <input
               inputMode="decimal"
               value={inputs.pf_corpus_inr}
               onChange={(e) => setField("pf_corpus_inr", e.target.value)}
             />
           </label>
+          {isUs ? (
+            <>
+              <label>
+                Vested (%)
+                <input
+                  inputMode="decimal"
+                  value={inputs.vested_fraction_pct}
+                  onChange={(e) => setField("vested_fraction_pct", e.target.value)}
+                />
+              </label>
+              <label>
+                Monthly 401(k) deferral (USD)
+                <input
+                  inputMode="decimal"
+                  value={inputs.monthly_pf_addition_inr}
+                  onChange={(e) => setField("monthly_pf_addition_inr", e.target.value)}
+                />
+              </label>
+            </>
+          ) : (
+            <>
+              <label>
+                PF annual interest (%)
+                <input
+                  inputMode="decimal"
+                  value={inputs.pf_annual_interest_rate_pct}
+                  onChange={(e) =>
+                    setField("pf_annual_interest_rate_pct", e.target.value)
+                  }
+                />
+              </label>
+              <label>
+                Monthly PF addition (INR)
+                <input
+                  inputMode="decimal"
+                  value={inputs.monthly_pf_addition_inr}
+                  onChange={(e) =>
+                    setField("monthly_pf_addition_inr", e.target.value)
+                  }
+                />
+              </label>
+            </>
+          )}
           <label>
-            PF annual interest (%)
-            <input
-              inputMode="decimal"
-              value={inputs.pf_annual_interest_rate_pct}
-              onChange={(e) => setField("pf_annual_interest_rate_pct", e.target.value)}
-            />
-          </label>
-          <label>
-            Monthly PF addition (INR)
-            <input
-              inputMode="decimal"
-              value={inputs.monthly_pf_addition_inr}
-              onChange={(e) => setField("monthly_pf_addition_inr", e.target.value)}
-            />
-          </label>
-          <label>
-            Gold liquid (INR)
+            {isUs ? "Brokerage liquid (USD)" : "Gold liquid (INR)"}
             <input
               inputMode="decimal"
               value={inputs.gold_liquid_inr}
@@ -145,11 +204,11 @@ export function LoanSection() {
               checked={goldHaircutOn}
               onChange={(e) => setBoolField("gold_haircut_enabled", e.target.checked)}
             />
-            Apply gold haircut
+            {isUs ? "Apply brokerage haircut" : "Apply gold haircut"}
           </label>
           {goldHaircutOn && (
             <label>
-              Gold haircut (%)
+              {isUs ? "Brokerage haircut (%)" : "Gold haircut (%)"}
               <input
                 inputMode="decimal"
                 value={inputs.gold_haircut_pct}
@@ -159,7 +218,9 @@ export function LoanSection() {
           )}
         </div>
 
-        <h3 className="subsection-title">Unemployment &amp; cashflow</h3>
+        <h3 className="subsection-title">
+          {isUs ? "Job loss & cashflow" : "Unemployment & cashflow"}
+        </h3>
         <div className="form-grid">
           <label className="checkbox-label">
             <input
@@ -167,12 +228,12 @@ export function LoanSection() {
               checked={unemploymentOn}
               onChange={(e) => setBoolField("unemployment_mode", e.target.checked)}
             />
-            Unemployment mode
+            {isUs ? "Job loss mode" : "Unemployment mode"}
           </label>
           {unemploymentOn && (
             <>
               <label>
-                Unemployment start month
+                {isUs ? "Job loss start month" : "Unemployment start month"}
                 <input
                   inputMode="numeric"
                   value={inputs.unemployment_start_month}
@@ -180,7 +241,7 @@ export function LoanSection() {
                 />
               </label>
               <label>
-                Monthly living expense (INR)
+                Monthly living expense ({currencyLabel})
                 <input
                   inputMode="decimal"
                   value={inputs.monthly_living_expense_inr}
@@ -188,27 +249,46 @@ export function LoanSection() {
                 />
               </label>
               <label>
-                Monthly income (INR)
+                Monthly income ({currencyLabel})
                 <input
                   inputMode="decimal"
                   value={inputs.monthly_income_inr}
                   onChange={(e) => setField("monthly_income_inr", e.target.value)}
                 />
               </label>
+              {isUs && (
+                <label>
+                  Monthly UI benefit (USD)
+                  <input
+                    inputMode="decimal"
+                    value={inputs.monthly_uib_inr}
+                    onChange={(e) => setField("monthly_uib_inr", e.target.value)}
+                  />
+                </label>
+              )}
             </>
           )}
         </div>
+
+        {isUs && unemploymentOn && (
+          <p className="hint">
+            Simplified job-loss scenario — not IRS hardship or plan rules. Early 401(k)
+            withdrawals model a 10% penalty plus federal withholding.
+          </p>
+        )}
 
         <p className="hint">
           <strong>Monthly cash to loan:</strong> amount applied as{" "}
           <strong>extra principal</strong> after each month&apos;s scheduled EMI.{" "}
           <strong>Monthly salary</strong> is routed into the loan every month in these
-          scenarios. <strong>Gold liquid</strong> can be the one-time prepay source; enable
-          haircut to model liquidation discount.
+          scenarios.{" "}
+          <strong>{isUs ? "Brokerage liquid" : "Gold liquid"}</strong> can be the
+          one-time prepay source; enable haircut to model liquidation discount.
           {goldHaircutOn && models && (
             <>
               {" "}
-              Effective gold after haircut: <strong>{formatInr(effectiveGoldInr)}</strong>.
+              Effective {isUs ? "brokerage" : "gold"} after haircut:{" "}
+              <strong>{money(effectiveLiquidInr)}</strong>.
             </>
           )}
         </p>
@@ -241,8 +321,8 @@ export function LoanSection() {
             <h2>Loan scenario comparison</h2>
             <p className="hint">
               One-time prepay scenarios use{" "}
-              <strong>{prepaySourceHintLabel(models.prepaySource)}</strong> at end of
-              month 1. Monthly column uses your{" "}
+              <strong>{prepaySourceHintLabel(models.prepaySource, locale)}</strong> at end
+              of month 1. Monthly column uses your{" "}
               <strong>Monthly cash to loan</strong> value.
             </p>
             <label className="inline">
@@ -252,8 +332,10 @@ export function LoanSection() {
                 onChange={(e) => setPrepaySource(e.target.value as PrepaySource)}
               >
                 <option value="cash">Cash</option>
-                <option value="pf">PF account</option>
-                <option value="gold">Gold (liquid)</option>
+                <option value="pf">{isUs ? "401(k) account" : "PF account"}</option>
+                <option value="gold">
+                  {isUs ? "Brokerage (liquid)" : "Gold (liquid)"}
+                </option>
               </select>
             </label>
             <div className="table-wrap comparison">
@@ -279,18 +361,18 @@ export function LoanSection() {
                           ? "—"
                           : `${row.deltaVsBaseMonths} mo`}
                       </td>
-                      <td>{formatInr(row.totalInterest)}</td>
+                      <td>{money(row.totalInterest)}</td>
                       <td>
                         {row.deltaInterestVsBase === 0
                           ? "—"
-                          : formatInr(row.deltaInterestVsBase)}
+                          : money(row.deltaInterestVsBase)}
                       </td>
                       <td>
                         {row.minCashBalance !== undefined
-                          ? formatInr(row.minCashBalance)
+                          ? money(row.minCashBalance)
                           : "—"}
                       </td>
-                      <td>{formatInr(row.totalPaid)}</td>
+                      <td>{money(row.totalPaid)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -303,31 +385,35 @@ export function LoanSection() {
             <dl className="kpi">
               <div>
                 <dt>EMI</dt>
-                <dd>{formatInr(models.base.emi_inr)}</dd>
+                <dd>{money(models.base.emi_inr)}</dd>
               </div>
               <div>
                 <dt>Total interest</dt>
-                <dd>{formatInr(models.base.totals.total_interest_inr)}</dd>
+                <dd>{money(models.base.totals.total_interest_inr)}</dd>
               </div>
               <div>
                 <dt>Liquid assets</dt>
                 <dd>
-                  {formatInr(
+                  {money(
                     models.v.cash_inr +
                       models.v.pf_corpus_inr +
-                      (goldHaircutOn ? effectiveGoldInr : models.v.gold_liquid_inr),
+                      (goldHaircutOn ? effectiveLiquidInr : models.v.gold_liquid_inr),
                   )}
                 </dd>
               </div>
-              {pfWithdrawalPlan && (
+              {withdrawalPlan && (
                 <>
                   <div>
-                    <dt>PF tranche (month 1)</dt>
-                    <dd>{formatInr(pfWithdrawalPlan.tranche1_inr)}</dd>
+                    <dt>
+                      {isUs ? "401(k) tranche (month 1)" : "PF tranche (month 1)"}
+                    </dt>
+                    <dd>{money(tranche1)}</dd>
                   </div>
                   <div>
-                    <dt>PF tranche (month 12)</dt>
-                    <dd>{formatInr(pfWithdrawalPlan.tranche2_inr)}</dd>
+                    <dt>
+                      {isUs ? "401(k) tranche (month 12)" : "PF tranche (month 12)"}
+                    </dt>
+                    <dd>{money(tranche2)}</dd>
                   </div>
                 </>
               )}
@@ -352,19 +438,21 @@ export function LoanSection() {
                       <>
                         <option value="PREPAY_TENURE">
                           One-time prepay (
-                          {prepaySourceScheduleLabel(models.prepaySource)}) + keep tenure
+                          {prepaySourceScheduleLabel(models.prepaySource, locale)}) + keep
+                          tenure
                         </option>
                         <option value="PREPAY_EMI">
                           One-time prepay (
-                          {prepaySourceScheduleLabel(models.prepaySource)}) + keep EMI
+                          {prepaySourceScheduleLabel(models.prepaySource, locale)}) + keep
+                          EMI
                         </option>
                       </>
                     )}
                     {models.prepayEmiInflow && (
                       <option value="PREPAY_EMI_INFLOW">
                         One-time prepay (
-                        {prepaySourceScheduleLabel(models.prepaySource)}) + keep EMI +
-                        monthly cashflow
+                        {prepaySourceScheduleLabel(models.prepaySource, locale)}) + keep
+                        EMI + monthly cashflow
                       </option>
                     )}
                     {models.cashflowNoPf && (
@@ -374,17 +462,31 @@ export function LoanSection() {
                     )}
                     {models.cashflowPlusPf && (
                       <option value="CASHFLOW_PLUS_PF">
-                        Cash + monthly cashflow + PF layered
+                        {isUs
+                          ? "Cash + monthly cashflow + 401(k) tranches"
+                          : "Cash + monthly cashflow + PF tranches"}
                       </option>
                     )}
                     {models.uePfToLoan && (
-                      <option value="UE_PF_TO_LOAN">Unemployment: PF to loan</option>
+                      <option value="UE_PF_TO_LOAN">
+                        {isUs
+                          ? "Job loss: 401(k) to loan"
+                          : "Unemployment: PF to loan"}
+                      </option>
                     )}
                     {models.uePfBridge && (
-                      <option value="UE_PF_BRIDGE">Unemployment: PF bridge</option>
+                      <option value="UE_PF_BRIDGE">
+                        {isUs
+                          ? "Job loss: 401(k) bridge"
+                          : "Unemployment: PF bridge"}
+                      </option>
                     )}
                     {models.ueDelayPrepay && (
-                      <option value="UE_DELAY_PREPAY">Unemployment: delay prepay</option>
+                      <option value="UE_DELAY_PREPAY">
+                        {isUs
+                          ? "Job loss: delay prepay"
+                          : "Unemployment: delay prepay"}
+                      </option>
                     )}
                     {models.stagedPrepay && (
                       <option value="STAGED_PREPAY">Custom staged prepay</option>
@@ -415,13 +517,13 @@ export function LoanSection() {
                 title="Remaining principal"
                 points={principalCurve}
                 stroke="#2563eb"
-                yLabel="INR"
+                yLabel={currencyLabel}
               />
               <ScheduleChart
                 title="Cumulative interest"
                 points={interestCurve}
                 stroke="#dc2626"
-                yLabel="INR"
+                yLabel={currencyLabel}
               />
             </div>
 
@@ -429,6 +531,7 @@ export function LoanSection() {
               rows={activeRows}
               cashBalances={activeCashBalances}
               startDateIso={models.v.start_date}
+              locale={locale}
             />
           </section>
         </>

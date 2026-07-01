@@ -11,6 +11,7 @@
 **Version:** 1.3  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
+**US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **Status:** Draft for implementation
 
 ---

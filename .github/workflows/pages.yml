@@ -29,11 +29,14 @@ jobs:
       - name: Install, test, build
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
-          VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
         run: |
           npm ci
           npm run lint
           npm run test
+          # Only export when set; an empty env var would override .env.production.
+          if [ -n "${{ secrets.VITE_GA_MEASUREMENT_ID }}" ]; then
+            export VITE_GA_MEASUREMENT_ID="${{ secrets.VITE_GA_MEASUREMENT_ID }}"
+          fi
           npm run build
 
       - uses: actions/upload-pages-artifact@v3

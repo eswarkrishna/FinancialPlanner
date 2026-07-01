@@ -103,5 +103,10 @@ export function loanFormFromScenario(
     employer_match_cap_pct_of_salary: String(
       scenario.employer_match_cap_pct_of_salary ?? 6,
     ),
+    employment_type: scenario.employment_type ?? "w2",
+    pmi_monthly_inr: String(scenario.pmi_monthly_inr ?? 0),
+    pmi_active: scenario.pmi_active === false ? "false" : "true",
+    hsa_balance_inr: String(scenario.hsa_balance_inr ?? 0),
+    monthly_health_premium_inr: String(scenario.monthly_health_premium_inr ?? 0),
   };
 }

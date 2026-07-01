@@ -32,6 +32,11 @@ export const REFERENCE_SCENARIO_IN: LoanInput = {
   employer_match_rate_pct: DEFAULT_EMPLOYER_MATCH_RATE_PCT,
   employer_match_cap_pct_of_salary: DEFAULT_EMPLOYER_MATCH_CAP_PCT,
   annual_salary_inr: 0,
+  employment_type: "w2",
+  pmi_monthly_inr: 0,
+  pmi_active: true,
+  hsa_balance_inr: 0,
+  monthly_health_premium_inr: 0,
 };
 
 /** Spec-US §15 reference — amounts stored in locale-neutral numeric fields */
@@ -59,4 +64,9 @@ export const REFERENCE_SCENARIO_US: LoanInput = {
   early_withdrawal_tax_withholding_pct: DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT,
   employer_match_rate_pct: DEFAULT_EMPLOYER_MATCH_RATE_PCT,
   employer_match_cap_pct_of_salary: DEFAULT_EMPLOYER_MATCH_CAP_PCT,
+  employment_type: "w2",
+  pmi_monthly_inr: 0,
+  pmi_active: true,
+  hsa_balance_inr: 0,
+  monthly_health_premium_inr: 0,
 };

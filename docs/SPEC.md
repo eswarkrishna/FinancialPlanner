@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -97,12 +97,12 @@ Optional **strategic interaction** modelling (§4.13) compares borrower, lender,
 
 ### 4.4 Prepayment engine (v1 must support)
 
-Prepayments are applied **at month boundary** unless advanced setting `prepayment_timing` = `mid_month` (optional; default `month_start_after_emi`).
+Prepayments are applied **at month boundary after scheduled EMI** unless advanced setting `prepayment_timing` = `mid_month` (optional; default `month_start_after_emi`). Pro-rata mid-month interest accrual is **deferred** (v1 uses month boundary only).
 
 **Policies when prepayment occurs:**
 
 1. **`recompute_tenure_keep_emi`**  
-   - EMI unchanged from baseline EMI (snapshot at scenario start unless user specifies “current EMI”).  
+   - EMI unchanged from **baseline snapshot at scenario start**: `emi0 = computeEmi(P₀, r, N)` using original principal, rate, and tenure. Do **not** recompute EMI after earlier prepayments in the same scenario unless the user explicitly selects advanced “current EMI” (deferred).  
    - After prepayment, recompute remaining months until balance ≤ 0 (or final fractional month if you support it; otherwise last month adjustment).  
 
 2. **`recompute_emi_keep_tenure`**  
@@ -141,6 +141,8 @@ Implement as named presets + freeform builder.
 **Trigger:** user toggles `unemployment_mode` and sets `unemployment_start_month` (integer offset from scenario start, default `1`).
 
 **PF withdrawal rule set (canonical for this app — user-specified):**
+
+> **Disclaimer:** Tranche fractions below are a **stress-test model** for liquidity planning. They are **not** EPFO Form 31 eligibility rules or legal withdrawal guidance (see §14).
 
 Let `PF0` be PF corpus at unemployment start (default: user `pf_corpus_inr`; allow editing).
 
@@ -195,6 +197,44 @@ For each scenario:
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
 
 **Export:** CSV export of schedule + JSON export of scenario config.
+
+### 4.10 Multi-debt payoff planner
+
+**Parity:** US §4.10 / SPEC-US §4.10 with INR fields. Implementation: `src/lib/debt/`.
+
+| Field | Type | Required |
+|------|------|----------|
+| `start_date` | date | yes |
+| `monthly_debt_budget_inr` | number | yes |
+| `debts[]` | array | yes (≥1) |
+
+Each debt: `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr`.
+
+**Strategies:** `avalanche` (highest APR first), `snowball` (lowest balance first).
+
+**Outputs:** month rows, payoff month, total interest, warning when budget &lt; sum of minimums.
+
+---
+
+### 4.11 Retirement planner
+
+**Parity:** US §4.11 without Social Security field. Implementation: `src/lib/retirement/`.
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `current_corpus_inr` | number | yes | EPF/NPS/PPF aggregate or user choice |
+| `monthly_contribution_inr` | number | yes | |
+| `annual_return_pct` | number | yes | |
+| `inflation_pct` | number | yes | |
+| `years_to_retirement` | number | yes | |
+| `annual_expense_today_inr` | number | yes | |
+| `safe_withdrawal_rate_pct` | number | no | Default classic 4% when user enters value |
+
+**Scenarios:** `base`, `conservative` (−2% return, +1% inflation), `optimistic` (+2% return, −1% inflation, +20% contribution).
+
+**Outputs:** projected corpus, real corpus, expense at retirement, target corpus (expense / SWR), funded ratio, yearly timeline.
+
+---
 
 ### 4.12 Repayment strategy planner (household allocation)
 
@@ -717,26 +757,31 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 6. **Cashflow**: constructed fixture where income=0, living+EMI exhaust cash in `k` months → system flags shortfall.  
 7. **Monthly inflow to loan:** for fixed `monthly_cash_to_loan_inr` &gt; 0, payoff month count is **strictly less** than baseline for the same principal/rate/tenure (reference loan).
 
+### Multi-debt & retirement (§4.10–§4.11)
+
+8. **Avalanche vs snowball:** for a two-debt fixture, avalanche pays less total interest than snowball when APRs differ and budgets cover minimums.  
+9. **Retirement projection:** reference inputs produce `funded_ratio` within **0.01** of hand-calculated corpus / target.
+
 ### Golden files
 
 Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF_TO_LOAN` with a fixed rounding policy.
 
 ### Strategy planner (§4.12)
 
-8. **Equity blend** on reference §15 inputs: `one_time_prepay_inr` = 40% of deployable; `equity_lump_inr` = remainder.  
-9. **Nine strategy goldens** (`tier_{a,b,c}` × three strategies) match `src/test/fixtures/strategy/` within documented rounding.
+10. **Equity blend** on reference §15 inputs: `one_time_prepay_inr` = 40% of deployable; `equity_lump_inr` = remainder.  
+11. **Nine strategy goldens** (`tier_{a,b,c}` × three strategies) match `src/test/fixtures/strategy/` within documented rounding.
 
 ### Game theory (§4.13) — phased
 
-10. **`GAME_BL_SIM_FEE`**: payoff matrix has **10** collapsed cells (12 raw); pure Nash exists for reference loan with `prepayment_fee_inr = 25_000` and fee objective — document equilibrium in golden JSON.  
-11. **`GAME_BL_SIM_FEE`**: when `L_FEE_0`, borrower best response is maximum lump in `INTEREST_SAVED_MINUS_FEES` objective (reference loan).  
-12. **`GAME_BN_SIM_UE_TIMING`**: **12** cells; max-min borrower action never chooses `B_PREPAY_25` if `min_cash_runway` < 3 months on reference budget fixture (construct in test).  
-13. **Oracle purity**: `src/lib/game/` must not duplicate EMI math; all payoffs call §4.3–§4.8 or §4.12 helpers.  
-14. **Tier P0 goldens** (when implemented): one JSON per profile in `src/test/fixtures/game/`.
+12. **`GAME_BL_SIM_FEE`**: payoff matrix has **10** collapsed cells (12 raw); pure Nash exists for reference loan with `prepayment_fee_inr = 25_000` and fee objective — document equilibrium in golden JSON.  
+13. **`GAME_BL_SIM_FEE`**: when `L_FEE_0`, borrower best response is maximum lump in `INTEREST_SAVED_MINUS_FEES` objective (reference loan).  
+14. **`GAME_BN_SIM_UE_TIMING`**: **12** cells; max-min borrower action never chooses `B_PREPAY_25` if `min_cash_runway` < 3 months on reference budget fixture (construct in test).  
+15. **Oracle purity**: `src/lib/game/` must not duplicate EMI math; all payoffs call §4.3–§4.8 or §4.12 helpers.  
+16. **Tier P0 goldens** (when implemented): one JSON per profile in `src/test/fixtures/game/`.
 
 ### UI / deploy metadata (§8)
 
-15. **Latest push footer:** when built from git, footer shows “Latest push”, commit date, and short SHA; SHA links to the matching GitHub commit URL for the default repo.
+17. **Latest push footer:** when built from git, footer shows “Latest push”, commit date, and short SHA; SHA links to the matching GitHub commit URL for the default repo.
 
 ---
 
@@ -765,13 +810,12 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 
 ## 13. Open Questions (track in issues)
 
-1. Should “keep EMI” use **original** EMI or **recomputed** EMI after prior partial prepays?  
-2. Exact EPFO legal copy vs product copy (keep disclaimers).  
-3. Mid-cycle prepayment interest accrual model.  
-4. §4.13: Default `lender_objective` — `L_FEE_INCOME` vs `L_INTEREST_INCOME` in UI?  
-5. §4.13: Show **all** Pareto-efficient splits for `GAME_BH_COOP_PARETO` or cap at top 5 by `NET_WORTH_HORIZON`?  
-6. §4.13: Collapse duplicate normal-form cells when `b_lump = 0` in export vs show full grid?  
-7. §4.13 v1.3: Implement `L_RATE_BUMP` before or after mixed Nash?
+1. §4.13: Default `lender_objective` — `L_FEE_INCOME` vs `L_INTEREST_INCOME` in UI?  
+2. §4.13: Show **all** Pareto-efficient splits for `GAME_BH_COOP_PARETO` or cap at top 5 by `NET_WORTH_HORIZON`?  
+3. §4.13: Collapse duplicate normal-form cells when `b_lump = 0` in export vs show full grid?  
+4. §4.13 v1.3: Implement `L_RATE_BUMP` before or after mixed Nash?
+
+**Resolved (see §4.4, §4.7):** baseline EMI snapshot for `recompute_tenure_keep_emi`; EPFO fiction disclaimer; month-boundary prepay timing (pro-rata deferred).
 
 ---
 

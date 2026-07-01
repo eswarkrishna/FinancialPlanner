@@ -294,19 +294,19 @@ See §4.3 — pair with deterministic rate path enum `N_RATE_PATH_{UP,FLAT,DOWN}
 
 ### `docs/SPEC.md`
 
-- [ ] Add **§4.10 Multi-debt payoff planner** (mirror US §4.10; INR; reference `src/lib/debt/`).
-- [ ] Add **§4.11 Retirement planner** (mirror US §4.11 without SS field).
-- [ ] **§4.4** — normative: baseline EMI snapshot for `recompute_tenure_keep_emi`.
-- [ ] **§4.7** — one-line EPFO fiction disclaimer.
-- [ ] **§13** — remove resolved Q1–Q3; keep game questions Q4–Q7.
+- [x] Add **§4.10 Multi-debt payoff planner** (mirror US §4.10; INR; reference `src/lib/debt/`).
+- [x] Add **§4.11 Retirement planner** (mirror US §4.11 without SS field).
+- [x] **§4.4** — normative: baseline EMI snapshot for `recompute_tenure_keep_emi`.
+- [x] **§4.7** — one-line EPFO fiction disclaimer.
+- [x] **§13** — remove resolved Q1–Q3; keep game questions Q4–Q7.
 
 ### `docs/SPEC-US.md`
 
-- [ ] **§4.2** — optional `hsa_balance_usd` (v1.2).
-- [ ] **§4.1** — optional `pmi_monthly_usd` (v1.1).
-- [ ] **§3** — `employment_type` persona preset.
-- [ ] **§11** — explicit: UK/CA locales, wash sales, ARM stochastic sim.
-- [ ] **§4.13.8 P2** — cross-link this doc for `GAME_FLOATING_N` / `GAME_MULTI_CREDITOR`.
+- [x] **§4.2** — optional `hsa_balance_usd` (v1.2).
+- [x] **§4.1** — optional `pmi_monthly_usd` (v1.1).
+- [x] **§3** — `employment_type` persona preset.
+- [x] **§11** — explicit: UK/CA locales, wash sales, ARM stochastic sim.
+- [x] **§4.13.8 P2** — cross-link this doc for `GAME_FLOATING_N` / `GAME_MULTI_CREDITOR`.
 
 ---
 

@@ -130,14 +130,42 @@ export function LoanSection() {
             />
           </label>
           {isUs && (
-            <label>
-              Annual salary (USD)
-              <input
-                inputMode="decimal"
-                value={inputs.annual_salary_inr}
-                onChange={(e) => setField("annual_salary_inr", e.target.value)}
-              />
-            </label>
+            <>
+              <label>
+                Employment type
+                <select
+                  value={inputs.employment_type}
+                  onChange={(e) => setField("employment_type", e.target.value)}
+                >
+                  <option value="w2">W-2 employee</option>
+                  <option value="self_employed">Self-employed / 1099</option>
+                </select>
+              </label>
+              <label>
+                Annual salary (USD)
+                <input
+                  inputMode="decimal"
+                  value={inputs.annual_salary_inr}
+                  onChange={(e) => setField("annual_salary_inr", e.target.value)}
+                />
+              </label>
+              <label>
+                PMI monthly (USD)
+                <input
+                  inputMode="decimal"
+                  value={inputs.pmi_monthly_inr}
+                  onChange={(e) => setField("pmi_monthly_inr", e.target.value)}
+                />
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={inputs.pmi_active === "true"}
+                  onChange={(e) => setBoolField("pmi_active", e.target.checked)}
+                />
+                PMI active
+              </label>
+            </>
           )}
           <label>
             {isUs ? "401(k) vested balance (USD)" : "PF corpus (INR)"}
@@ -256,7 +284,7 @@ export function LoanSection() {
                   onChange={(e) => setField("monthly_income_inr", e.target.value)}
                 />
               </label>
-              {isUs && (
+              {isUs && inputs.employment_type !== "self_employed" && (
                 <label>
                   Monthly UI benefit (USD)
                   <input
@@ -265,6 +293,28 @@ export function LoanSection() {
                     onChange={(e) => setField("monthly_uib_inr", e.target.value)}
                   />
                 </label>
+              )}
+              {isUs && (
+                <>
+                  <label>
+                    HSA balance (USD)
+                    <input
+                      inputMode="decimal"
+                      value={inputs.hsa_balance_inr}
+                      onChange={(e) => setField("hsa_balance_inr", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Monthly health premium (USD)
+                    <input
+                      inputMode="decimal"
+                      value={inputs.monthly_health_premium_inr}
+                      onChange={(e) =>
+                        setField("monthly_health_premium_inr", e.target.value)
+                      }
+                    />
+                  </label>
+                </>
               )}
             </>
           )}

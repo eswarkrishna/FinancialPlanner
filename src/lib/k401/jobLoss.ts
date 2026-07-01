@@ -56,16 +56,22 @@ export function computeEarlyWithdrawalCost(
   };
 }
 
+export type EmploymentType = "w2" | "self_employed";
+
 export interface EmployerMatchInput {
   annual_salary_usd: number;
   monthly_401k_deferral_usd: number;
   employer_match_rate_pct: number;
   employer_match_cap_pct_of_salary: number;
   monthly_employer_match_usd_override?: number;
+  employment_type?: EmploymentType;
 }
 
 /** SPEC-US §4.2 employer match formula. */
 export function computeMonthlyEmployerMatchUsd(input: EmployerMatchInput): number {
+  if (input.employment_type === "self_employed") {
+    return 0;
+  }
   if (
     input.monthly_employer_match_usd_override !== undefined &&
     input.monthly_employer_match_usd_override >= 0

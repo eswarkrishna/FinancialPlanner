@@ -39,4 +39,15 @@ describe("computeMonthlyEmployerMatchUsd (SPEC-US §15)", () => {
     });
     expect(match).toBe(300);
   });
+
+  it("returns 0 when employment_type is self_employed", () => {
+    const match = computeMonthlyEmployerMatchUsd({
+      annual_salary_usd: 120_000,
+      monthly_401k_deferral_usd: 1_000,
+      employer_match_rate_pct: 50,
+      employer_match_cap_pct_of_salary: 6,
+      employment_type: "self_employed",
+    });
+    expect(match).toBe(0);
+  });
 });

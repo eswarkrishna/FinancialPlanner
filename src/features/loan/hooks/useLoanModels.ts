@@ -197,6 +197,11 @@ const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
   employer_match_rate_pct: "50",
   employer_match_cap_pct_of_salary: "6",
   annual_salary_inr: "",
+  employment_type: "w2",
+  pmi_monthly_inr: "",
+  pmi_active: "true",
+  hsa_balance_inr: "",
+  monthly_health_premium_inr: "",
 };
 
 function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
@@ -213,6 +218,10 @@ function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
     k401_balance_inr: v.pf_corpus_inr,
     vested_fraction_pct: v.vested_fraction_pct,
     early_withdrawal_tax_withholding_pct: v.early_withdrawal_tax_withholding_pct,
+    pmi_monthly_inr: v.pmi_monthly_inr,
+    pmi_active: v.pmi_active,
+    hsa_balance_inr: v.hsa_balance_inr,
+    monthly_health_premium_inr: v.monthly_health_premium_inr,
   };
 }
 
@@ -267,6 +276,12 @@ export function useLoanModels() {
       employer_match_cap_pct_of_salary:
         inputs.employer_match_cap_pct_of_salary || 6,
       annual_salary_inr: inputs.annual_salary_inr || 0,
+      employment_type:
+        inputs.employment_type === "self_employed" ? "self_employed" : "w2",
+      pmi_monthly_inr: inputs.pmi_monthly_inr || 0,
+      pmi_active: inputs.pmi_active !== "false",
+      hsa_balance_inr: inputs.hsa_balance_inr || 0,
+      monthly_health_premium_inr: inputs.monthly_health_premium_inr || 0,
     });
   }, [inputs]);
 
@@ -708,7 +723,10 @@ export function useLoanModels() {
     setInputs((prev) => ({ ...prev, [key]: value }));
   }
 
-  function setBoolField(key: "gold_haircut_enabled" | "unemployment_mode", checked: boolean) {
+  function setBoolField(
+    key: "gold_haircut_enabled" | "unemployment_mode" | "pmi_active",
+    checked: boolean,
+  ) {
     setInputs((prev) => ({ ...prev, [key]: checked ? "true" : "false" }));
   }
 

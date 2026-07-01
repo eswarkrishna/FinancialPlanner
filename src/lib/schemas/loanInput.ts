@@ -74,6 +74,14 @@ export const loanInputSchema = z.object({
     .max(100)
     .optional()
     .default(DEFAULT_EMPLOYER_MATCH_CAP_PCT),
+  /** US §3 / SPEC-US §4.2 — W-2 vs self-employed preset. */
+  employment_type: z.enum(["w2", "self_employed"]).optional().default("w2"),
+  /** US §4.1 — flat PMI added to job-loss cashflow (stored in locale-neutral field). */
+  pmi_monthly_inr: z.coerce.number().min(0).optional().default(0),
+  pmi_active: z.coerce.boolean().optional().default(true),
+  /** US §4.2 / §4.8 — HSA premium bridge during job loss. */
+  hsa_balance_inr: z.coerce.number().min(0).optional().default(0),
+  monthly_health_premium_inr: z.coerce.number().min(0).optional().default(0),
 });
 
 export type LoanInput = z.infer<typeof loanInputSchema>;

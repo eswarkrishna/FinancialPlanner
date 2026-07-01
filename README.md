@@ -94,17 +94,9 @@ The measurement ID is baked in at **build time** (or dev-server start). Defaults
 
 The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/tab/loan`, etc.). Clicks are recorded with element labels only—loan inputs and personal data are not transmitted. See footer terms for the privacy note.
 
-### User feedback (optional)
+### User feedback
 
 Every page footer includes **Report on GitHub**, which opens a new issue on the repo (`VITE_GITHUB_REPO`, default `eswarkrishna/FinancialPlanner`).
-
-To add an embedded third-party form (Google Forms, Typeform, etc.), set at build time:
-
-```bash
-VITE_FEEDBACK_FORM_URL=https://docs.google.com/forms/d/e/FORM_ID/viewform?embedded=true
-```
-
-When set, the footer also shows **Open feedback form** and an expandable inline iframe. Leave empty to show only the GitHub link. Submissions go to the form provider, not this app.
 
 ## Licence
 

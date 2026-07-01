@@ -153,16 +153,23 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
     let interestPaid = 0;
     let principalPaid = 0;
 
+    const applyEmiPayment = (amount: number) => {
+      if (amount <= 0) return;
+      const interestRemaining = roundInr(Math.max(0, interest - interestPaid));
+      const toInterest = roundInr(Math.min(amount, interestRemaining));
+      const remainder = roundInr(amount - toInterest);
+      const principalRemaining = roundInr(Math.max(0, principal - principalPaid));
+      const toPrincipal = roundInr(Math.min(remainder, principalRemaining));
+      interestPaid = roundInr(interestPaid + toInterest);
+      principalPaid = roundInr(principalPaid + toPrincipal);
+    };
+
     if (cashBalance >= emiDue) {
       cashBalance = roundInr(cashBalance - emiDue);
-      interestPaid = interest;
-      principalPaid = principal;
+      applyEmiPayment(emiDue);
     } else if (emiDue > 0) {
       events.push("emi_shortfall");
-      const available = cashBalance;
-      interestPaid = roundInr(Math.min(interest, available));
-      const afterInterest = roundInr(available - interestPaid);
-      principalPaid = roundInr(Math.min(principal, Math.max(0, afterInterest)));
+      applyEmiPayment(Math.max(0, cashBalance));
       cashBalance = 0;
       if (!warnings.includes("CASH_SHORTFALL")) {
         warnings.push("CASH_SHORTFALL");
@@ -240,6 +247,8 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
     if (balance <= BALANCE_EPSILON_INR) break;
   }
 
+  const loanPaidOff = balance <= BALANCE_EPSILON_INR;
+
   return {
     emi_inr: emi0,
     rows,
@@ -247,7 +256,7 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
       total_paid_inr: roundInr(totalPaid),
       total_interest_inr: roundInr(totalInterest),
       total_prepayments_inr: roundInr(totalPrepay),
-      payoff_month: rows.length,
+      payoff_month: loanPaidOff ? rows.length : 0,
     },
     min_cash_balance_inr: roundInr(minCash),
     warnings,

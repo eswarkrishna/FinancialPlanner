@@ -369,29 +369,23 @@ export function useLoanModels() {
           ? vested401kBalance
           : effectiveLiquidInr;
     const canPrepay = oneTimePrepayInr > 0;
-    const usEmployed401kPrepay =
-      isUs && prepaySource === "pf" && canPrepay
+    const prepayTenure = canPrepay
+      ? schedulePrepayKeepTenure(
+          v.principal_inr,
+          v.annual_interest_rate,
+          v.tenure_months,
+          1,
+          oneTimePrepayInr,
+          salaryRecurring,
+        )
+      : null;
+    const prepayEmi = canPrepay
+      ? isUs && prepaySource === "pf"
         ? simulateUsCashflowSchedule({
             ...usCashflowBaseInput(v, salaryRecurring),
             job_loss_enabled: false,
             employed_401k_prepayments: [{ month: 1, gross_usd: oneTimePrepayInr }],
           })
-        : null;
-    const prepayTenure = canPrepay
-      ? isUs && prepaySource === "pf"
-        ? usEmployed401kPrepay
-        : schedulePrepayKeepTenure(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            1,
-            oneTimePrepayInr,
-            salaryRecurring,
-          )
-      : null;
-    const prepayEmi = canPrepay
-      ? isUs && prepaySource === "pf"
-        ? usEmployed401kPrepay
         : scheduleFixedEmiWithMonthlyExtra(
             v.principal_inr,
             v.annual_interest_rate,
@@ -728,7 +722,15 @@ export function useLoanModels() {
           warnings: models.prepayTenure.warnings,
         };
       }
-      return { rows: models.prepayTenure.rows, totals: models.prepayTenure.totals };
+      const warnings =
+        locale === "US" && models.prepaySource === "pf" && models.canPrepay
+          ? ["EARLY_401K_WITHDRAWAL"]
+          : undefined;
+      return {
+        rows: models.prepayTenure.rows,
+        totals: models.prepayTenure.totals,
+        warnings,
+      };
     }
     if (scenarioView === "PREPAY_EMI" && models.prepayEmi) {
       if (isCashflowResult(models.prepayEmi)) {
@@ -887,7 +889,14 @@ export function useLoanModels() {
       exported_at: new Date().toISOString(),
       scenario_id: SCENARIO_LABELS[scenarioView],
       scenario_label: comp?.label ?? SCENARIO_LABELS[scenarioView],
-      inputs: { ...models.v, prepay_source: prepaySource, staged_prepayments: stagedEvents },
+      inputs: {
+        ...models.v,
+        prepay_source: prepaySource,
+        staged_prepayments: stagedEvents,
+        ...(locale === "US"
+          ? { monthly_401k_with_match_inr: models.monthly401kWithMatch }
+          : {}),
+      },
       totals: {
         payoff_month: activeBundle.totals.payoff_month,
         total_interest_inr: activeBundle.totals.total_interest_inr,

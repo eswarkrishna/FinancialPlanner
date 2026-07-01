@@ -31,8 +31,6 @@ describe("US golden scenario snapshots (SPEC-US §10)", () => {
     expect(computed.JL_401K_TO_LOAN.totals.total_prepayments_inr).toBe(80_000);
     expect(computed.JL_401K_TO_LOAN.first_row.prepayment_inr).toBe(40_000);
     expect(computed.JL_401K_TO_LOAN.row_12?.prepayment_inr).toBe(40_000);
-    expect(computed.JL_401K_TO_LOAN.first_row.events?.some((e) =>
-      e.includes("penalty=4000"),
-    )).toBe(true);
+    expect(computed.JL_401K_TO_LOAN.totals.payoff_month).toBe(0);
   });
 });

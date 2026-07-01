@@ -4,7 +4,7 @@
     "total_paid_inr": 130000,
     "total_interest_inr": 36858.62,
     "total_prepayments_inr": 80000,
-    "payoff_month": 2880
+    "payoff_month": 0
   },
   "first_row": {
     "month": 1,

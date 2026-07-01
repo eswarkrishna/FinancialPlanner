@@ -126,4 +126,46 @@ describe("simulateUsCashflowSchedule (SPEC-US §4.8)", () => {
     expect(shortfallRow).toBeDefined();
     expect(shortfallRow?.principal_inr).toBe(0);
   });
+
+  it("does not produce negative interest when cash is below zero before EMI", () => {
+    const result = simulateUsCashflowSchedule({
+      ...baseJobLossInput,
+      cash_inr: 1_000,
+      monthly_living_expense_inr: 2_000,
+    });
+    expect(result.rows[0]?.interest_inr).toBeGreaterThanOrEqual(0);
+    expect(result.rows[0]?.principal_inr).toBeGreaterThanOrEqual(0);
+  });
+
+  it("amortizes principal when bridge tranche covers EMI shortfall", () => {
+    const result = simulateUsCashflowSchedule({
+      ...baseJobLossInput,
+      cash_inr: 0,
+      monthly_living_expense_inr: 0,
+      k401_balance_inr: 100_000,
+      vested_fraction_pct: 100,
+      job_loss_enabled: true,
+      k401_tranche1_destination: "cash_buffer",
+      k401_tranche1_bridge_liquidity_first: true,
+    });
+    const bridgeRow = result.rows.find((r) =>
+      r.events.some((e) => e.includes("k401_tranche1:payment_shortfall")),
+    );
+    expect(bridgeRow).toBeDefined();
+    expect(bridgeRow?.principal_inr).toBeGreaterThan(0);
+    expect(bridgeRow?.closing_inr).toBeLessThan(bridgeRow?.opening_inr ?? 0);
+  });
+
+  it("reports payoff_month 0 when loan is not paid off within horizon", () => {
+    const result = simulateUsCashflowSchedule({
+      ...baseJobLossInput,
+      cash_inr: 0,
+      monthly_uib_inr: 0,
+      monthly_living_expense_inr: 5_000,
+      tenure_months: 12,
+    });
+    expect(result.totals.payoff_month).toBe(0);
+    expect(result.warnings).toContain("LOAN_NOT_PAID_OFF");
+    expect(result.rows[result.rows.length - 1]?.closing_inr).toBeGreaterThan(0);
+  });
 });

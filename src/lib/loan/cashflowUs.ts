@@ -211,16 +211,23 @@ export function simulateUsCashflowSchedule(
     let interestPaid = 0;
     let principalPaid = 0;
 
+    const applyEmiPayment = (amount: number) => {
+      if (amount <= 0) return;
+      const interestRemaining = roundUsd(Math.max(0, interest - interestPaid));
+      const toInterest = roundUsd(Math.min(amount, interestRemaining));
+      const remainder = roundUsd(amount - toInterest);
+      const principalRemaining = roundUsd(Math.max(0, principal - principalPaid));
+      const toPrincipal = roundUsd(Math.min(remainder, principalRemaining));
+      interestPaid = roundUsd(interestPaid + toInterest);
+      principalPaid = roundUsd(principalPaid + toPrincipal);
+    };
+
     if (cashBalance >= emiDue) {
       cashBalance = roundUsd(cashBalance - emiDue);
-      interestPaid = interest;
-      principalPaid = principal;
+      applyEmiPayment(emiDue);
     } else if (emiDue > 0) {
       events.push("payment_shortfall");
-      const available = cashBalance;
-      interestPaid = roundUsd(Math.min(interest, available));
-      const afterInterest = roundUsd(available - interestPaid);
-      principalPaid = roundUsd(Math.min(principal, Math.max(0, afterInterest)));
+      applyEmiPayment(Math.max(0, cashBalance));
       cashBalance = 0;
       if (!warnings.includes("CASH_SHORTFALL")) warnings.push("CASH_SHORTFALL");
       if (!warnings.includes("MORTGAGE_DEFAULT_RISK")) {
@@ -231,6 +238,11 @@ export function simulateUsCashflowSchedule(
     balance = roundUsd(opening - principalPaid);
     let prepay = 0;
     let emiPaid = roundUsd(interestPaid + principalPaid);
+
+    const syncBalanceFromEmi = () => {
+      balance = roundUsd(opening - principalPaid);
+      emiPaid = roundUsd(interestPaid + principalPaid);
+    };
 
     const applyK401Tranche = (
       gross: number,
@@ -256,7 +268,8 @@ export function simulateUsCashflowSchedule(
         const paymentShortfall = roundUsd(Math.max(0, emiDue - emiPaid));
         const toPayment = roundUsd(Math.min(net, paymentShortfall));
         cashBalance = roundUsd(cashBalance + toPayment);
-        emiPaid = roundUsd(emiPaid + toPayment);
+        applyEmiPayment(toPayment);
+        syncBalanceFromEmi();
         net = roundUsd(net - toPayment);
         if (toPayment > 0) {
           events.push(`${label}:payment_shortfall:${toPayment}`);
@@ -265,7 +278,8 @@ export function simulateUsCashflowSchedule(
         const remainingEmi = roundUsd(Math.max(0, emiDue - emiPaid));
         if (remainingEmi > 0 && cashBalance >= remainingEmi) {
           cashBalance = roundUsd(cashBalance - remainingEmi);
-          emiPaid = roundUsd(emiPaid + remainingEmi);
+          applyEmiPayment(remainingEmi);
+          syncBalanceFromEmi();
         }
 
         if (net > 0 && balance > BALANCE_EPS) {
@@ -369,6 +383,11 @@ export function simulateUsCashflowSchedule(
     warnings.push("EARLY_401K_WITHDRAWAL");
   }
 
+  const loanPaidOff = balance <= BALANCE_EPS;
+  if (!loanPaidOff && rows.length >= cap) {
+    warnings.push("LOAN_NOT_PAID_OFF");
+  }
+
   return {
     emi_inr: emi0,
     rows,
@@ -376,7 +395,7 @@ export function simulateUsCashflowSchedule(
       total_paid_inr: roundUsd(totalPaid),
       total_interest_inr: roundUsd(totalInterest),
       total_prepayments_inr: roundUsd(totalPrepay),
-      payoff_month: rows.length,
+      payoff_month: loanPaidOff ? rows.length : 0,
     },
     min_cash_balance_inr: roundUsd(minCash),
     total_early_withdrawal_penalty_inr: totalPenalty,

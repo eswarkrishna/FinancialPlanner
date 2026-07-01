@@ -98,6 +98,17 @@ The home page and each tab send virtual page views (`/FinancialPlanner/`, `/Fina
 
 Every page footer includes **Report on GitHub**, which opens a new issue on the repo (`VITE_GITHUB_REPO`, default `eswarkrishna/FinancialPlanner`).
 
+### SEO
+
+Build-time and runtime SEO use `VITE_SITE_URL` (default in `.env.production`: GitHub Pages demo URL).
+
+- **Meta tags:** description, canonical, Open Graph, Twitter cards, JSON-LD (`WebApplication`)
+- **Assets:** `public/favicon.svg`, `public/og-image.png`
+- **Tab URLs:** `?tab=loan|debt|retirement|strategies|strategic` (updates `document.title` and meta tags)
+- **Generated on build:** `dist/robots.txt`, `dist/sitemap.xml`
+
+Override `VITE_SITE_URL` when deploying to a custom CloudFront domain.
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).

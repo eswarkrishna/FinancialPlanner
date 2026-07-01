@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
 import { trackPageView } from "./lib/analytics";
+import {
+  getTabFromLocation,
+  PLANNER_TABS,
+  setTabInUrl,
+  type TabId,
+  updatePageSeo,
+} from "./lib/seo";
 import { AppFooter } from "./components/AppFooter";
 import { DebtSection } from "./features/debt/DebtSection";
 import { GameSection } from "./features/game/GameSection";
@@ -9,22 +16,22 @@ import { RetirementSection } from "./features/retirement/RetirementSection";
 import { StrategySection } from "./features/strategy/StrategySection";
 import type { Locale } from "./lib/locale/types";
 
-type TabId = "loan" | "debt" | "retirement" | "strategies" | "strategic";
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "loan", label: "Loan" },
-  { id: "debt", label: "Multi-debt" },
-  { id: "retirement", label: "Retirement" },
-  { id: "strategies", label: "Strategies" },
-  { id: "strategic", label: "Strategic" },
-];
-
 export function App() {
-  const [activeTab, setActiveTab] = useState<TabId>("loan");
+  const [activeTab, setActiveTab] = useState<TabId>(() => getTabFromLocation(window.location));
   const { locale, switchLocale } = useLocale();
 
   useEffect(() => {
-    const label = TABS.find((t) => t.id === activeTab)?.label ?? activeTab;
+    const onPopState = () => {
+      setActiveTab(getTabFromLocation(window.location));
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  useEffect(() => {
+    const label = PLANNER_TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
+    setTabInUrl(activeTab);
+    updatePageSeo(activeTab);
     trackPageView(`tab/${activeTab}`, `FinancialPlanner — ${label}`);
   }, [activeTab]);
 
@@ -66,7 +73,7 @@ export function App() {
         </div>
         <nav className="app-tabs" aria-label="Planner sections">
           <div className="app-tabs-scroll" role="tablist">
-            {TABS.map((tab) => (
+            {PLANNER_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -85,7 +92,7 @@ export function App() {
       </header>
 
       <main id="main-content" className="layout">
-        {TABS.map((tab) => (
+        {PLANNER_TABS.map((tab) => (
           <div
             key={tab.id}
             id={`panel-${tab.id}`}

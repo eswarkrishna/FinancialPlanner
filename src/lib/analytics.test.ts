@@ -28,6 +28,21 @@ describe("analytics", () => {
     expect(() => trackClick(document.createElement("button"))).not.toThrow();
   });
 
+  it("queues bootstrap commands as Arguments objects for gtag.js", () => {
+    vi.stubEnv("VITE_GA_MEASUREMENT_ID", "G-TEST123");
+    initAnalytics();
+
+    const entries = (window.dataLayer ?? []) as Array<IArguments>;
+    expect(entries.length).toBeGreaterThanOrEqual(2);
+    for (const entry of entries) {
+      expect(Array.isArray(entry)).toBe(false);
+    }
+    expect(entries[0]?.[0]).toBe("js");
+    expect(entries[1]?.[0]).toBe("config");
+    expect(entries[1]?.[1]).toBe("G-TEST123");
+    expect(entries[1]?.[2]).toMatchObject({ send_page_view: false });
+  });
+
   describe("when enabled", () => {
     let gtagSpy: ReturnType<typeof vi.fn>;
 

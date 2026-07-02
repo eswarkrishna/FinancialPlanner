@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { scenarioToJson } from "../../lib/export/scenarioJson";
 import {
-  LOAN_FORM_STORAGE_KEY,
+  clearLoanFormState,
   readLoanFormState,
 } from "../../lib/persistence/loanFormState";
 import { REFERENCE_SCENARIO_IN } from "../../lib/locale/constants";
@@ -12,7 +12,7 @@ import { LoanSection } from "./LoanSection";
 
 describe("LoanSection", () => {
   beforeEach(() => {
-    localStorage.removeItem(LOAN_FORM_STORAGE_KEY);
+    clearLoanFormState();
   });
   it("starts without comparison tables until reference scenario is loaded", async () => {
     const user = userEvent.setup();

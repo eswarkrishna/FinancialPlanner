@@ -1,8 +1,13 @@
 import type { Locale } from "../locale/types";
 import type { StagedPrepayEntry } from "../loan/stagedPrepays";
+import {
+  SCENARIO_LABELS,
+  type PrepaySource,
+  type ScenarioView,
+} from "../loan/scenarioViews";
 import type { LoanInput } from "../schemas/index";
-import type { PrepaySource, ScenarioView } from "../loan/scenarioViews";
 
+/** Legacy single-key blob (v1.7); migrated to per-locale keys on read. */
 export const LOAN_FORM_STORAGE_KEY = "financial-planner-loan-form";
 export const LOAN_FORM_STORAGE_VERSION = 1;
 
@@ -15,16 +20,68 @@ export interface LoanFormPersistedState {
   stagedPrepays: StagedPrepayEntry[];
 }
 
-export function readLoanFormState(locale: Locale): LoanFormPersistedState | null {
-  if (typeof window === "undefined") return null;
+export function loanFormStorageKey(locale: Locale): string {
+  return `${LOAN_FORM_STORAGE_KEY}-${locale}`;
+}
+
+function isStagedPrepayEntry(value: unknown): value is StagedPrepayEntry {
+  if (!value || typeof value !== "object") return false;
+  const entry = value as Partial<StagedPrepayEntry>;
+  return (
+    typeof entry.id === "string" &&
+    typeof entry.month === "string" &&
+    typeof entry.amount_inr === "string"
+  );
+}
+
+function isValidScenarioView(value: unknown): value is ScenarioView {
+  return typeof value === "string" && value in SCENARIO_LABELS;
+}
+
+function isValidPrepaySource(value: unknown): value is PrepaySource {
+  return value === "cash" || value === "pf" || value === "gold";
+}
+
+function isValidPersistedState(value: Partial<LoanFormPersistedState>): value is LoanFormPersistedState {
+  if (value.version !== LOAN_FORM_STORAGE_VERSION) return false;
+  if (value.locale !== "IN" && value.locale !== "US") return false;
+  if (!value.inputs || typeof value.inputs !== "object") return false;
+  if (!isValidScenarioView(value.scenarioView)) return false;
+  if (!isValidPrepaySource(value.prepaySource)) return false;
+  if (!Array.isArray(value.stagedPrepays)) return false;
+  if (!value.stagedPrepays.every(isStagedPrepayEntry)) return false;
+  return true;
+}
+
+/** Migrate v1.7 single-key blob into per-locale keys without cross-locale overwrite. */
+function migrateLegacyStorage(): void {
+  if (typeof window === "undefined") return;
   try {
     const raw = window.localStorage.getItem(LOAN_FORM_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Partial<LoanFormPersistedState>;
+    if (isValidPersistedState(parsed)) {
+      window.localStorage.setItem(
+        loanFormStorageKey(parsed.locale),
+        JSON.stringify(parsed),
+      );
+    }
+    window.localStorage.removeItem(LOAN_FORM_STORAGE_KEY);
+  } catch {
+    window.localStorage.removeItem(LOAN_FORM_STORAGE_KEY);
+  }
+}
+
+export function readLoanFormState(locale: Locale): LoanFormPersistedState | null {
+  if (typeof window === "undefined") return null;
+  migrateLegacyStorage();
+  try {
+    const raw = window.localStorage.getItem(loanFormStorageKey(locale));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<LoanFormPersistedState>;
-    if (parsed.version !== LOAN_FORM_STORAGE_VERSION) return null;
+    if (!isValidPersistedState(parsed)) return null;
     if (parsed.locale !== locale) return null;
-    if (!parsed.inputs || typeof parsed.inputs !== "object") return null;
-    return parsed as LoanFormPersistedState;
+    return parsed;
   } catch {
     return null;
   }
@@ -32,16 +89,26 @@ export function readLoanFormState(locale: Locale): LoanFormPersistedState | null
 
 export function writeLoanFormState(state: LoanFormPersistedState): void {
   if (typeof window === "undefined") return;
+  if (!isValidPersistedState(state)) return;
   try {
-    window.localStorage.setItem(LOAN_FORM_STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(
+      loanFormStorageKey(state.locale),
+      JSON.stringify(state),
+    );
   } catch {
     // Quota or privacy mode — ignore.
   }
 }
 
-export function clearLoanFormState(): void {
+export function clearLoanFormState(locale?: Locale): void {
   if (typeof window === "undefined") return;
   try {
+    if (locale) {
+      window.localStorage.removeItem(loanFormStorageKey(locale));
+      return;
+    }
+    window.localStorage.removeItem(loanFormStorageKey("IN"));
+    window.localStorage.removeItem(loanFormStorageKey("US"));
     window.localStorage.removeItem(LOAN_FORM_STORAGE_KEY);
   } catch {
     // ignore

@@ -20,7 +20,7 @@ const stagedPrepayEventSchema = z.object({
 const scenarioImportSchema = z.object({
   scenario_id: z.string().min(1),
   inputs: z.record(z.unknown()),
-  staged_prepayments: z.array(stagedPrepayEventSchema).optional(),
+  staged_prepayments: z.array(z.unknown()).optional(),
 });
 
 export type ScenarioImportResult = {
@@ -78,16 +78,25 @@ export function parseScenarioImportJson(json: string): ScenarioImportOutcome {
 
   const scenarioView = SCENARIO_ID_TO_VIEW[envelope.data.scenario_id] ?? "BASE";
   const prepaySource = parsePrepaySource(envelope.data.inputs.prepay_source);
-  const stagedEvents =
-    envelope.data.staged_prepayments ??
-    (Array.isArray(envelope.data.inputs.staged_prepayments)
-      ? envelope.data.inputs.staged_prepayments
-      : []);
+  const rawStaged =
+    envelope.data.staged_prepayments ?? envelope.data.inputs.staged_prepayments;
 
+  if (rawStaged !== undefined && !Array.isArray(rawStaged)) {
+    return {
+      success: false,
+      message: "Staged prepayments failed validation.",
+    };
+  }
+
+  const stagedEvents = rawStaged ?? [];
   const stagedParse = z.array(stagedPrepayEventSchema).safeParse(stagedEvents);
-  const stagedPrepays = stagedParse.success
-    ? stagedPrepaysFromEvents(stagedParse.data)
-    : [];
+  if (!stagedParse.success) {
+    return {
+      success: false,
+      message: "Staged prepayments failed validation.",
+    };
+  }
+  const stagedPrepays = stagedPrepaysFromEvents(stagedParse.data);
 
   return {
     success: true,

@@ -46,4 +46,20 @@ describe("parseScenarioImportJson (SPEC §4.9 v1.7)", () => {
     );
     expect(outcome.success).toBe(false);
   });
+
+  it("returns error when staged prepayments are invalid", () => {
+    const outcome = parseScenarioImportJson(
+      JSON.stringify({
+        scenario_id: "BASE",
+        inputs: {
+          ...REFERENCE_SCENARIO_IN,
+          prepay_source: "cash",
+        },
+        staged_prepayments: [{ month: 0, amount_inr: -1 }],
+      }),
+    );
+    expect(outcome.success).toBe(false);
+    if (outcome.success) return;
+    expect(outcome.message).toMatch(/staged prepayments/i);
+  });
 });

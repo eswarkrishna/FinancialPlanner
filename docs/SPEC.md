@@ -203,7 +203,7 @@ For each scenario:
 
 **Import (v1.7):** JSON import of a previously exported loan scenario config (§4.9 payload shape). Restores numeric inputs, one-time prepay source, staged prepayments, and the exported scenario view when recognised. Invalid files surface an inline error; no silent partial apply.
 
-**Persistence (v1.7):** Loan tab form state (inputs, scenario view, prepay source, staged prepayments) is stored in **`localStorage`** keyed by locale so a refresh preserves user edits. Locale switch resets to the reference scenario for the new locale (existing behaviour). Analytics must not transmit stored values (§5.1).
+**Persistence (v1.7):** Loan tab form state (inputs, scenario view, prepay source, staged prepayments) is stored in **`localStorage`** using **separate keys per locale** (`financial-planner-loan-form-IN`, `financial-planner-loan-form-US`) so a refresh preserves user edits and switching the active locale does not overwrite another locale's saved state. Legacy single-key blobs are migrated on read. Locale switch resets to the reference scenario for the new locale (existing behaviour). Analytics must not transmit stored values (§5.1).
 
 ### 4.10 Multi-debt payoff planner
 

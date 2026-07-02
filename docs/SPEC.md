@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.6  
+**Version:** 1.7  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -199,6 +199,10 @@ For each scenario:
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
 
 **Export:** CSV export of schedule + JSON export of scenario config.
+
+**Import (v1.7):** JSON import of a previously exported loan scenario config (§4.9 payload shape). Restores numeric inputs, one-time prepay source, staged prepayments, and the exported scenario view when recognised. Invalid files surface an inline error; no silent partial apply.
+
+**Persistence (v1.7):** Loan tab form state (inputs, scenario view, prepay source, staged prepayments) is stored in **`localStorage`** keyed by locale so a refresh preserves user edits. Locale switch resets to the reference scenario for the new locale (existing behaviour). Analytics must not transmit stored values (§5.1).
 
 ### 4.10 Multi-debt payoff planner
 
@@ -573,6 +577,7 @@ All §4.1–§4.2 loan and asset fields apply to the oracle.
 - **Privacy:** default offline-first; no server required for v1.  
 - **Accessibility:** labels for all inputs, readable tables.  
 - **Validation:** block negative numbers; show inline errors.
+- **Form persistence (v1.7):** loan tab inputs survive browser refresh via `localStorage`; locale-specific keys; cleared on confirmed locale switch.
 
 ### 5.1 Analytics (optional GA4)
 
@@ -592,6 +597,7 @@ When `VITE_GA_MEASUREMENT_ID` is set at build time, the hosted app may load **Go
 | `loan_load_reference` | “Load reference scenario” | `locale`, `page_path` |
 | `loan_export_schedule_csv` | Loan schedule CSV export | `scenario_view`, `locale`, `page_path` |
 | `loan_export_scenario_json` | Loan scenario JSON export | `scenario_view`, `locale`, `page_path` |
+| `loan_import_scenario_json` | Loan scenario JSON import (file) | `scenario_view`, `locale`, `page_path`, `success` (`true` \| `false`) |
 | `loan_scenario_view_change` | Loan schedule scenario dropdown | `scenario_view`, `locale`, `page_path` |
 | `loan_prepay_source_change` | One-time prepay source dropdown | `prepay_source`, `locale`, `page_path` |
 | `loan_staged_prepay_add` | Add staged prepayment row | `page_path` |
@@ -837,6 +843,12 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 ### Analytics (§5.1)
 
 18. **Named events:** with GA enabled in tests, `tab_select` and `loan_export_schedule_csv` call `gtag` with the event names and parameters in §5.1; generic delegated `click` events are **not** emitted for arbitrary DOM clicks.
+
+### Persistence & import (§4.9 v1.7)
+
+19. **Loan form persistence:** after loading the reference scenario and editing a field, a simulated refresh (re-mount) restores the same input values from `localStorage` for the active locale.  
+20. **Scenario JSON round-trip:** export scenario JSON, parse via import helper, and verify principal/rate/tenure match exported `inputs` within coercion rules.  
+21. **Import error handling:** malformed JSON or missing required numeric fields returns a user-visible error without mutating form state.
 
 ---
 

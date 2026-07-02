@@ -12,6 +12,7 @@ import {
   REFERENCE_SCENARIO_US,
   type Locale,
 } from "../../lib/locale";
+import { loanInputToFormFields } from "../../lib/loan/loanFormFields";
 import { trackLocaleChange } from "../../lib/analytics";
 import {
   REFERENCE_RETIREMENT_FORM_IN,
@@ -101,38 +102,8 @@ export function referenceRetirementFormForLocale(locale: Locale) {
 export function loanFormFromScenario(
   scenario: typeof REFERENCE_SCENARIO_IN,
 ): Record<string, string> {
-  return {
-    principal_inr: String(scenario.principal_inr),
-    annual_interest_rate: String(scenario.annual_interest_rate),
-    tenure_months: String(scenario.tenure_months),
-    start_date: scenario.start_date ?? "",
-    cash_inr: String(scenario.cash_inr),
-    monthly_salary_inr: String(scenario.monthly_salary_inr),
-    annual_salary_inr: String(scenario.annual_salary_inr ?? 0),
-    pf_corpus_inr: String(scenario.pf_corpus_inr),
-    pf_annual_interest_rate_pct: String(scenario.pf_annual_interest_rate_pct),
-    monthly_pf_addition_inr: String(scenario.monthly_pf_addition_inr),
-    gold_liquid_inr: String(scenario.gold_liquid_inr),
-    gold_haircut_enabled: scenario.gold_haircut_enabled ? "true" : "false",
-    gold_haircut_pct: String(scenario.gold_haircut_pct ?? 0),
-    monthly_cash_to_loan_inr: String(scenario.monthly_cash_to_loan_inr),
-    unemployment_mode: "false",
-    unemployment_start_month: String(scenario.unemployment_start_month),
-    monthly_living_expense_inr: String(scenario.monthly_living_expense_inr),
-    monthly_income_inr: String(scenario.monthly_income_inr),
-    monthly_uib_inr: String(scenario.monthly_uib_inr ?? 0),
-    vested_fraction_pct: String(scenario.vested_fraction_pct ?? 100),
-    early_withdrawal_tax_withholding_pct: String(
-      scenario.early_withdrawal_tax_withholding_pct ?? 22,
-    ),
-    employer_match_rate_pct: String(scenario.employer_match_rate_pct ?? 50),
-    employer_match_cap_pct_of_salary: String(
-      scenario.employer_match_cap_pct_of_salary ?? 6,
-    ),
-    employment_type: scenario.employment_type ?? "w2",
-    pmi_monthly_inr: String(scenario.pmi_monthly_inr ?? 0),
-    pmi_active: scenario.pmi_active === false ? "false" : "true",
-    hsa_balance_inr: String(scenario.hsa_balance_inr ?? 0),
-    monthly_health_premium_inr: String(scenario.monthly_health_premium_inr ?? 0),
-  };
+  return loanInputToFormFields({
+    ...scenario,
+    unemployment_mode: false,
+  });
 }

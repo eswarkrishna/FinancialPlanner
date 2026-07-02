@@ -1,10 +1,14 @@
 import { renderWithLocale } from "../../test/renderWithLocale";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { LOAN_FORM_STORAGE_KEY } from "../../lib/persistence/loanFormState";
 import { LoanSection } from "./LoanSection";
 
 describe("LoanSection", () => {
+  beforeEach(() => {
+    localStorage.removeItem(LOAN_FORM_STORAGE_KEY);
+  });
   it("starts without comparison tables until reference scenario is loaded", async () => {
     const user = userEvent.setup();
     renderWithLocale(<LoanSection />);

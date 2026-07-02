@@ -1,10 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { renderWithLocale } from "../../test/renderWithLocale";
 import { GameSection } from "./GameSection";
 
 describe("GameSection", () => {
   it("renders legend and payoff matrix for default BL fee game", () => {
-    render(<GameSection />);
+    renderWithLocale(<GameSection />);
     expect(screen.getByRole("heading", { name: "Strategic scenarios" })).toBeInTheDocument();
     expect(
       screen.getByText(/Legend — what the abbreviations mean/i),

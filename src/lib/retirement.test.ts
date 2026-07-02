@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildRetirementScenarios,
+  DEFAULT_SAFE_WITHDRAWAL_RATE_PCT,
   projectRetirementCorpus,
 } from "./retirement/index";
 import { makeReferenceRetirementInput } from "../test/factories";
@@ -32,6 +33,18 @@ describe("projectRetirementCorpus", () => {
     expect(highInflation.target_corpus_inr).toBeGreaterThan(
       lowInflation.target_corpus_inr,
     );
+  });
+
+  it("defaults safe withdrawal rate to 4% when unset (SPEC §4.11)", () => {
+    const withDefault = projectRetirementCorpus({
+      ...makeReferenceRetirementInput(),
+      safe_withdrawal_rate_pct: 0,
+    });
+    const explicit = projectRetirementCorpus({
+      ...makeReferenceRetirementInput(),
+      safe_withdrawal_rate_pct: DEFAULT_SAFE_WITHDRAWAL_RATE_PCT,
+    });
+    expect(withDefault.target_corpus_inr).toBe(explicit.target_corpus_inr);
   });
 
   it("computes ss_adjusted_funded_ratio when Social Security is provided (SPEC-US §4.11)", () => {

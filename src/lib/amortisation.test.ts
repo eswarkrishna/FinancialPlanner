@@ -4,7 +4,7 @@ import {
   scheduleFixedEmiWithMonthlyExtra,
   schedulePrepayKeepEmi,
   schedulePrepayKeepTenure,
-} from "./amortisation";
+} from "./loan/amortisation";
 
 describe("baselineSchedule", () => {
   it("produces reference tenure length", () => {

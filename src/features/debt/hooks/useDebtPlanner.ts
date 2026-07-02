@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   simulateDebtPayoff,
   type DebtInput,
   type DebtStrategy,
 } from "../../../lib/debt/index";
+import { useLocale } from "../../locale/LocaleContext";
 
 type DebtFormRow = {
   id: string;
@@ -13,26 +14,39 @@ type DebtFormRow = {
   minimum_payment_inr: string;
 };
 
+const INITIAL_DEBT_ROWS: DebtFormRow[] = [
+  {
+    id: "debt-1",
+    name: "",
+    balance_inr: "",
+    apr_pct: "",
+    minimum_payment_inr: "",
+  },
+];
+
 function parseNumber(value: string): number {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
 }
 
 export function useDebtPlanner() {
+  const { localeEpoch } = useLocale();
   const [startDateIso, setStartDateIso] = useState("");
   const [monthlyBudgetInr, setMonthlyBudgetInr] = useState("");
   const [selectedDebtStrategy, setSelectedDebtStrategy] = useState<DebtStrategy>(
     "avalanche",
   );
-  const [debtRows, setDebtRows] = useState<DebtFormRow[]>([
-    {
-      id: "debt-1",
-      name: "",
-      balance_inr: "",
-      apr_pct: "",
-      minimum_payment_inr: "",
-    },
-  ]);
+  const [debtRows, setDebtRows] = useState<DebtFormRow[]>(INITIAL_DEBT_ROWS);
+
+  const prevLocaleEpochRef = useRef(localeEpoch);
+  useEffect(() => {
+    if (prevLocaleEpochRef.current === localeEpoch) return;
+    prevLocaleEpochRef.current = localeEpoch;
+    setStartDateIso("");
+    setMonthlyBudgetInr("");
+    setSelectedDebtStrategy("avalanche");
+    setDebtRows(INITIAL_DEBT_ROWS.map((row) => ({ ...row, id: `debt-${Date.now()}` })));
+  }, [localeEpoch]);
 
   const debtInputs = useMemo((): DebtInput[] => {
     return debtRows.map((row) => ({

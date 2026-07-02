@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   P0_GAME_PROFILES,
   gameInputSchema,
@@ -7,22 +7,41 @@ import {
   type GameResult,
 } from "../../../lib/game";
 import { downloadTextFile, gameResultToJson } from "../../../lib/export";
-import { REFERENCE_SCENARIO } from "../../../lib/loanInputSchema";
+import {
+  referenceScenarioForLocale,
+  useLocale,
+} from "../../locale/LocaleContext";
 
 const DEFAULT_PROFILE: GameProfileId = "GAME_BL_SIM_FEE";
 
+function defaultPrepaymentFee(locale: "IN" | "US"): string {
+  return locale === "US" ? "250" : "25000";
+}
+
 export function useGamePlanner() {
+  const { locale, localeEpoch } = useLocale();
   const [profileId, setProfileId] = useState<GameProfileId>(DEFAULT_PROFILE);
-  const [prepaymentFeeInr, setPrepaymentFeeInr] = useState("25000");
+  const [prepaymentFeeInr, setPrepaymentFeeInr] = useState(() =>
+    defaultPrepaymentFee(locale),
+  );
+
+  const prevLocaleEpochRef = useRef(localeEpoch);
+  useEffect(() => {
+    if (prevLocaleEpochRef.current === localeEpoch) return;
+    prevLocaleEpochRef.current = localeEpoch;
+    setProfileId(DEFAULT_PROFILE);
+    setPrepaymentFeeInr(defaultPrepaymentFee(locale));
+  }, [locale, localeEpoch]);
 
   const parsed = useMemo(() => {
+    const reference = referenceScenarioForLocale(locale);
     return gameInputSchema.safeParse({
-      ...REFERENCE_SCENARIO,
+      ...reference,
       game_profile_id: profileId,
       prepayment_fee_inr: prepaymentFeeInr,
-      horizon_months: REFERENCE_SCENARIO.tenure_months,
+      horizon_months: reference.tenure_months,
     });
-  }, [profileId, prepaymentFeeInr]);
+  }, [profileId, prepaymentFeeInr, locale]);
 
   const result: GameResult | null = useMemo(() => {
     if (!parsed.success) return null;
@@ -38,10 +57,10 @@ export function useGamePlanner() {
       payoff_matrix: result.payoff_matrix,
       equilibria: result.equilibria,
       recommended_b_action: result.recommended_b_action,
-      warnings: result.warnings,
       underlying_scenario_ids: result.underlying_scenario_ids,
+      warnings: result.warnings,
     });
-    downloadTextFile(`game-${profileId.toLowerCase()}.json`, json, "application/json;charset=utf-8");
+    downloadTextFile(`game-${profileId.toLowerCase()}.json`, json, "application/json");
   }
 
   return {
@@ -53,5 +72,6 @@ export function useGamePlanner() {
     result,
     profiles: P0_GAME_PROFILES,
     exportGameJson,
+    locale,
   };
 }

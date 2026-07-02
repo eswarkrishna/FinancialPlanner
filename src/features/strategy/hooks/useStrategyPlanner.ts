@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { simulateAllStrategies } from "../../../lib/strategy/simulate";
 import {
   LTCG_EXEMPTION_INR,
@@ -121,8 +121,15 @@ function buildInputs(form: StrategyFormState, locale: "IN" | "US"): StrategyInpu
 }
 
 export function useStrategyPlanner() {
-  const { locale } = useLocale();
+  const { locale, localeEpoch } = useLocale();
   const [form, setForm] = useState<StrategyFormState>(EMPTY_FORM);
+
+  const prevLocaleEpochRef = useRef(localeEpoch);
+  useEffect(() => {
+    if (prevLocaleEpochRef.current === localeEpoch) return;
+    prevLocaleEpochRef.current = localeEpoch;
+    setForm(EMPTY_FORM);
+  }, [localeEpoch]);
 
   const ready = strategyFormReady(form);
   const inputs = useMemo(() => buildInputs(form, locale), [form, locale]);

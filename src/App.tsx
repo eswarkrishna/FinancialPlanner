@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { trackPageView } from "./lib/analytics";
+import { trackPageView, trackTabSelect } from "./lib/analytics";
 import {
   getTabFromLocation,
   PLANNER_TABS,
@@ -40,6 +40,7 @@ export function App() {
 
   function selectTab(tabId: TabId) {
     if (tabId === activeTab) return;
+    trackTabSelect(tabId);
     setTabInUrl(tabId, { push: true });
     setActiveTab(tabId);
   }

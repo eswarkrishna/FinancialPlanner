@@ -1,5 +1,6 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
 import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "../../lib/retirement/constants";
+import { trackRetirementScenarioSelect } from "../../lib/analytics";
 import { useLocale } from "../locale/LocaleContext";
 import { useRetirementPlanner } from "./hooks/useRetirementPlanner";
 
@@ -108,7 +109,11 @@ export function RetirementSection() {
             <select
               value={selectedRetirementScenario}
               disabled={yearsInvalid || retirementScenarios.length === 0}
-              onChange={(event) => setSelectedRetirementScenario(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value;
+                setSelectedRetirementScenario(next);
+                trackRetirementScenarioSelect(next);
+              }}
             >
               {retirementScenarios.map((scenario) => (
                 <option key={scenario.id} value={scenario.id}>

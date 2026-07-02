@@ -5,6 +5,12 @@ import {
   githubCommitUrl,
 } from "../lib/buildInfo";
 import { githubIssuesUrl } from "../lib/feedback";
+import {
+  trackFeedbackGithubClick,
+  trackFooterCommitLinkClick,
+  trackFooterGaOptoutClick,
+  trackFooterTermsToggle,
+} from "../lib/analytics";
 import { useLocale } from "../features/locale/LocaleContext";
 
 function BuildMetaLine() {
@@ -22,7 +28,7 @@ function BuildMetaLine() {
         {formatBuildCommitDate(info.commitIsoDate)}
       </time>
       {" · "}
-      <a href={commitUrl} target="_blank" rel="noopener noreferrer">
+      <a href={commitUrl} target="_blank" rel="noopener noreferrer" onClick={trackFooterCommitLinkClick}>
         <code>{info.commitShort}</code>
       </a>
     </p>
@@ -36,7 +42,12 @@ function FooterFeedback() {
     <section className="footer-feedback" aria-label="Feedback">
       <p className="footer-feedback-lead">Help us improve</p>
       <p className="footer-feedback-actions">
-        <a href={issuesUrl} target="_blank" rel="noopener noreferrer">
+        <a
+          href={issuesUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={trackFeedbackGithubClick}
+        >
           Report on GitHub
         </a>
       </p>
@@ -71,7 +82,12 @@ export function AppFooter() {
       <DisclaimerLead />
       <FooterFeedback />
 
-      <details className="footer-terms">
+      <details
+        className="footer-terms"
+        onToggle={(event) => {
+          trackFooterTermsToggle((event.currentTarget as HTMLDetailsElement).open);
+        }}
+      >
         <summary className="footer-terms-summary">Terms and conditions</summary>
         <div className="footer-terms-body">
           <p className="footer-terms-intro">
@@ -117,14 +133,15 @@ export function AppFooter() {
             </li>
             <li>
               <strong>Analytics.</strong> The public site may use Google Analytics 4 to
-              collect anonymous usage (e.g. which page or tab you open and which
-              controls you click). No loan amounts or personal data are sent. You can
+              collect anonymous usage (e.g. which tab you open, exports, and named
+              control actions). No loan amounts or personal data are sent. You can
               block this with a browser extension or
               opt out via{" "}
               <a
                 href="https://tools.google.com/dlpage/gaoptout"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={trackFooterGaOptoutClick}
               >
                 Google&apos;s opt-out add-on
               </a>

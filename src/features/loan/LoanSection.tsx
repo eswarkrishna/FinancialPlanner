@@ -1,4 +1,5 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
+import { trackLoanPrepaySourceChange, trackLoanScenarioViewChange } from "../../lib/analytics";
 import { useLocale } from "../locale/LocaleContext";
 import { ScheduleChart } from "./components/ScheduleChart";
 import { ScenarioTable } from "./components/ScenarioTable";
@@ -391,7 +392,11 @@ export function LoanSection() {
               One-time prepay source{" "}
               <select
                 value={prepaySource}
-                onChange={(e) => setPrepaySource(e.target.value as PrepaySource)}
+                onChange={(e) => {
+                  const next = e.target.value as PrepaySource;
+                  setPrepaySource(next);
+                  trackLoanPrepaySourceChange(next, locale);
+                }}
               >
                 <option value="cash">Cash</option>
                 <option value="pf">{isUs ? "401(k) account" : "PF account"}</option>
@@ -490,7 +495,11 @@ export function LoanSection() {
                   View{" "}
                   <select
                     value={scenarioView}
-                    onChange={(e) => setScenarioView(e.target.value as ScenarioView)}
+                    onChange={(e) => {
+                      const next = e.target.value as ScenarioView;
+                      setScenarioView(next);
+                      trackLoanScenarioViewChange(next, locale);
+                    }}
                   >
                     <option value="BASE">Baseline (no one-time prepay)</option>
                     {models.baseSalarySweep && (

@@ -369,6 +369,7 @@ export function LoanSection() {
           <section className="card">
             <StagedPrepayEditor
               entries={stagedPrepays}
+              currencyLabel={currencyLabel}
               onAdd={addStagedPrepay}
               onRemove={removeStagedPrepay}
               onChange={updateStagedPrepay}
@@ -576,12 +577,14 @@ export function LoanSection() {
                 points={principalCurve}
                 stroke="#2563eb"
                 yLabel={currencyLabel}
+                locale={locale}
               />
               <ScheduleChart
                 title="Cumulative interest"
                 points={interestCurve}
                 stroke="#dc2626"
                 yLabel={currencyLabel}
+                locale={locale}
               />
             </div>
 

@@ -12,9 +12,15 @@ import {
   REFERENCE_SCENARIO_US,
   type Locale,
 } from "../../lib/locale";
+import {
+  REFERENCE_RETIREMENT_FORM_IN,
+  REFERENCE_RETIREMENT_FORM_US,
+} from "../../lib/retirement/constants";
 
 interface LocaleContextValue {
   locale: Locale;
+  /** Increments on each confirmed locale switch so feature hooks can reset forms. */
+  localeEpoch: number;
   setLocale: (next: Locale) => void;
   switchLocale: (next: Locale) => boolean;
 }
@@ -35,9 +41,11 @@ function localeSwitchMessage(next: Locale): string {
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(readStoredLocale);
+  const [localeEpoch, setLocaleEpoch] = useState(0);
 
   const applyLocale = useCallback((next: Locale) => {
     setLocaleState(next);
+    setLocaleEpoch((epoch) => epoch + 1);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
   }, []);
 
@@ -61,8 +69,8 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ locale, setLocale, switchLocale }),
-    [locale, setLocale, switchLocale],
+    () => ({ locale, localeEpoch, setLocale, switchLocale }),
+    [locale, localeEpoch, setLocale, switchLocale],
   );
 
   return (
@@ -80,6 +88,12 @@ export function useLocale(): LocaleContextValue {
 
 export function referenceScenarioForLocale(locale: Locale) {
   return locale === "US" ? REFERENCE_SCENARIO_US : REFERENCE_SCENARIO_IN;
+}
+
+export function referenceRetirementFormForLocale(locale: Locale) {
+  return locale === "US"
+    ? REFERENCE_RETIREMENT_FORM_US
+    : REFERENCE_RETIREMENT_FORM_IN;
 }
 
 export function loanFormFromScenario(

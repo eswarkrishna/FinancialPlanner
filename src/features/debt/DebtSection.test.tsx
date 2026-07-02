@@ -1,10 +1,11 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { renderWithLocale } from "../../test/renderWithLocale";
 import { DebtSection } from "./DebtSection";
 
 describe("DebtSection", () => {
   it("switches timeline heading when strategy changes", () => {
-    render(<DebtSection />);
+    renderWithLocale(<DebtSection />);
 
     fireEvent.change(screen.getByLabelText("Schedule view"), {
       target: { value: "snowball" },
@@ -16,7 +17,7 @@ describe("DebtSection", () => {
   });
 
   it("shows warning when budget is below minimum dues", () => {
-    render(<DebtSection />);
+    renderWithLocale(<DebtSection />);
 
     const firstDebtRow = screen.getAllByRole("row")[1];
     const rowInputs = within(firstDebtRow).getAllByRole("textbox");

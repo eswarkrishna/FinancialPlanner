@@ -1,8 +1,12 @@
-import { formatInrFinite } from "../../lib/formatInr";
+import { formatMoneyFinite } from "../../lib/locale/formatMoney";
 import { type DebtStrategy } from "../../lib/debt";
+import { useLocale } from "../locale/LocaleContext";
 import { useDebtPlanner } from "./hooks/useDebtPlanner";
 
 export function DebtSection() {
+  const { locale } = useLocale();
+  const money = (value: number) => formatMoneyFinite(value, locale);
+  const currencyLabel = locale === "US" ? "USD" : "INR";
   const {
     startDateIso,
     setStartDateIso,
@@ -32,7 +36,7 @@ export function DebtSection() {
             />
           </label>
           <label>
-            Monthly debt budget (INR)
+            Monthly debt budget ({currencyLabel})
             <input
               inputMode="decimal"
               value={monthlyBudgetInr}
@@ -58,9 +62,9 @@ export function DebtSection() {
             <thead>
               <tr>
                 <th>Debt</th>
-                <th>Balance</th>
+                <th>Balance ({currencyLabel})</th>
                 <th>APR (%)</th>
-                <th>Minimum payment</th>
+                <th>Minimum payment ({currencyLabel})</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -69,6 +73,7 @@ export function DebtSection() {
                 <tr key={row.id}>
                   <td>
                     <input
+                      aria-label={`Debt name for ${row.id}`}
                       value={row.name}
                       onChange={(event) =>
                         setDebtField(row.id, "name", event.target.value)
@@ -78,6 +83,7 @@ export function DebtSection() {
                   <td>
                     <input
                       inputMode="decimal"
+                      aria-label={`Balance for ${row.id}`}
                       value={row.balance_inr}
                       onChange={(event) =>
                         setDebtField(row.id, "balance_inr", event.target.value)
@@ -87,6 +93,7 @@ export function DebtSection() {
                   <td>
                     <input
                       inputMode="decimal"
+                      aria-label={`APR for ${row.id}`}
                       value={row.apr_pct}
                       onChange={(event) =>
                         setDebtField(row.id, "apr_pct", event.target.value)
@@ -96,6 +103,7 @@ export function DebtSection() {
                   <td>
                     <input
                       inputMode="decimal"
+                      aria-label={`Minimum payment for ${row.id}`}
                       value={row.minimum_payment_inr}
                       onChange={(event) =>
                         setDebtField(row.id, "minimum_payment_inr", event.target.value)
@@ -151,8 +159,8 @@ export function DebtSection() {
                   <td>{model.strategy === "avalanche" ? "Avalanche" : "Snowball"}</td>
                   <td>{model.summary.is_paid_off ? model.summary.payoff_months : "—"}</td>
                   <td>{model.summary.payoff_date_iso ?? "—"}</td>
-                  <td>{formatInrFinite(model.summary.total_interest_inr)}</td>
-                  <td>{formatInrFinite(model.summary.total_paid_inr)}</td>
+                  <td>{money(model.summary.total_interest_inr)}</td>
+                  <td>{money(model.summary.total_paid_inr)}</td>
                 </tr>
               ))}
             </tbody>
@@ -180,10 +188,10 @@ export function DebtSection() {
               {activeDebtModel.rows.map((row) => (
                 <tr key={row.month}>
                   <td>{row.month}</td>
-                  <td>{formatInrFinite(row.opening_total_inr)}</td>
-                  <td>{formatInrFinite(row.interest_inr)}</td>
-                  <td>{formatInrFinite(row.payment_inr)}</td>
-                  <td>{formatInrFinite(row.closing_total_inr)}</td>
+                  <td>{money(row.opening_total_inr)}</td>
+                  <td>{money(row.interest_inr)}</td>
+                  <td>{money(row.payment_inr)}</td>
+                  <td>{money(row.closing_total_inr)}</td>
                   <td>{row.focus_debt_name ?? "Paid off"}</td>
                 </tr>
               ))}

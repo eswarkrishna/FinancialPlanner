@@ -100,15 +100,11 @@ export function App() {
             aria-labelledby={`tab-${tab.id}`}
             hidden={activeTab !== tab.id}
           >
-            {activeTab === tab.id && (
-              <>
-                {tab.id === "loan" && <LoanSection />}
-                {tab.id === "debt" && <DebtSection />}
-                {tab.id === "retirement" && <RetirementSection />}
-                {tab.id === "strategies" && <StrategySection />}
-                {tab.id === "strategic" && <GameSection />}
-              </>
-            )}
+            {tab.id === "loan" && <LoanSection />}
+            {tab.id === "debt" && <DebtSection />}
+            {tab.id === "retirement" && <RetirementSection />}
+            {tab.id === "strategies" && <StrategySection />}
+            {tab.id === "strategic" && <GameSection />}
           </div>
         ))}
       </main>

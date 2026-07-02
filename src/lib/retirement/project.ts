@@ -1,5 +1,6 @@
 import { roundInr } from "../money";
 import { nominalMonthlyRateFromAnnualPercent } from "../rates/nominalMonthly";
+import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "./constants";
 
 export interface RetirementInput {
   current_corpus_inr: number;
@@ -53,7 +54,11 @@ export function projectRetirementCorpus(input: RetirementInput): RetirementProje
   );
   const annualInflationRate = Math.max(0, input.inflation_pct);
   const monthlyContribution = Math.max(0, input.monthly_contribution_inr);
-  const swr = Math.max(0.1, input.safe_withdrawal_rate_pct) / 100;
+  const swrPct =
+    input.safe_withdrawal_rate_pct > 0
+      ? input.safe_withdrawal_rate_pct
+      : DEFAULT_SAFE_WITHDRAWAL_RATE_PCT;
+  const swr = swrPct / 100;
 
   let corpus = roundInr(Math.max(0, input.current_corpus_inr));
   const yearly: RetirementYearRow[] = [];
@@ -72,7 +77,7 @@ export function projectRetirementCorpus(input: RetirementInput): RetirementProje
     }
   }
 
-  const inflation = inflationFactor(annualInflationRate, input.years_to_retirement);
+  const inflation = inflationFactor(annualInflationRate, months / 12);
   const expenseAtRetirement = roundInr(
     Math.max(0, input.annual_expense_today_inr) * inflation,
   );

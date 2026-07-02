@@ -1,11 +1,13 @@
 import type { ChartPoint } from "../../../lib/loan/chartData";
-import { formatInr } from "../../../lib/formatInr";
+import { formatMoney } from "../../../lib/locale/formatMoney";
+import type { Locale } from "../../../lib/locale/types";
 
 interface ScheduleChartProps {
   title: string;
   points: ChartPoint[];
   stroke: string;
   yLabel: string;
+  locale?: Locale;
 }
 
 const WIDTH = 640;
@@ -25,7 +27,15 @@ function buildPath(points: ChartPoint[], maxY: number, maxX: number): string {
     .join(" ");
 }
 
-export function ScheduleChart({ title, points, stroke, yLabel }: ScheduleChartProps) {
+export function ScheduleChart({
+  title,
+  points,
+  stroke,
+  yLabel,
+  locale = "IN",
+}: ScheduleChartProps) {
+  const money = (value: number) => formatMoney(value, locale);
+
   if (points.length === 0) {
     return (
       <div className="schedule-chart">
@@ -46,7 +56,7 @@ export function ScheduleChart({ title, points, stroke, yLabel }: ScheduleChartPr
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
-        aria-label={`${title}: ends at ${formatInr(last.value_inr)} by month ${last.month}`}
+        aria-label={`${title}: ends at ${money(last.value_inr)} by month ${last.month}`}
         className="schedule-chart-svg"
       >
         <line
@@ -75,7 +85,7 @@ export function ScheduleChart({ title, points, stroke, yLabel }: ScheduleChartPr
         <path d={path} fill="none" stroke={stroke} strokeWidth="2" />
       </svg>
       <p className="hint chart-end-label">
-        Month {last.month}: {formatInr(last.value_inr)}
+        Month {last.month}: {money(last.value_inr)}
       </p>
     </div>
   );

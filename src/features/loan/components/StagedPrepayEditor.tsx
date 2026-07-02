@@ -6,6 +6,7 @@ export interface StagedPrepayEntry {
 
 interface StagedPrepayEditorProps {
   entries: StagedPrepayEntry[];
+  currencyLabel?: string;
   onAdd: () => void;
   onRemove: (id: string) => void;
   onChange: (id: string, field: "month" | "amount_inr", value: string) => void;
@@ -13,6 +14,7 @@ interface StagedPrepayEditorProps {
 
 export function StagedPrepayEditor({
   entries,
+  currencyLabel = "INR",
   onAdd,
   onRemove,
   onChange,
@@ -32,7 +34,7 @@ export function StagedPrepayEditor({
             <thead>
               <tr>
                 <th>Month</th>
-                <th>Amount (INR)</th>
+                <th>Amount ({currencyLabel})</th>
                 <th />
               </tr>
             </thead>

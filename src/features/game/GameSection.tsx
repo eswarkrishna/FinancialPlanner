@@ -1,4 +1,4 @@
-import { formatInr } from "../../lib/formatInr";
+import { formatMoney } from "../../lib/locale/formatMoney";
 import type { GameProfileId } from "../../lib/game";
 import { GameLegendPanel } from "./GameLegendPanel";
 import {
@@ -19,8 +19,11 @@ export function GameSection() {
     result,
     profiles,
     exportGameJson,
+    locale,
   } = useGamePlanner();
 
+  const money = (value: number) => formatMoney(value, locale);
+  const currencyLabel = locale === "US" ? "USD" : "INR";
   const activeProfile = describeGameProfile(profileId);
 
   return (
@@ -50,7 +53,7 @@ export function GameSection() {
             </select>
           </label>
           <label>
-            Prepayment fee (INR)
+            Prepayment fee ({currencyLabel})
             <input
               inputMode="decimal"
               value={prepaymentFeeInr}
@@ -72,7 +75,7 @@ export function GameSection() {
         )}
       </section>
 
-      <GameLegendPanel />
+      <GameLegendPanel locale={locale} />
 
       {result && (
         <>
@@ -127,12 +130,12 @@ export function GameSection() {
                         <td className="game-codes-cell">
                           <code className="game-codes">{codes || "—"}</code>
                         </td>
-                        <td>{formatInr(cell.payoffs.B ?? 0)}</td>
+                        <td>{money(cell.payoffs.B ?? 0)}</td>
                         <td>
                           {cell.payoffs.L !== undefined
-                            ? formatInr(cell.payoffs.L)
+                            ? money(cell.payoffs.L)
                             : cell.payoffs.H !== undefined
-                              ? formatInr(cell.payoffs.H)
+                              ? money(cell.payoffs.H)
                               : "—"}
                         </td>
                       </tr>
@@ -151,18 +154,21 @@ export function GameSection() {
             </p>
             {result.equilibria.length > 0 ? (
               <ul className="game-recommendation-list">
-                {result.equilibria.map((eq, i) => {
+                {result.equilibria.map((eq) => {
                   const { readable, codes } = formatProfileWithCodes(
                     eq.action_profile,
                   );
+                  const key = eq.action_profile
+                    ? JSON.stringify(eq.action_profile)
+                    : readable;
                   return (
-                    <li key={i}>
+                    <li key={key}>
                       <span className="game-rec-readable">{readable}</span>
                       <span className="game-rec-meta">
                         {" "}
-                        — B: {formatInr(eq.payoffs.B ?? 0)}
+                        — B: {money(eq.payoffs.B ?? 0)}
                         {eq.payoffs.L !== undefined &&
-                          ` · L: ${formatInr(eq.payoffs.L)}`}
+                          ` · L: ${money(eq.payoffs.L)}`}
                         {codes ? (
                           <>
                             {" "}

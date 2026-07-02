@@ -1,6 +1,8 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
 import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "../../lib/retirement/constants";
 import { trackRetirementScenarioSelect } from "../../lib/analytics";
+import { buildRetirementCorpusCurve } from "../../lib/loan/chartData";
+import { LineChart } from "../../components/LineChart";
 import { useLocale } from "../locale/LocaleContext";
 import { useRetirementPlanner } from "./hooks/useRetirementPlanner";
 
@@ -236,6 +238,15 @@ export function RetirementSection() {
         {yearsInvalid || !activeRetirementScenario ? (
           <p className="hint">Enter valid years to retirement to see the yearly timeline.</p>
         ) : (
+        <>
+        <LineChart
+          title="Nominal corpus growth"
+          points={buildRetirementCorpusCurve(activeRetirementScenario.projection.yearly)}
+          stroke="#7c3aed"
+          yLabel="Corpus"
+          xLabel="Year"
+          locale={locale}
+        />
         <div className="table-wrap">
           <table>
             <thead>
@@ -256,6 +267,7 @@ export function RetirementSection() {
             </tbody>
           </table>
         </div>
+        </>
         )}
       </section>
     </>

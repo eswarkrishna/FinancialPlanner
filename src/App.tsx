@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { trackPageView, trackTabSelect } from "./lib/analytics";
 import {
   getTabFromLocation,
@@ -15,6 +15,42 @@ import { LoanSection } from "./features/loan/LoanSection";
 import { RetirementSection } from "./features/retirement/RetirementSection";
 import { StrategySection } from "./features/strategy/StrategySection";
 import type { Locale } from "./lib/locale/types";
+
+function focusTab(tabId: TabId) {
+  document.getElementById(`tab-${tabId}`)?.focus();
+}
+
+function nextTabFromKey(key: string, index: number): TabId | null {
+  if (key === "ArrowRight") {
+    return PLANNER_TABS[(index + 1) % PLANNER_TABS.length]!.id;
+  }
+  if (key === "ArrowLeft") {
+    return PLANNER_TABS[(index - 1 + PLANNER_TABS.length) % PLANNER_TABS.length]!.id;
+  }
+  if (key === "Home") {
+    return PLANNER_TABS[0]!.id;
+  }
+  if (key === "End") {
+    return PLANNER_TABS[PLANNER_TABS.length - 1]!.id;
+  }
+  return null;
+}
+
+function handleTabKeyDown(
+  event: KeyboardEvent<HTMLButtonElement>,
+  tabId: TabId,
+  selectTab: (id: TabId) => void,
+) {
+  const index = PLANNER_TABS.findIndex((tab) => tab.id === tabId);
+  if (index < 0) return;
+
+  const nextId = nextTabFromKey(event.key, index);
+  if (!nextId) return;
+
+  event.preventDefault();
+  selectTab(nextId);
+  focusTab(nextId);
+}
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabId>(() => getTabFromLocation(window.location));
@@ -87,8 +123,10 @@ export function App() {
                 id={`tab-${tab.id}`}
                 aria-selected={activeTab === tab.id}
                 aria-controls={`panel-${tab.id}`}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 className={`app-tab${activeTab === tab.id ? " app-tab--active" : ""}`}
                 onClick={() => selectTab(tab.id)}
+                onKeyDown={(event) => handleTabKeyDown(event, tab.id, selectTab)}
               >
                 <span className="app-tab-label">{tab.label}</span>
               </button>
@@ -105,6 +143,7 @@ export function App() {
             role="tabpanel"
             aria-labelledby={`tab-${tab.id}`}
             hidden={activeTab !== tab.id}
+            tabIndex={activeTab === tab.id ? 0 : undefined}
           >
             {tab.id === "loan" && <LoanSection />}
             {tab.id === "debt" && <DebtSection />}

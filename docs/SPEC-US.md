@@ -8,10 +8,10 @@
 
 ---
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Audience:** Engineers / Cursor agents implementing the US locale  
 **Locale:** United States (USD; optional thousands separators in UI)  
-**Status:** Draft for implementation (research-backed v1.2)  
+**Status:** Partially implemented — loan, debt, retirement, strategy tabs and US goldens ship in code; remaining gaps tracked in §13 (game profile aliases `GAME_US_*`, full `_inr` field rename deferred).
 **Parity target:** Same planner tabs and decision surfaces as India locale for **employed US workers** modeling mortgage payoff, multi-debt, retirement, repayment strategies, and strategic games.
 
 ---

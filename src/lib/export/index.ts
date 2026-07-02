@@ -5,5 +5,6 @@ export * from "./retirementCsv";
 export * from "./retirementJson";
 export * from "./scheduleCsv";
 export * from "./scenarioJson";
+export * from "./scenarioImport";
 export * from "./strategyCsv";
 export * from "./strategyJson";

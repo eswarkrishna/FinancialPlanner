@@ -1,10 +1,19 @@
 import { renderWithLocale } from "../../test/renderWithLocale";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { scenarioToJson } from "../../lib/export/scenarioJson";
+import {
+  clearLoanFormState,
+  readLoanFormState,
+} from "../../lib/persistence/loanFormState";
+import { REFERENCE_SCENARIO_IN } from "../../lib/locale/constants";
 import { LoanSection } from "./LoanSection";
 
 describe("LoanSection", () => {
+  beforeEach(() => {
+    clearLoanFormState();
+  });
   it("starts without comparison tables until reference scenario is loaded", async () => {
     const user = userEvent.setup();
     renderWithLocale(<LoanSection />);
@@ -96,5 +105,70 @@ describe("LoanSection", () => {
     expect(baseRow).toHaveTextContent("168");
     expect(screen.getByText(/BASE \+ .*salary sweep/i)).toBeInTheDocument();
     expect(screen.getByRole("option", { name: /Baseline \+ monthly salary sweep/i })).toBeInTheDocument();
+  });
+
+  it("persists edited inputs across remount (§10 #19)", async () => {
+    const user = userEvent.setup();
+    const view = renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    fireEvent.change(screen.getByLabelText("Principal (INR)"), {
+      target: { value: "6000000" },
+    });
+
+    await waitFor(() => {
+      expect(readLoanFormState("IN")?.inputs.principal_inr).toBe("6000000");
+    });
+
+    view.unmount();
+    renderWithLocale(<LoanSection />);
+
+    expect(screen.getByLabelText("Principal (INR)")).toHaveValue("6000000");
+  });
+
+  it("imports exported scenario JSON (§10 #20)", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+
+    const payload = {
+      exported_at: "2026-01-01T00:00:00.000Z",
+      scenario_id: "BASE",
+      scenario_label: "BASE",
+      inputs: { ...REFERENCE_SCENARIO_IN, prepay_source: "cash" },
+      totals: {
+        payoff_month: 168,
+        total_interest_inr: 1,
+        total_paid_inr: 2,
+      },
+    };
+    const file = new File([scenarioToJson(payload)], "loan-scenario-base.json", {
+      type: "application/json",
+    });
+
+    await user.click(screen.getByRole("button", { name: /Import scenario JSON/i }));
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, file);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Principal (INR)")).toHaveValue(
+        String(REFERENCE_SCENARIO_IN.principal_inr),
+      );
+    });
+    expect(
+      screen.getByRole("heading", { name: "Loan scenario comparison" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows import error for invalid JSON without mutating form (§10 #21)", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+
+    const file = new File(["not json"], "bad.json", { type: "application/json" });
+    await user.click(screen.getByRole("button", { name: /Import scenario JSON/i }));
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, file);
+
+    expect(await screen.findByText(/Invalid JSON file/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Principal (INR)")).toHaveValue("");
   });
 });

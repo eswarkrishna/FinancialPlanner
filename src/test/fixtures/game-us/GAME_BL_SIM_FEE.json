@@ -1,0 +1,171 @@
+{
+  "game_profile_id": "GAME_BL_SIM_FEE",
+  "matrix_size": 10,
+  "payoff_matrix": [
+    {
+      "cell_key": "B_PREPAY_0||B_EXTRA_0|L_FEE_0|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_0"
+      },
+      "payoffs": {
+        "B": 0,
+        "L": 0
+      },
+      "underlying_scenario_id": "BASE"
+    },
+    {
+      "cell_key": "B_PREPAY_0||B_EXTRA_0|L_FEE_FLAT|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 0,
+        "L": 0
+      },
+      "underlying_scenario_id": "BASE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_0|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_0"
+      },
+      "payoffs": {
+        "B": 59180.51,
+        "L": 0
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_EMI|B_EXTRA_0|L_FEE_0|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_EMI",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_0"
+      },
+      "payoffs": {
+        "B": 13769.1,
+        "L": 0
+      },
+      "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 58680.51,
+        "L": 500
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_EMI|B_EXTRA_0|L_FEE_FLAT|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_EMI",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 13269.1,
+        "L": 500
+      },
+      "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
+    },
+    {
+      "cell_key": "B_PREPAY_50|B_POL_TENURE|B_EXTRA_0|L_FEE_0|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_50",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_0"
+      },
+      "payoffs": {
+        "B": 30897.83,
+        "L": 0
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_50|B_POL_EMI|B_EXTRA_0|L_FEE_0|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_50",
+        "b_policy": "B_POL_EMI",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_0"
+      },
+      "payoffs": {
+        "B": 6885.24,
+        "L": 0
+      },
+      "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
+    },
+    {
+      "cell_key": "B_PREPAY_50|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_50",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 30397.83,
+        "L": 500
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_50|B_POL_EMI|B_EXTRA_0|L_FEE_FLAT|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_50",
+        "b_policy": "B_POL_EMI",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 6385.24,
+        "L": 500
+      },
+      "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 58680.51,
+        "L": 500
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "b_lump": "B_PREPAY_25",
+    "b_policy": "B_POL_TENURE",
+    "b_extra": "B_EXTRA_0",
+    "l_fee": "L_FEE_FLAT"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "BASE",
+    "PREPAY_CASH_25L_TENURE",
+    "PREPAY_CASH_LUMP_EMI"
+  ]
+}

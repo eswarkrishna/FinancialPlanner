@@ -44,6 +44,7 @@ export function initAnalytics(): void {
   window.dataLayer = window.dataLayer ?? [];
   // gtag.js expects dataLayer entries as `arguments` objects, not Arrays.
   window.gtag = function gtag() {
+    // eslint-disable-next-line prefer-rest-params -- gtag.js contract requires `arguments`
     window.dataLayer?.push(arguments);
   } as Gtag;
   window.gtag("js", new Date());
@@ -127,6 +128,21 @@ export function trackLoanExportScenarioJson(
   trackEvent(
     "loan_export_scenario_json",
     withPagePath({ scenario_view: scenarioView, locale }),
+  );
+}
+
+export function trackLoanImportScenarioJson(
+  scenarioView: string,
+  locale: string,
+  success: boolean,
+): void {
+  trackEvent(
+    "loan_import_scenario_json",
+    withPagePath({
+      scenario_view: scenarioView,
+      locale,
+      success: success ? "true" : "false",
+    }),
   );
 }
 

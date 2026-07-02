@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { formatMoney } from "../../lib/locale/formatMoney";
 import { trackLoanPrepaySourceChange, trackLoanScenarioViewChange } from "../../lib/analytics";
 import { useLocale } from "../locale/LocaleContext";
@@ -32,6 +33,8 @@ export function LoanSection() {
     setField,
     setBoolField,
     loadReference,
+    importScenarioJson,
+    importError,
     parsed,
     models,
     comparisonRows,
@@ -53,6 +56,8 @@ export function LoanSection() {
     exportScheduleCsv,
     exportScenarioJson,
   } = useLoanModels();
+
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const goldHaircutOn = inputs.gold_haircut_enabled === "true";
   const unemploymentOn = inputs.unemployment_mode === "true";
@@ -357,7 +362,32 @@ export function LoanSection() {
           <button type="button" className="btn secondary" onClick={loadReference}>
             Load reference scenario
           </button>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => importInputRef.current?.click()}
+          >
+            Import scenario JSON
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="import-file-input"
+            style={{ display: "none" }}
+            aria-label="Import loan scenario JSON file"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) importScenarioJson(file);
+              e.target.value = "";
+            }}
+          />
         </div>
+        {importError && (
+          <ul className="errors">
+            <li>{importError}</li>
+          </ul>
+        )}
         {!parsed.success && (
           <ul className="errors">
             {parsed.error.issues.map((issue) => (

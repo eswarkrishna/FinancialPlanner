@@ -70,4 +70,20 @@ describe("App shell composition", () => {
     );
     expect(window.location.search).toBe("");
   });
+
+  it("moves focus between tabs with arrow keys", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<App />);
+
+    const loanTab = screen.getByRole("tab", { name: "Loan" });
+    loanTab.focus();
+    await user.keyboard("{ArrowRight}");
+
+    expect(screen.getByRole("tab", { name: "Multi-debt" })).toHaveFocus();
+    expect(screen.getByRole("tab", { name: "Multi-debt" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(window.location.search).toBe("?tab=debt");
+  });
 });

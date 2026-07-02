@@ -205,7 +205,9 @@ export function simulateUsCashflowSchedule(
 
     const opening = balance;
     const interest = roundUsd(opening * r);
-    const principal = roundUsd(Math.min(opening, emi0 - interest));
+    const principal = roundUsd(
+      Math.max(0, Math.min(opening, emi0 - interest)),
+    );
     const emiDue = roundUsd(interest + principal);
 
     let interestPaid = 0;
@@ -235,12 +237,12 @@ export function simulateUsCashflowSchedule(
       }
     }
 
-    balance = roundUsd(opening - principalPaid);
+    balance = roundUsd(opening + interest - interestPaid - principalPaid);
     let prepay = 0;
     let emiPaid = roundUsd(interestPaid + principalPaid);
 
     const syncBalanceFromEmi = () => {
-      balance = roundUsd(opening - principalPaid);
+      balance = roundUsd(opening + interest - interestPaid - principalPaid);
       emiPaid = roundUsd(interestPaid + principalPaid);
     };
 

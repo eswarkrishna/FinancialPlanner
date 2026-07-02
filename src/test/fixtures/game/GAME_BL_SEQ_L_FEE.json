@@ -11,7 +11,7 @@
         "l_fee": "L_FEE_0"
       },
       "payoffs": {
-        "B": 2702417.23,
+        "B": 2212618.73,
         "L": 0
       },
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
@@ -25,7 +25,7 @@
         "l_fee": "L_FEE_FLAT"
       },
       "payoffs": {
-        "B": 2677417.23,
+        "B": 2187618.73,
         "L": 25000
       },
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
@@ -39,8 +39,8 @@
         "l_fee": "L_FEE_PCT"
       },
       "payoffs": {
-        "B": 2677417.23,
-        "L": 25000
+        "B": 2195375.68,
+        "L": 17243.05
       },
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
     }
@@ -54,7 +54,7 @@
         "l_fee": "L_FEE_FLAT"
       },
       "payoffs": {
-        "B": 2677417.23,
+        "B": 2187618.73,
         "L": 25000
       },
       "is_pure": true

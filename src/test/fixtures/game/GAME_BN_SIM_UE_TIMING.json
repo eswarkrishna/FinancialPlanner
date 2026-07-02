@@ -10,7 +10,7 @@
         "n_pf_route": "N_PF_LOAN"
       },
       "payoffs": {
-        "B": 2657537.97
+        "B": 2940033.24
       },
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
@@ -22,7 +22,7 @@
         "n_pf_route": "N_PF_BRIDGE"
       },
       "payoffs": {
-        "B": 2037908.63
+        "B": 2225376.96
       },
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
@@ -34,7 +34,7 @@
         "n_pf_route": "N_PF_LOAN"
       },
       "payoffs": {
-        "B": 2391258.98
+        "B": 2761295.77
       },
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
@@ -46,7 +46,7 @@
         "n_pf_route": "N_PF_BRIDGE"
       },
       "payoffs": {
-        "B": 1833774.53
+        "B": 2197802.65
       },
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
@@ -58,7 +58,7 @@
         "n_pf_route": "N_PF_LOAN"
       },
       "payoffs": {
-        "B": 2111907.26
+        "B": 2673164.14
       },
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
@@ -70,7 +70,7 @@
         "n_pf_route": "N_PF_BRIDGE"
       },
       "payoffs": {
-        "B": 1621415.1
+        "B": 2162883.13
       },
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
@@ -82,7 +82,7 @@
         "n_pf_route": "N_PF_LOAN"
       },
       "payoffs": {
-        "B": 3219180.95
+        "B": 3203629.02
       },
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
@@ -94,7 +94,7 @@
         "n_pf_route": "N_PF_BRIDGE"
       },
       "payoffs": {
-        "B": 3135018.08
+        "B": 2844026.61
       },
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
@@ -106,7 +106,7 @@
         "n_pf_route": "N_PF_LOAN"
       },
       "payoffs": {
-        "B": 3074294.67
+        "B": 3141092.26
       },
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
@@ -118,7 +118,7 @@
         "n_pf_route": "N_PF_BRIDGE"
       },
       "payoffs": {
-        "B": 3009192.68
+        "B": 2817513.7
       },
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
@@ -130,7 +130,7 @@
         "n_pf_route": "N_PF_LOAN"
       },
       "payoffs": {
-        "B": 2927934.74
+        "B": 3141092.26
       },
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
@@ -142,7 +142,7 @@
         "n_pf_route": "N_PF_BRIDGE"
       },
       "payoffs": {
-        "B": 2891404.46
+        "B": 2786155.3
       },
       "underlying_scenario_id": "UE_PF_BRIDGE"
     }
@@ -155,7 +155,7 @@
         "n_pf_route": "N_PF_BRIDGE"
       },
       "payoffs": {
-        "B": 2891404.46
+        "B": 2786155.3
       },
       "is_pure": true
     }

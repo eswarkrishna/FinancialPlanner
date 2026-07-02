@@ -147,7 +147,9 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
 
     const opening = balance;
     const interest = roundInr(opening * r);
-    const principal = roundInr(Math.min(opening, emi0 - interest));
+    const principal = roundInr(
+      Math.max(0, Math.min(opening, emi0 - interest)),
+    );
     const emiDue = roundInr(interest + principal);
 
     let interestPaid = 0;
@@ -176,7 +178,7 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
       }
     }
 
-    balance = roundInr(opening - principalPaid);
+    balance = roundInr(opening + interest - interestPaid - principalPaid);
 
     let prepay = 0;
 

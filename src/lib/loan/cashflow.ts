@@ -90,7 +90,8 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
   const rows: CashflowScheduleRow[] = [];
   let balance = roundInr(input.principal_inr);
   let cashBalance = roundInr(input.cash_inr);
-  let totalInterest = 0;
+  let totalInterestIfPaidOff = 0;
+  let totalInterestWithinTenure = 0;
   let totalPaid = 0;
   let totalPrepay = 0;
   let minCash = cashBalance;
@@ -243,13 +244,18 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
       cashBalance,
       events,
     );
-    totalInterest += interest;
+    const interestCost = roundInr(interestPaid + Math.max(0, interest - interestPaid));
+    totalInterestIfPaidOff += interestCost;
+    if (m <= input.tenure_months) {
+      totalInterestWithinTenure += interestCost;
+    }
     totalPaid += roundInr(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPSILON_INR) break;
   }
 
   const loanPaidOff = balance <= BALANCE_EPSILON_INR;
+  const totalInterest = loanPaidOff ? totalInterestIfPaidOff : totalInterestWithinTenure;
 
   return {
     emi_inr: emi0,

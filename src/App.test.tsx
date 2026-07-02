@@ -59,4 +59,15 @@ describe("App shell composition", () => {
     );
     expect(screen.getByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
   });
+
+  it("normalizes ?tab=loan to the canonical loan URL", () => {
+    window.history.replaceState({}, "", "/?tab=loan");
+    renderWithLocale(<App />);
+
+    expect(screen.getByRole("tab", { name: "Loan" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(window.location.search).toBe("");
+  });
 });

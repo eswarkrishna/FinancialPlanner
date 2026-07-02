@@ -29,6 +29,10 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    setTabInUrl(activeTab, { push: false });
+  }, []);
+
+  useEffect(() => {
     const label = PLANNER_TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
     updatePageSeo(activeTab);
     trackPageView(`tab/${activeTab}`, `FinancialPlanner — ${label}`);

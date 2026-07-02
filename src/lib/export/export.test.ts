@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { simulateDebtPayoff } from "../debt";
 import { debtTimelineToCsv } from "./debtCsv";
 import { debtResultToJson } from "./debtJson";
 import { retirementTimelineToCsv } from "./retirementCsv";
@@ -9,6 +10,7 @@ import { strategyComparisonToCsv } from "./strategyCsv";
 import { strategyResultToJson } from "./strategyJson";
 import type { ScheduleRow } from "../loan";
 import type { DebtMonthRow } from "../debt";
+import { makeReferenceDebts } from "../../test/factories";
 import type { RetirementInput, RetirementYearRow } from "../retirement";
 import type { StrategyResult } from "../strategy/types";
 
@@ -88,7 +90,16 @@ describe("debtTimelineToCsv (SPEC §4.10)", () => {
   it("adds calendar_date when start date provided", () => {
     const csv = debtTimelineToCsv(debtRows, { startDateIso: "2026-03-01" });
     expect(csv.split("\n")[0]).toContain("calendar_date");
-    expect(csv).toContain("2026-03-01");
+    expect(csv).toContain("2026-04-01");
+  });
+
+  it("keeps final row calendar_date aligned with JSON payoff_date_iso", () => {
+    const debts = makeReferenceDebts();
+    const result = simulateDebtPayoff(debts, 40_000, "2026-01-15", "avalanche");
+    const csv = debtTimelineToCsv(result.rows, { startDateIso: "2026-01-15" });
+    const lastRow = result.rows[result.rows.length - 1]!;
+    const dataLine = csv.split("\n").find((line) => line.startsWith(`${lastRow.month},`));
+    expect(dataLine).toContain(result.summary.payoff_date_iso);
   });
 });
 

@@ -20,6 +20,7 @@ export function DebtSection() {
     removeDebt,
     debtModels,
     activeDebtModel,
+    debtExportReady,
     exportDebtTimelineCsv,
     exportDebtJson,
   } = useDebtPlanner();
@@ -173,22 +174,24 @@ export function DebtSection() {
       <section className="card">
         <div className="schedule-head">
           <h2>Debt payoff timeline ({selectedDebtStrategy})</h2>
-          <div className="actions inline-actions">
-            <button
-              type="button"
-              className="btn secondary btn-sm"
-              onClick={exportDebtTimelineCsv}
-            >
-              Export CSV
-            </button>
-            <button
-              type="button"
-              className="btn secondary btn-sm"
-              onClick={exportDebtJson}
-            >
-              Export JSON
-            </button>
-          </div>
+          {debtExportReady && (
+            <div className="actions inline-actions">
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportDebtTimelineCsv}
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportDebtJson}
+              >
+                Export JSON
+              </button>
+            </div>
+          )}
         </div>
         <div className="table-wrap">
           <table>

@@ -87,6 +87,8 @@ export function useDebtPlanner() {
       ? debtModels.avalanche
       : debtModels.snowball;
 
+  const debtExportReady = activeDebtModel.rows.length > 0;
+
   function setDebtField(
     debtId: string,
     key: keyof DebtFormRow,
@@ -123,6 +125,7 @@ export function useDebtPlanner() {
   }
 
   function exportDebtTimelineCsv(): void {
+    if (!debtExportReady) return;
     const csv = debtTimelineToCsv(activeDebtModel.rows, {
       startDateIso: startDateIso || undefined,
     });
@@ -135,6 +138,7 @@ export function useDebtPlanner() {
   }
 
   function exportDebtJson(): void {
+    if (!debtExportReady) return;
     const budget = Math.max(0, parseNumber(monthlyBudgetInr));
     const json = debtResultToJson({
       exported_at: new Date().toISOString(),
@@ -180,6 +184,7 @@ export function useDebtPlanner() {
     removeDebt,
     debtModels,
     activeDebtModel,
+    debtExportReady,
     exportDebtTimelineCsv,
     exportDebtJson,
   };

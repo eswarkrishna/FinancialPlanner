@@ -1,4 +1,5 @@
 import type { DebtMonthRow } from "../debt";
+import { addMonthsToIsoDate } from "../shared/dateIso";
 
 function escapeCsvCell(value: string | number): string {
   const s = String(value);
@@ -8,13 +9,8 @@ function escapeCsvCell(value: string | number): string {
   return s;
 }
 
-function monthLabel(monthIndex: number, startDateIso?: string): string {
-  if (!startDateIso) return String(monthIndex);
-  const start = new Date(startDateIso);
-  if (Number.isNaN(start.getTime())) return String(monthIndex);
-  const d = new Date(start);
-  d.setMonth(d.getMonth() + monthIndex - 1);
-  return d.toISOString().slice(0, 10);
+function debtMonthCalendarDate(monthIndex: number, startDateIso: string): string {
+  return addMonthsToIsoDate(startDateIso, monthIndex) ?? String(monthIndex);
 }
 
 /** Serialize debt payoff timeline rows to CSV (SPEC §4.10). */
@@ -36,7 +32,9 @@ export function debtTimelineToCsv(
   rows.forEach((row) => {
     const cells: (string | number)[] = [
       row.month,
-      ...(options.startDateIso ? [monthLabel(row.month, options.startDateIso)] : []),
+      ...(options.startDateIso
+        ? [debtMonthCalendarDate(row.month, options.startDateIso)]
+        : []),
       row.opening_total_inr,
       row.interest_inr,
       row.payment_inr,

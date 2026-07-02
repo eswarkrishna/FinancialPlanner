@@ -1,5 +1,7 @@
 import { formatMoneyFinite } from "../../lib/locale/formatMoney";
 import { type DebtStrategy } from "../../lib/debt";
+import { buildDebtBalanceCurve } from "../../lib/loan/chartData";
+import { LineChart } from "../../components/LineChart";
 import { useLocale } from "../locale/LocaleContext";
 import { useDebtPlanner } from "./hooks/useDebtPlanner";
 
@@ -193,6 +195,15 @@ export function DebtSection() {
             </div>
           )}
         </div>
+        {activeDebtModel.rows.length > 0 && (
+          <LineChart
+            title="Total debt balance over time"
+            points={buildDebtBalanceCurve(activeDebtModel.rows)}
+            stroke="#0d9488"
+            yLabel="Balance"
+            locale={locale}
+          />
+        )}
         <div className="table-wrap">
           <table>
             <thead>

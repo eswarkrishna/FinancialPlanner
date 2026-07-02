@@ -314,8 +314,20 @@ export function useLoanModels() {
     );
   }
 
+  function readImportFile(file: File): Promise<string> {
+    if (typeof file.text === "function") {
+      return file.text();
+    }
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error ?? new Error("Failed to read file."));
+      reader.readAsText(file);
+    });
+  }
+
   function importScenarioJson(file: File) {
-    void file.text().then((text) => {
+    void readImportFile(file).then((text) => {
       const outcome = parseScenarioImportJson(text);
       if (!outcome.success) {
         setImportError(outcome.message);

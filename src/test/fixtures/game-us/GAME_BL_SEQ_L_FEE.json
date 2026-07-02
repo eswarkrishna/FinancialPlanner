@@ -1,0 +1,73 @@
+{
+  "game_profile_id": "GAME_BL_SEQ_L_FEE",
+  "matrix_size": 3,
+  "payoff_matrix": [
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_0|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_0"
+      },
+      "payoffs": {
+        "B": 59180.51,
+        "L": 0
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 58680.51,
+        "L": 500
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_PCT|||",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_PCT"
+      },
+      "payoffs": {
+        "B": 59072.21,
+        "L": 108.3
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "b_extra": "B_EXTRA_0",
+        "l_fee": "L_FEE_FLAT"
+      },
+      "payoffs": {
+        "B": 58680.51,
+        "L": 500
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "b_lump": "B_PREPAY_25",
+    "b_policy": "B_POL_TENURE",
+    "b_extra": "B_EXTRA_0",
+    "l_fee": "L_FEE_FLAT"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "PREPAY_CASH_25L_TENURE"
+  ]
+}

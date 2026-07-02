@@ -1,6 +1,7 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
 import type { StrategyResult, StrategyWarning } from "../../lib/strategy/types";
 import type { Locale } from "../../lib/locale/types";
+import { BarChart } from "../../components/BarChart";
 import { useStrategyPlanner } from "./hooks/useStrategyPlanner";
 
 const STRATEGY_LABELS: Record<StrategyResult["strategy_id"], string> = {
@@ -267,6 +268,19 @@ export function StrategySection() {
           <p className="hint">
             Enter principal, annual rate, tenure, and horizon to compare strategies.
           </p>
+        )}
+        {strategyFormReady && results.length > 0 && (
+          <BarChart
+            title="Net worth at horizon by strategy"
+            yLabel="Net worth"
+            locale={locale}
+            items={results.map((row, index) => ({
+              id: row.strategy_id,
+              label: STRATEGY_LABELS[row.strategy_id],
+              value_inr: row.net_worth_at_horizon_inr,
+              color: ["#1d4ed8", "#0d9488", "#b45309"][index % 3]!,
+            }))}
+          />
         )}
         <div className="table-wrap comparison">
           <table>

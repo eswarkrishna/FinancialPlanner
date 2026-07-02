@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.7  
+**Version:** 1.8  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -197,6 +197,7 @@ For each scenario:
 - **Summary KPIs:** payoff month (date), total interest, total outflows, total prepayments, interest vs baseline delta  
 - **Schedule table:** month index, opening balance, interest, principal, extra principal, prepayment, closing balance, cash_balance (if enabled), events  
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
+- **Charts (v1.8):** debt tab — total balance over time; retirement tab — nominal corpus by year; strategies tab — net worth at horizon bar chart (reuse shared SVG components).
 
 **Export:** CSV export of schedule + JSON export of scenario config.
 
@@ -575,7 +576,7 @@ All §4.1–§4.2 loan and asset fields apply to the oracle.
 - **Deterministic:** same inputs → same outputs (document rounding).  
 - **Explainability:** hover / help text showing formulas.  
 - **Privacy:** default offline-first; no server required for v1.  
-- **Accessibility:** labels for all inputs, readable tables.  
+- **Accessibility:** labels for all inputs, readable tables; planner tab bar supports arrow-key navigation (WAI-ARIA tabs pattern).  
 - **Validation:** block negative numbers; show inline errors.
 - **Form persistence (v1.7):** loan tab inputs survive browser refresh via `localStorage`; locale-specific keys; cleared on confirmed locale switch.
 

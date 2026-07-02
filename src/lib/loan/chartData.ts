@@ -1,4 +1,6 @@
 import type { ScheduleRow } from "./amortisation";
+import type { DebtMonthRow } from "../debt/simulatePayoff";
+import type { RetirementYearRow } from "../retirement/project";
 
 export interface ChartPoint {
   month: number;
@@ -20,4 +22,20 @@ export function buildCumulativeInterestCurve(rows: ScheduleRow[]): ChartPoint[] 
     cumulative += row.interest_inr;
     return { month: row.month, value_inr: cumulative };
   });
+}
+
+/** Total debt balance over payoff timeline (§4.10). */
+export function buildDebtBalanceCurve(rows: DebtMonthRow[]): ChartPoint[] {
+  return rows.map((row) => ({
+    month: row.month,
+    value_inr: row.closing_total_inr,
+  }));
+}
+
+/** Nominal retirement corpus by year (§4.11); `month` holds year index. */
+export function buildRetirementCorpusCurve(rows: RetirementYearRow[]): ChartPoint[] {
+  return rows.map((row) => ({
+    month: row.year,
+    value_inr: row.corpus_nominal_inr,
+  }));
 }

@@ -91,27 +91,23 @@ export function useDebtPlanner() {
   }
 
   function addDebt(): void {
-    setDebtRows((prev) => {
-      trackDebtAdd(prev.length + 1);
-      return [
-        ...prev,
-        {
-          id: `debt-${Date.now()}`,
-          name: "",
-          balance_inr: "",
-          apr_pct: "",
-          minimum_payment_inr: "",
-        },
-      ];
-    });
+    trackDebtAdd(debtRows.length + 1);
+    setDebtRows((prev) => [
+      ...prev,
+      {
+        id: `debt-${Date.now()}`,
+        name: "",
+        balance_inr: "",
+        apr_pct: "",
+        minimum_payment_inr: "",
+      },
+    ]);
   }
 
   function removeDebt(debtId: string): void {
-    setDebtRows((prev) => {
-      const next = prev.filter((row) => row.id !== debtId);
-      trackDebtRemove(next.length);
-      return next;
-    });
+    const nextCount = debtRows.filter((row) => row.id !== debtId).length;
+    trackDebtRemove(nextCount);
+    setDebtRows((prev) => prev.filter((row) => row.id !== debtId));
   }
 
   function selectDebtStrategy(strategy: DebtStrategy): void {

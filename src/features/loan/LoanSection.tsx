@@ -337,9 +337,11 @@ export function LoanSection() {
 
         <p className="hint">
           <strong>Monthly cash to loan:</strong> amount applied as{" "}
-          <strong>extra principal</strong> after each month&apos;s scheduled EMI.{" "}
-          <strong>Monthly salary</strong> is routed into the loan every month in these
-          scenarios.{" "}
+          <strong>extra principal</strong> after each month&apos;s scheduled EMI (used in
+          monthly-inflow scenarios only).{" "}
+          <strong>Monthly salary</strong> is routed as extra principal in salary-sweep
+          and prepay scenarios, but <strong>not</strong> in the baseline{" "}
+          <strong>BASE</strong> row.{" "}
           <strong>{isUs ? "Brokerage liquid" : "Gold liquid"}</strong> can be the
           one-time prepay source; enable haircut to model liquidation discount.
           {goldHaircutOn && models && (
@@ -381,8 +383,9 @@ export function LoanSection() {
             <p className="hint">
               One-time prepay scenarios use{" "}
               <strong>{prepaySourceHintLabel(models.prepaySource, locale)}</strong> at end
-              of month 1. Monthly column uses your{" "}
-              <strong>Monthly cash to loan</strong> value.
+              of month 1. Monthly-inflow column uses your{" "}
+              <strong>Monthly cash to loan</strong> value (salary sweep is listed
+              separately).
             </p>
             <label className="inline">
               One-time prepay source{" "}
@@ -490,6 +493,11 @@ export function LoanSection() {
                     onChange={(e) => setScenarioView(e.target.value as ScenarioView)}
                   >
                     <option value="BASE">Baseline (no one-time prepay)</option>
+                    {models.baseSalarySweep && (
+                      <option value="BASE_SALARY_SWEEP">
+                        Baseline + monthly salary sweep
+                      </option>
+                    )}
                     {models.baseInflow && (
                       <option value="BASE_INFLOW">Baseline + monthly cashflow</option>
                     )}

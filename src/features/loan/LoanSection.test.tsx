@@ -80,4 +80,21 @@ describe("LoanSection", () => {
       expect(updated).toHaveValue("BASE");
     });
   });
+
+  it("shows BASE payoff at full tenure when reference scenario is loaded", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    expect(screen.getByText("BASE", { selector: "td" })).toBeInTheDocument();
+    const comparisonTable = screen
+      .getByRole("heading", { name: "Loan scenario comparison" })
+      .closest("section")!
+      .querySelector("tbody")!;
+    const baseRow = comparisonTable.querySelector("tr")!;
+    expect(baseRow).toHaveTextContent("168");
+    expect(screen.getByText(/BASE \+ .*salary sweep/i)).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Baseline \+ monthly salary sweep/i })).toBeInTheDocument();
+  });
 });

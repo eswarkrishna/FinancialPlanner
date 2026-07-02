@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  baselineSchedule,
   buildCumulativeInterestCurve,
   buildPrincipalCurve,
   effectiveBrokerageLiquidUsd,
@@ -51,6 +52,7 @@ import {
 
 export type ScenarioView =
   | "BASE"
+  | "BASE_SALARY_SWEEP"
   | "PREPAY_TENURE"
   | "PREPAY_EMI"
   | "BASE_INFLOW"
@@ -86,6 +88,7 @@ function isCashflowResult(
 function scenarioViewIsAvailable(
   view: ScenarioView,
   models: {
+    baseSalarySweep: unknown;
     baseInflow: unknown;
     prepayTenure: unknown;
     prepayEmi: unknown;
@@ -101,6 +104,8 @@ function scenarioViewIsAvailable(
   switch (view) {
     case "BASE":
       return true;
+    case "BASE_SALARY_SWEEP":
+      return models.baseSalarySweep != null;
     case "BASE_INFLOW":
       return models.baseInflow != null;
     case "PREPAY_TENURE":
@@ -168,6 +173,7 @@ type ComparisonRow = {
 
 const SCENARIO_LABELS: Record<ScenarioView, string> = {
   BASE: "BASE",
+  BASE_SALARY_SWEEP: "BASE_PLUS_SALARY_SWEEP",
   PREPAY_TENURE: "PREPAY_TENURE",
   PREPAY_EMI: "PREPAY_EMI",
   BASE_INFLOW: "BASE_PLUS_MONTHLY_INFLOW",
@@ -350,12 +356,20 @@ export function useLoanModels() {
     const x = v.monthly_cash_to_loan_inr;
     const salaryRecurring = v.monthly_salary_inr;
     const recurringToLoan = x + salaryRecurring;
-    const base = scheduleFixedEmiWithMonthlyExtra(
+    const base = baselineSchedule(
       v.principal_inr,
       v.annual_interest_rate,
       v.tenure_months,
-      salaryRecurring,
     );
+    const baseSalarySweep =
+      salaryRecurring > 0
+        ? scheduleFixedEmiWithMonthlyExtra(
+            v.principal_inr,
+            v.annual_interest_rate,
+            v.tenure_months,
+            salaryRecurring,
+          )
+        : null;
     const k401Plan = computeK401JobLossWithdrawalPlan(
       v.pf_corpus_inr,
       v.vested_fraction_pct,
@@ -400,7 +414,7 @@ export function useLoanModels() {
             v.principal_inr,
             v.annual_interest_rate,
             v.tenure_months,
-            recurringToLoan,
+            x,
           )
         : null;
     const prepayEmiInflow =
@@ -504,6 +518,7 @@ export function useLoanModels() {
     return {
       v,
       base,
+      baseSalarySweep,
       prepayTenure,
       prepayEmi,
       baseInflow,
@@ -516,6 +531,7 @@ export function useLoanModels() {
       stagedPrepay,
       canPrepay,
       monthlyExtra: x,
+      salaryRecurring,
       prepaySource,
       effectiveLiquidInr,
       k401Plan,
@@ -562,6 +578,17 @@ export function useLoanModels() {
         models.base.totals.total_paid_inr,
       ),
     ];
+    if (models.baseSalarySweep) {
+      rows.push(
+        row(
+          "BASE_SALARY_SWEEP",
+          `BASE + ${formatMoney(models.salaryRecurring, locale)}/mo salary sweep`,
+          models.baseSalarySweep.totals.payoff_month,
+          models.baseSalarySweep.totals.total_interest_inr,
+          models.baseSalarySweep.totals.total_paid_inr,
+        ),
+      );
+    }
     if (models.baseInflow) {
       rows.push(
         row(
@@ -712,6 +739,12 @@ export function useLoanModels() {
 
     if (scenarioView === "BASE") {
       return { rows: models.base.rows, totals: models.base.totals };
+    }
+    if (scenarioView === "BASE_SALARY_SWEEP" && models.baseSalarySweep) {
+      return {
+        rows: models.baseSalarySweep.rows,
+        totals: models.baseSalarySweep.totals,
+      };
     }
     if (scenarioView === "PREPAY_TENURE" && models.prepayTenure) {
       if (isCashflowResult(models.prepayTenure)) {

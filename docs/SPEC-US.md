@@ -8,7 +8,7 @@
 
 ---
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Audience:** Engineers / Cursor agents implementing the US locale  
 **Locale:** United States (USD; optional thousands separators in UI)  
 **Status:** Draft for implementation (research-backed v1.2)  
@@ -106,7 +106,8 @@ All monetary fields use suffix `_usd` instead of IN `_inr`. Minimum prepayment: 
 | `vested_fraction_pct` | number | no | Default `100`; apply to `k401_vested_balance_usd` for withdrawals |
 | `brokerage_liquid_usd` | number | no | Taxable account |
 | `brokerage_haircut_pct` | number | no | 0–100 if user enables liquidation discount |
-| `monthly_cash_to_loan_usd` | number | no | Recurring extra principal after scheduled payment (US§4.5) |
+| `monthly_cash_to_loan_usd` | number | no | Recurring extra principal after scheduled payment (US§4.5); does **not** include salary sweep |
+| `monthly_salary_usd` | number | no | Optional stress-test: USD routed as **extra principal** after payment in scenarios that include salary sweep (`BASE_PLUS_SALARY_SWEEP`, prepay rows, §4.8 when configured). **Excluded from `BASE`.** v1 UI label: “Monthly salary”. |
 | `monthly_401k_deferral_usd` | number | no | Employee pre-tax deferral (projection only) |
 | `annual_salary_usd` | number | no | For employer match formula |
 | `employer_match_rate_pct` | number | no | Default **50** (50% of deferral) |
@@ -156,14 +157,15 @@ Same as IN §4.5 with `_usd` fields.
 
 | Scenario ID | Description |
 |-------------|-------------|
-| `BASE` | No prepayment |
+| `BASE` | No prepayment; scheduled payment only for full original tenure (§4.3). **Ignores** `monthly_salary_usd` and `monthly_cash_to_loan_usd`. |
 | `PREPAY_CASH_50K_TENURE` | One-time $50,000 from cash at month 1; `recompute_tenure_keep_payment` |
 | `PREPAY_CASH_50K_PAYMENT` | One-time $50,000 at month 1; `recompute_payment_keep_tenure` |
 | `PREPAY_FULL_100K` | Full payoff at month 1 from combined sources (user funding mix) |
 | `PREPAY_CUSTOM` | User-defined amount + month + policy |
 | `EXTRA_PRINCIPAL` | Recurring extra principal |
 | `STAGED_PREPAY` | Multiple timed prepayments |
-| `BASE_PLUS_MONTHLY_INFLOW` | Baseline payment + fixed `monthly_cash_to_loan_usd` |
+| `BASE_PLUS_SALARY_SWEEP` | Baseline payment + `monthly_salary_usd` as extra principal each month (§4.5); compare **payoff months** to `BASE` |
+| `BASE_PLUS_MONTHLY_INFLOW` | Baseline payment + fixed `monthly_cash_to_loan_usd` each month after payment (§4.5); does **not** include `monthly_salary_usd`; compare **payoff months** to `BASE` |
 | `PREPAY_PAYMENT_PLUS_MONTHLY_INFLOW` | One-time prepay month 1 + keep original payment + monthly extra |
 
 ---
@@ -484,6 +486,7 @@ All IN §9 cases plus:
 4. **401(k) job loss:** for `K0=100_000`, verify gross inflows **50,000** then **50,000** on months `U` and `U+11`; cash-bound tranche net **$27,200** each at 10% penalty + 22% withholding ($40k gross).  
 5. **Cashflow shortfall** fixture flags warning.  
 6. **Monthly inflow** shortens payoff vs BASE.  
+6b. **BASE vs salary sweep:** reference mortgage (US§15) with `monthly_salary_usd=10_000` and `monthly_cash_to_loan_usd=0` — `BASE` payoff month = **360**; `BASE_PLUS_SALARY_SWEEP` payoff month materially less than baseline (document reference in test).  
 7. **Employer match:** $120k salary, $1k deferral, 50%/6% → **$300/mo** match.  
 8. **Debt avalanche** total interest ≤ snowball for reference debts.  
 9. **Retirement:** contribution monotonicity and conservative ≤ optimistic funded ratio.  

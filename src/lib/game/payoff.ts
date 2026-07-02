@@ -113,7 +113,8 @@ function cashflowInputFromGame(
     annual_interest_rate: input.annual_interest_rate,
     tenure_months: input.tenure_months,
     cash_inr: input.cash_inr,
-    monthly_income_inr: input.monthly_income_inr ?? 0,
+    monthly_income_inr:
+      input.monthly_take_home_inr ?? input.monthly_income_inr ?? 0,
     monthly_living_expense_inr: input.monthly_living_expense_inr,
     monthly_extra_to_loan_inr: extraInr,
     unemployment_start_month: unemploymentStartMonth,
@@ -330,13 +331,18 @@ export function borrowerPayoffBn(
 
   if (employment === "N_EMPLOYED") {
     if (lumpInr <= 0 && extraInr <= 0) {
+      if (metric === "MIN_CASH_RUNWAY") {
+        const cashflow = simulateCashflowSchedule({
+          ...cashflowInputFromGame(input, 1, 0, 0),
+          unemployment_enabled: false,
+        });
+        return { payoff: cashflow.min_cash_balance_inr, scenarioId: "BASE" };
+      }
       return {
         payoff:
           metric === "MINUS_TOTAL_INTEREST"
             ? roundInr(-baseInterest)
-            : metric === "MIN_CASH_RUNWAY"
-              ? input.cash_inr
-              : 0,
+            : 0,
         scenarioId: "BASE",
       };
     }

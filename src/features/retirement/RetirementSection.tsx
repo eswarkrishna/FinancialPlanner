@@ -107,6 +107,7 @@ export function RetirementSection() {
             Yearly timeline scenario
             <select
               value={selectedRetirementScenario}
+              disabled={yearsInvalid || retirementScenarios.length === 0}
               onChange={(event) => setSelectedRetirementScenario(event.target.value)}
             >
               {retirementScenarios.map((scenario) => (

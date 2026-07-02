@@ -112,7 +112,8 @@ export function simulateUsCashflowSchedule(
   const rows: UsCashflowScheduleRow[] = [];
   let balance = roundUsd(input.principal_inr);
   let cashBalance = roundUsd(input.cash_inr);
-  let totalInterest = 0;
+  let totalInterestIfPaidOff = 0;
+  let totalInterestWithinTenure = 0;
   let totalPaid = 0;
   let totalPrepay = 0;
   let totalPenalty = 0;
@@ -375,7 +376,11 @@ export function simulateUsCashflowSchedule(
       cashBalance,
       events,
     );
-    totalInterest += interestPaid;
+    const interestCost = roundUsd(interestPaid + Math.max(0, interest - interestPaid));
+    totalInterestIfPaidOff += interestCost;
+    if (m <= input.tenure_months) {
+      totalInterestWithinTenure += interestCost;
+    }
     totalPaid += roundUsd(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPS) break;
@@ -389,6 +394,7 @@ export function simulateUsCashflowSchedule(
   if (!loanPaidOff && rows.length >= cap) {
     warnings.push("LOAN_NOT_PAID_OFF");
   }
+  const totalInterest = loanPaidOff ? totalInterestIfPaidOff : totalInterestWithinTenure;
 
   return {
     emi_inr: emi0,

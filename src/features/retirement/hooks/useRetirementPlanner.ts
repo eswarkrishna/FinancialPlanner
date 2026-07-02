@@ -7,6 +7,7 @@ import {
   type RetirementInput,
 } from "../../../lib/retirement/index";
 import {
+  readStoredLocale,
   referenceRetirementFormForLocale,
   useLocale,
 } from "../../locale/LocaleContext";
@@ -34,7 +35,7 @@ function formatPercent(value: number): string {
 export function useRetirementPlanner() {
   const { locale, localeEpoch } = useLocale();
   const [retirementInputs, setRetirementInputs] = useState<RetirementFormState>(
-    REFERENCE_RETIREMENT_FORM_IN,
+    () => referenceRetirementFormForLocale(readStoredLocale()),
   );
   const [selectedRetirementScenario, setSelectedRetirementScenario] =
     useState("base");
@@ -95,6 +96,13 @@ export function useRetirementPlanner() {
     if (!retirementBaseInput) return [];
     return buildRetirementScenarios(retirementBaseInput);
   }, [retirementBaseInput]);
+
+  useEffect(() => {
+    if (retirementScenarios.length === 0) return;
+    if (!retirementScenarios.some((s) => s.id === selectedRetirementScenario)) {
+      setSelectedRetirementScenario(retirementScenarios[0]!.id);
+    }
+  }, [retirementScenarios, selectedRetirementScenario]);
 
   const activeRetirementScenario =
     retirementScenarios.find(

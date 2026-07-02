@@ -167,5 +167,6 @@ describe("simulateUsCashflowSchedule (SPEC-US §4.8)", () => {
     expect(result.totals.payoff_month).toBe(0);
     expect(result.warnings).toContain("LOAN_NOT_PAID_OFF");
     expect(result.rows[result.rows.length - 1]?.closing_inr).toBeGreaterThan(0);
+    expect(result.totals.total_interest_inr).toBeLessThan(1_000_000);
   });
 });

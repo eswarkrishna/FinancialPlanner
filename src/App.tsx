@@ -29,13 +29,18 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    setTabInUrl(activeTab, { push: false });
+  }, []);
+
+  useEffect(() => {
     const label = PLANNER_TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
-    setTabInUrl(activeTab);
     updatePageSeo(activeTab);
     trackPageView(`tab/${activeTab}`, `FinancialPlanner — ${label}`);
   }, [activeTab]);
 
   function selectTab(tabId: TabId) {
+    if (tabId === activeTab) return;
+    setTabInUrl(tabId, { push: true });
     setActiveTab(tabId);
   }
 

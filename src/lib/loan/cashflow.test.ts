@@ -66,6 +66,7 @@ describe("simulateCashflowSchedule (SPEC §4.8)", () => {
     expect(month1.closing_inr).toBeGreaterThan(
       month1.opening_inr - month1.principal_inr,
     );
+    expect(result.totals.total_interest_inr).toBeGreaterThan(month1.interest_inr);
   });
 
   it("applies PF tranches to loan for UE_PF_TO_LOAN preset", () => {

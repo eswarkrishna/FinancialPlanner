@@ -88,7 +88,7 @@ export function pageDescription(tabId: TabId): string {
   return PLANNER_TABS.find((tab) => tab.id === tabId)?.description ?? DEFAULT_DESCRIPTION;
 }
 
-export function setTabInUrl(tabId: TabId): void {
+export function setTabInUrl(tabId: TabId, options?: { push?: boolean }): void {
   if (typeof window === "undefined") {
     return;
   }
@@ -99,7 +99,11 @@ export function setTabInUrl(tabId: TabId): void {
     url.searchParams.set("tab", tabId);
   }
   const next = `${url.pathname}${url.search}${url.hash}`;
-  window.history.replaceState(null, "", next);
+  if (options?.push) {
+    window.history.pushState(null, "", next);
+  } else {
+    window.history.replaceState(null, "", next);
+  }
 }
 
 function upsertMeta(

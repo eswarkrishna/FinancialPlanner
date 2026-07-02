@@ -68,16 +68,33 @@ describe("loanFormState (SPEC §4.9 v1.7)", () => {
     expect(localStorage.getItem(loanFormStorageKey("IN"))).not.toBeNull();
   });
 
-  it("rejects persisted state with non-array stagedPrepays", () => {
+  it("normalizes corrupt stagedPrepays without discarding loan inputs", () => {
     localStorage.setItem(
       loanFormStorageKey("IN"),
       JSON.stringify({
         version: LOAN_FORM_STORAGE_VERSION,
         locale: "IN",
-        inputs: EMPTY_LOAN_FORM,
+        inputs: { ...EMPTY_LOAN_FORM, principal_inr: "5000000" },
         scenarioView: "BASE",
         prepaySource: "cash",
         stagedPrepays: null,
+      }),
+    );
+    const stored = readLoanFormState("IN");
+    expect(stored?.inputs.principal_inr).toBe("5000000");
+    expect(stored?.stagedPrepays).toEqual([]);
+  });
+
+  it("rejects persisted state with invalid core fields", () => {
+    localStorage.setItem(
+      loanFormStorageKey("IN"),
+      JSON.stringify({
+        version: LOAN_FORM_STORAGE_VERSION,
+        locale: "IN",
+        inputs: null,
+        scenarioView: "BASE",
+        prepaySource: "cash",
+        stagedPrepays: [],
       }),
     );
     expect(readLoanFormState("IN")).toBeNull();

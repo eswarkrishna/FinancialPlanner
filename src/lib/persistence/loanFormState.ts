@@ -42,6 +42,11 @@ function isValidPrepaySource(value: unknown): value is PrepaySource {
   return value === "cash" || value === "pf" || value === "gold";
 }
 
+function normalizeStagedPrepays(value: unknown): StagedPrepayEntry[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isStagedPrepayEntry);
+}
+
 function isValidPersistedState(value: Partial<LoanFormPersistedState>): value is LoanFormPersistedState {
   if (value.version !== LOAN_FORM_STORAGE_VERSION) return false;
   if (value.locale !== "IN" && value.locale !== "US") return false;
@@ -51,6 +56,25 @@ function isValidPersistedState(value: Partial<LoanFormPersistedState>): value is
   if (!Array.isArray(value.stagedPrepays)) return false;
   if (!value.stagedPrepays.every(isStagedPrepayEntry)) return false;
   return true;
+}
+
+function normalizePersistedState(
+  value: Partial<LoanFormPersistedState>,
+  locale: Locale,
+): LoanFormPersistedState | null {
+  if (value.version !== LOAN_FORM_STORAGE_VERSION) return null;
+  if (value.locale !== locale) return null;
+  if (!value.inputs || typeof value.inputs !== "object") return null;
+  if (!isValidScenarioView(value.scenarioView)) return null;
+  if (!isValidPrepaySource(value.prepaySource)) return null;
+  return {
+    version: LOAN_FORM_STORAGE_VERSION,
+    locale,
+    inputs: value.inputs as Record<keyof LoanInput, string>,
+    scenarioView: value.scenarioView,
+    prepaySource: value.prepaySource,
+    stagedPrepays: normalizeStagedPrepays(value.stagedPrepays),
+  };
 }
 
 /** Migrate v1.7 single-key blob into per-locale keys without cross-locale overwrite. */
@@ -79,9 +103,7 @@ export function readLoanFormState(locale: Locale): LoanFormPersistedState | null
     const raw = window.localStorage.getItem(loanFormStorageKey(locale));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<LoanFormPersistedState>;
-    if (!isValidPersistedState(parsed)) return null;
-    if (parsed.locale !== locale) return null;
-    return parsed;
+    return normalizePersistedState(parsed, locale);
   } catch {
     return null;
   }

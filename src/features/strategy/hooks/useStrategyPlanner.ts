@@ -15,6 +15,7 @@ import {
   type StrategyTierPreset,
 } from "../../../lib/strategy/types";
 import { useLocale } from "../../locale/LocaleContext";
+import { trackStrategyTierPreset } from "../../../lib/analytics";
 
 type StrategyFormState = {
   principal_inr: string;
@@ -148,6 +149,7 @@ export function useStrategyPlanner() {
       ...prev,
       monthly_take_home_inr: String(preset.monthly_take_home_inr),
     }));
+    trackStrategyTierPreset(preset.id, locale);
   }
 
   return {

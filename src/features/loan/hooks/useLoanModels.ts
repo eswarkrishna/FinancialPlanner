@@ -27,6 +27,13 @@ import {
   scenarioToJson,
   type ScenarioExportPayload,
 } from "../../../lib/export";
+import {
+  trackLoanExportScheduleCsv,
+  trackLoanExportScenarioJson,
+  trackLoanLoadReference,
+  trackLoanStagedPrepayAdd,
+  trackLoanStagedPrepayRemove,
+} from "../../../lib/analytics";
 import { formatMoney } from "../../../lib/locale/formatMoney";
 import type { Locale } from "../../../lib/locale/types";
 import {
@@ -868,6 +875,7 @@ export function useLoanModels() {
     setInputs(loanFormFromScenario(ref) as Record<keyof LoanInput, string>);
     setScenarioView("BASE");
     setStagedPrepays([]);
+    trackLoanLoadReference(locale);
   }
 
   const prevLocaleRef = useRef<Locale | null>(null);
@@ -888,10 +896,12 @@ export function useLoanModels() {
 
   function addStagedPrepay() {
     setStagedPrepays((prev) => [...prev, newStagedPrepayEntry()]);
+    trackLoanStagedPrepayAdd();
   }
 
   function removeStagedPrepay(id: string) {
     setStagedPrepays((prev) => prev.filter((e) => e.id !== id));
+    trackLoanStagedPrepayRemove();
   }
 
   function updateStagedPrepay(
@@ -913,6 +923,7 @@ export function useLoanModels() {
     });
     const slug = SCENARIO_LABELS[scenarioView].toLowerCase();
     downloadTextFile(`loan-schedule-${slug}.csv`, csv, "text/csv;charset=utf-8");
+    trackLoanExportScheduleCsv(scenarioView, locale);
   }
 
   function exportScenarioJson() {
@@ -946,6 +957,7 @@ export function useLoanModels() {
       scenarioToJson(payload),
       "application/json;charset=utf-8",
     );
+    trackLoanExportScenarioJson(scenarioView, locale);
   }
 
   return {

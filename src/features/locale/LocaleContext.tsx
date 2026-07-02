@@ -12,6 +12,7 @@ import {
   REFERENCE_SCENARIO_US,
   type Locale,
 } from "../../lib/locale";
+import { trackLocaleChange } from "../../lib/analytics";
 import {
   REFERENCE_RETIREMENT_FORM_IN,
   REFERENCE_RETIREMENT_FORM_US,
@@ -47,6 +48,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     setLocaleState(next);
     setLocaleEpoch((epoch) => epoch + 1);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
+    trackLocaleChange(next);
   }, []);
 
   const setLocale = useCallback(

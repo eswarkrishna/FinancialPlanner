@@ -7,6 +7,7 @@ import {
   type GameResult,
 } from "../../../lib/game";
 import { downloadTextFile, gameResultToJson } from "../../../lib/export";
+import { trackGameExportJson, trackGameProfileChange } from "../../../lib/analytics";
 import {
   referenceScenarioForLocale,
   useLocale,
@@ -61,11 +62,17 @@ export function useGamePlanner() {
       warnings: result.warnings,
     });
     downloadTextFile(`game-${profileId.toLowerCase()}.json`, json, "application/json");
+    trackGameExportJson(profileId, locale);
+  }
+
+  function selectProfile(next: GameProfileId): void {
+    setProfileId(next);
+    trackGameProfileChange(next);
   }
 
   return {
     profileId,
-    setProfileId,
+    setProfileId: selectProfile,
     prepaymentFeeInr,
     setPrepaymentFeeInr,
     parsed,

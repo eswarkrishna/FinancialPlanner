@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.5  
+**Version:** 1.6  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -568,6 +568,42 @@ All §4.1–§4.2 loan and asset fields apply to the oracle.
 - **Accessibility:** labels for all inputs, readable tables.  
 - **Validation:** block negative numbers; show inline errors.
 
+### 5.1 Analytics (optional GA4)
+
+When `VITE_GA_MEASUREMENT_ID` is set at build time, the hosted app may load **Google Analytics 4** (`gtag.js`). Analytics must **not** transmit loan amounts, form field values, or other user-entered financial data.
+
+**Page views**
+
+- Initial load: virtual path `/`, title `FinancialPlanner — Home`.
+- Tab change: virtual path `/tab/{tab_id}` with a human-readable title.
+
+**Named interaction events** (explicit `gtag` events — not inferred from generic DOM clicks):
+
+| Event name | When | Parameters (no PII) |
+|------------|------|-------------------|
+| `tab_select` | User selects a planner tab | `tab_id`, `page_path` |
+| `locale_change` | User confirms locale switch | `locale` (`IN` \| `US`), `page_path` |
+| `loan_load_reference` | “Load reference scenario” | `locale`, `page_path` |
+| `loan_export_schedule_csv` | Loan schedule CSV export | `scenario_view`, `locale`, `page_path` |
+| `loan_export_scenario_json` | Loan scenario JSON export | `scenario_view`, `locale`, `page_path` |
+| `loan_scenario_view_change` | Loan schedule scenario dropdown | `scenario_view`, `locale`, `page_path` |
+| `loan_prepay_source_change` | One-time prepay source dropdown | `prepay_source`, `locale`, `page_path` |
+| `loan_staged_prepay_add` | Add staged prepayment row | `page_path` |
+| `loan_staged_prepay_remove` | Remove staged prepayment row | `page_path` |
+| `debt_add` | Add debt row | `debt_count`, `page_path` |
+| `debt_remove` | Remove debt row | `debt_count`, `page_path` |
+| `debt_strategy_change` | Avalanche / snowball schedule view | `strategy`, `page_path` |
+| `retirement_scenario_select` | Retirement yearly timeline scenario | `scenario_id`, `page_path` |
+| `strategy_tier_preset` | Strategy take-home tier shortcut | `preset_id`, `locale`, `page_path` |
+| `game_profile_change` | Game profile dropdown | `profile_id`, `page_path` |
+| `game_export_json` | Game payoff matrix JSON export | `profile_id`, `locale`, `page_path` |
+| `feedback_github_click` | Footer “Report on GitHub” | `page_path` |
+| `footer_commit_link_click` | Footer commit SHA link | `page_path` |
+| `footer_terms_toggle` | Terms `<details>` open/close | `open` (boolean), `page_path` |
+| `footer_ga_optout_click` | GA opt-out link in terms | `page_path` |
+
+**Out of scope for analytics:** per-keystroke input changes, amortisation row data, exported file contents, and blanket delegated click listeners on all DOM elements.
+
 ---
 
 ## 6. Data Models (TypeScript-friendly sketch)
@@ -785,6 +821,10 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 ### UI / deploy metadata (§8)
 
 17. **Latest push footer:** when built from git, footer shows “Latest push”, commit date, and short SHA; SHA links to the matching GitHub commit URL for the default repo.
+
+### Analytics (§5.1)
+
+18. **Named events:** with GA enabled in tests, `tab_select` and `loan_export_schedule_csv` call `gtag` with the event names and parameters in §5.1; generic delegated `click` events are **not** emitted for arbitrary DOM clicks.
 
 ---
 

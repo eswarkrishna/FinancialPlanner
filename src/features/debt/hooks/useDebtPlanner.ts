@@ -4,6 +4,11 @@ import {
   type DebtInput,
   type DebtStrategy,
 } from "../../../lib/debt/index";
+import {
+  trackDebtAdd,
+  trackDebtRemove,
+  trackDebtStrategyChange,
+} from "../../../lib/analytics";
 import { useLocale } from "../../locale/LocaleContext";
 
 type DebtFormRow = {
@@ -86,6 +91,7 @@ export function useDebtPlanner() {
   }
 
   function addDebt(): void {
+    trackDebtAdd(debtRows.length + 1);
     setDebtRows((prev) => [
       ...prev,
       {
@@ -99,7 +105,14 @@ export function useDebtPlanner() {
   }
 
   function removeDebt(debtId: string): void {
+    const nextCount = debtRows.filter((row) => row.id !== debtId).length;
+    trackDebtRemove(nextCount);
     setDebtRows((prev) => prev.filter((row) => row.id !== debtId));
+  }
+
+  function selectDebtStrategy(strategy: DebtStrategy): void {
+    setSelectedDebtStrategy(strategy);
+    trackDebtStrategyChange(strategy);
   }
 
   return {
@@ -108,7 +121,7 @@ export function useDebtPlanner() {
     monthlyBudgetInr,
     setMonthlyBudgetInr,
     selectedDebtStrategy,
-    setSelectedDebtStrategy,
+    setSelectedDebtStrategy: selectDebtStrategy,
     debtRows,
     setDebtField,
     addDebt,

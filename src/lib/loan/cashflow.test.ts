@@ -45,6 +45,29 @@ describe("simulateCashflowSchedule (SPEC §4.8)", () => {
     expect(result.warnings).toContain("EMI_DEFAULT_RISK");
   });
 
+  it("capitalizes unpaid interest when EMI is not fully paid (§4.8 skip_emi)", () => {
+    const result = simulateCashflowSchedule({
+      principal_inr: 1_000_000,
+      annual_interest_rate: 12,
+      tenure_months: 120,
+      cash_inr: 5_000,
+      monthly_income_inr: 0,
+      monthly_living_expense_inr: 0,
+      monthly_extra_to_loan_inr: 0,
+      unemployment_enabled: false,
+      unemployment_start_month: 1,
+      pf_corpus_inr: 0,
+      pf_annual_interest_rate_pct: 0,
+      monthly_pf_addition_inr: 0,
+    });
+    expect(result.warnings).toContain("CASH_SHORTFALL");
+    const month1 = result.rows[0]!;
+    expect(month1.interest_inr).toBeGreaterThan(month1.principal_inr + month1.prepayment_inr);
+    expect(month1.closing_inr).toBeGreaterThan(
+      month1.opening_inr - month1.principal_inr,
+    );
+  });
+
   it("applies PF tranches to loan for UE_PF_TO_LOAN preset", () => {
     const result = simulateUePfToLoanCashflow({
       principal_inr: 5_000_000,

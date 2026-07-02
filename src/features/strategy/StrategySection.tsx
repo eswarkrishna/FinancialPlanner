@@ -232,19 +232,6 @@ export function StrategySection() {
               }
             />
           </label>
-          <label>
-            Tax regime (display)
-            <select
-              value={form.tax_regime}
-              onChange={(e) =>
-                setField("tax_regime", e.target.value as "" | "old" | "new")
-              }
-            >
-              <option value="">—</option>
-              <option value="new">New</option>
-              <option value="old">Old</option>
-            </select>
-          </label>
         </div>
       </section>
 

@@ -33,7 +33,6 @@ type StrategyFormState = {
   repayment_pct_of_take_home: string;
   extra_income_post_tax: boolean | null;
   marginal_tax_rate_pct: string;
-  tax_regime: "" | "old" | "new";
 };
 
 const EMPTY_FORM: StrategyFormState = {
@@ -53,7 +52,6 @@ const EMPTY_FORM: StrategyFormState = {
   repayment_pct_of_take_home: "",
   extra_income_post_tax: null,
   marginal_tax_rate_pct: "",
-  tax_regime: "",
 };
 
 function parseNumber(value: string): number {

@@ -8,8 +8,8 @@
         "h_split": "H_CUSTOM_70_30"
       },
       "payoffs": {
-        "B": 23077826.78,
-        "H": 23077826.78
+        "B": 1973662.27,
+        "H": 1973662.27
       },
       "underlying_scenario_id": "H_CUSTOM_70_30"
     },
@@ -19,8 +19,8 @@
         "h_split": "H_CUSTOM_30_70"
       },
       "payoffs": {
-        "B": 12731699.62,
-        "H": 12731699.62
+        "B": 776098.95,
+        "H": 776098.95
       },
       "underlying_scenario_id": "H_CUSTOM_30_70"
     },
@@ -30,8 +30,8 @@
         "h_split": "H_BLEND"
       },
       "payoffs": {
-        "B": 15311591.41,
-        "H": 15311591.41
+        "B": 1138660.46,
+        "H": 1138660.46
       },
       "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
     }
@@ -42,8 +42,8 @@
         "h_split": "H_CUSTOM_70_30"
       },
       "payoffs": {
-        "B": 23077826.78,
-        "H": 23077826.78
+        "B": 1973662.27,
+        "H": 1973662.27
       },
       "is_pure": true
     }

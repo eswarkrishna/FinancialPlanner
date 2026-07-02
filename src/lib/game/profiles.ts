@@ -40,7 +40,7 @@ function blCell(
   fee: LFeeAction,
   extra: BExtraAction = "B_EXTRA_0",
 ): PayoffCell {
-  const lumpInr = resolveLumpInr(lump, input.cash_inr);
+  const lumpInr = resolveLumpInr(lump, input);
   const feeInr = prepaymentFeeInr(fee, lumpInr, input);
   const extraInr = resolveExtraInr(extra);
   const { totals, scenarioId } = runBlSchedule(input, lumpInr, policy, extraInr);
@@ -186,9 +186,7 @@ export function runGameBhCoopPareto(input: GameInput): GameResult {
     const { payoff, scenarioId } = borrowerPayoffBh(
       input,
       h_split,
-      input.payoff_metric === "NET_WORTH_HORIZON"
-        ? "NET_WORTH_HORIZON"
-        : "NET_WORTH_HORIZON",
+      input.payoff_metric,
     );
     const profile: GameActionProfile = { h_split };
     return {

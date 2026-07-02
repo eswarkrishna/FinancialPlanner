@@ -421,7 +421,7 @@ export function useLoanModels() {
       canPrepay && x > 0
         ? isUs && prepaySource === "pf"
           ? simulateUsCashflowSchedule({
-              ...usCashflowBaseInput(v, recurringToLoan),
+              ...usCashflowBaseInput(v, x),
               job_loss_enabled: false,
               employed_401k_prepayments: [{ month: 1, gross_usd: oneTimePrepayInr }],
             })
@@ -429,7 +429,7 @@ export function useLoanModels() {
               v.principal_inr,
               v.annual_interest_rate,
               v.tenure_months,
-              recurringToLoan,
+              x,
               { month: 1, amount: oneTimePrepayInr },
             )
         : null;

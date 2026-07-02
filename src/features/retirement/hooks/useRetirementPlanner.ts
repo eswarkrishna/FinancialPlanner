@@ -7,6 +7,15 @@ import {
   type RetirementInput,
 } from "../../../lib/retirement/index";
 import {
+  downloadTextFile,
+  retirementResultToJson,
+  retirementTimelineToCsv,
+} from "../../../lib/export";
+import {
+  trackRetirementExportJson,
+  trackRetirementExportTimelineCsv,
+} from "../../../lib/analytics";
+import {
   readStoredLocale,
   referenceRetirementFormForLocale,
   useLocale,
@@ -117,6 +126,33 @@ export function useRetirementPlanner() {
     setRetirementInputs((prev) => ({ ...prev, [key]: value }));
   }
 
+  function exportRetirementTimelineCsv(): void {
+    if (!activeRetirementScenario) return;
+    const csv = retirementTimelineToCsv(activeRetirementScenario.projection.yearly);
+    downloadTextFile(
+      `retirement-timeline-${selectedRetirementScenario}.csv`,
+      csv,
+      "text/csv;charset=utf-8",
+    );
+    trackRetirementExportTimelineCsv(selectedRetirementScenario, locale);
+  }
+
+  function exportRetirementJson(): void {
+    if (!retirementBaseInput) return;
+    const json = retirementResultToJson({
+      exported_at: new Date().toISOString(),
+      inputs: { ...retirementBaseInput },
+      scenarios: retirementScenarios,
+      selected_scenario_id: selectedRetirementScenario,
+    });
+    downloadTextFile(
+      `retirement-planner-${selectedRetirementScenario}.json`,
+      json,
+      "application/json;charset=utf-8",
+    );
+    trackRetirementExportJson(selectedRetirementScenario, locale);
+  }
+
   return {
     retirementInputs,
     selectedRetirementScenario,
@@ -127,6 +163,8 @@ export function useRetirementPlanner() {
     setRetirementField,
     formatPercent,
     yearsInvalid,
+    exportRetirementTimelineCsv,
+    exportRetirementJson,
   };
 }
 

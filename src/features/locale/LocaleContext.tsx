@@ -27,7 +27,7 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-function readStoredLocale(): Locale {
+export function readStoredLocale(): Locale {
   if (typeof window === "undefined") return "IN";
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
   return stored === "US" ? "US" : "IN";

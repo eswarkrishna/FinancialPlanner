@@ -375,7 +375,7 @@ export function simulateUsCashflowSchedule(
       cashBalance,
       events,
     );
-    totalInterest += interestPaid;
+    totalInterest += interest;
     totalPaid += roundUsd(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPS) break;

@@ -243,7 +243,7 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
       cashBalance,
       events,
     );
-    totalInterest += interestPaid;
+    totalInterest += interest;
     totalPaid += roundInr(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPSILON_INR) break;

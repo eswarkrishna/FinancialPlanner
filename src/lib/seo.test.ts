@@ -67,6 +67,18 @@ describe("seo", () => {
       expect(window.location.search).toBe("");
     });
 
+    it("pushes tab history entries when requested", () => {
+      const pushSpy = vi.spyOn(window.history, "pushState");
+      const replaceSpy = vi.spyOn(window.history, "replaceState");
+
+      setTabInUrl("debt", { push: true });
+      expect(pushSpy).toHaveBeenCalled();
+      expect(replaceSpy).not.toHaveBeenCalled();
+
+      setTabInUrl("retirement");
+      expect(replaceSpy).toHaveBeenCalled();
+    });
+
     it("updates document SEO tags for a tab", () => {
       updatePageSeo("strategies", "https://example.com/app");
 

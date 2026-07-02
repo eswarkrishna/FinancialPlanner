@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -82,6 +82,7 @@ Optional **strategic interaction** modelling (§4.13) compares borrower, lender,
 | `gold_liquid_inr` | number | no |
 | `gold_haircut_pct` | number | no | 0–100 applied to gold if user enables |
 | `monthly_cash_to_loan_inr` | number | no | Recurring INR applied as **extra principal** after each month’s scheduled EMI (§4.5). v1 UI label: “Monthly cash to loan”; does **not** deduct living expenses—use §4.8 for budgeted cashflow. |
+| `monthly_salary_inr` | number | no | Optional stress-test: INR routed as **extra principal** after EMI in scenarios that include salary sweep (`BASE_PLUS_SALARY_SWEEP`, prepay rows, §4.8 when configured). **Excluded from `BASE`.** v1 UI label: “Monthly salary”. |
 
 ### 4.3 Baseline computation
 
@@ -126,14 +127,15 @@ Implement as named presets + freeform builder.
 
 | Scenario ID | Description |
 |-------------|-------------|
-| `BASE` | No prepayment |
+| `BASE` | No prepayment; scheduled EMI only for full original tenure (§4.3). **Ignores** `monthly_salary_inr` and `monthly_cash_to_loan_inr`. |
 | `PREPAY_CASH_25L_TENURE` | One-time prepay ₹25,00,000 from cash at month 1; policy `recompute_tenure_keep_emi` |
 | `PREPAY_CASH_25L_EMI` | One-time prepay ₹25,00,000 at month 1; policy `recompute_emi_keep_tenure` |
 | `PREPAY_FULL_50L` | Full payoff at month 1 from combined sources (user selects funding mix) |
 | `PREPAY_CUSTOM` | User-defined amount + month + policy |
 | `EXTRA_EMI` | Recurring extra principal |
 | `STAGED_PREPAY` | Multiple timed prepayments (array) |
-| `BASE_PLUS_MONTHLY_INFLOW` | Baseline EMI + fixed `monthly_cash_to_loan_inr` each month after EMI (§4.5); compare **payoff months** to BASE |
+| `BASE_PLUS_SALARY_SWEEP` | Baseline EMI + `monthly_salary_inr` as extra principal each month (§4.5); compare **payoff months** to `BASE` |
+| `BASE_PLUS_MONTHLY_INFLOW` | Baseline EMI + fixed `monthly_cash_to_loan_inr` each month after EMI (§4.5); does **not** include `monthly_salary_inr`; compare **payoff months** to `BASE` |
 | `PREPAY_EMI_PLUS_MONTHLY_INFLOW` | One-time prepay (e.g. ₹25L) month 1 + **keep original EMI** + same monthly extra to loan; compare payoff months |
 
 ### 4.7 Unemployment + PF withdrawal module (required)
@@ -755,7 +757,8 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 4. **Prepay ₹25L at month 1 + keep tenure 168**: EMI ~ **half** of baseline within **₹50** (rounding).  
 5. **PF unemployment**: for `PF0=2_500_000`, verify inflows **1,875,000** then **625,000** on correct months.  
 6. **Cashflow**: constructed fixture where income=0, living+EMI exhaust cash in `k` months → system flags shortfall.  
-7. **Monthly inflow to loan:** for fixed `monthly_cash_to_loan_inr` &gt; 0, payoff month count is **strictly less** than baseline for the same principal/rate/tenure (reference loan).
+7. **Monthly inflow to loan:** for fixed `monthly_cash_to_loan_inr` &gt; 0, payoff month count is **strictly less** than `BASE` for the same principal/rate/tenure (reference loan).  
+7b. **BASE vs salary sweep:** reference loan (§15) with `monthly_salary_inr=100_000` and `monthly_cash_to_loan_inr=0` — `BASE` payoff month = **168**; `BASE_PLUS_SALARY_SWEEP` payoff month ~ **38** (±1 month).
 
 ### Multi-debt & retirement (§4.10–§4.11)
 

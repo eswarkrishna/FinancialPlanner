@@ -34,5 +34,7 @@ describe("DebtSection", () => {
         "Monthly budget is below total minimum payments. Increase budget to simulate payoff.",
       ),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Export CSV" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Export JSON" })).not.toBeInTheDocument();
   });
 });

@@ -19,6 +19,8 @@ export function RetirementSection() {
     formatPercent,
     retirementBaseInput,
     yearsInvalid,
+    exportRetirementTimelineCsv,
+    exportRetirementJson,
   } = useRetirementPlanner();
 
   const annualSsIncome =
@@ -207,10 +209,30 @@ export function RetirementSection() {
       </section>
 
       <section className="card">
-        <h2>
-          Retirement yearly corpus timeline (
-          {activeRetirementScenario?.label ?? "—"})
-        </h2>
+        <div className="schedule-head">
+          <h2>
+            Retirement yearly corpus timeline (
+            {activeRetirementScenario?.label ?? "—"})
+          </h2>
+          {!yearsInvalid && activeRetirementScenario && (
+            <div className="actions inline-actions">
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportRetirementTimelineCsv}
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportRetirementJson}
+              >
+                Export JSON
+              </button>
+            </div>
+          )}
+        </div>
         {yearsInvalid || !activeRetirementScenario ? (
           <p className="hint">Enter valid years to retirement to see the yearly timeline.</p>
         ) : (

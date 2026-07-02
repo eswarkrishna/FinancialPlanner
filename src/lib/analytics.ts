@@ -192,6 +192,45 @@ export function trackGameExportJson(profileId: string, locale: string): void {
   );
 }
 
+export function trackDebtExportTimelineCsv(strategy: string, locale: string): void {
+  trackEvent(
+    "debt_export_timeline_csv",
+    withPagePath({ strategy, locale }),
+  );
+}
+
+export function trackDebtExportJson(strategy: string, locale: string): void {
+  trackEvent(
+    "debt_export_json",
+    withPagePath({ strategy, locale }),
+  );
+}
+
+export function trackRetirementExportTimelineCsv(
+  scenarioId: string,
+  locale: string,
+): void {
+  trackEvent(
+    "retirement_export_timeline_csv",
+    withPagePath({ scenario_id: scenarioId, locale }),
+  );
+}
+
+export function trackRetirementExportJson(scenarioId: string, locale: string): void {
+  trackEvent(
+    "retirement_export_json",
+    withPagePath({ scenario_id: scenarioId, locale }),
+  );
+}
+
+export function trackStrategyExportComparisonCsv(locale: string): void {
+  trackEvent("strategy_export_comparison_csv", withPagePath({ locale }));
+}
+
+export function trackStrategyExportJson(locale: string): void {
+  trackEvent("strategy_export_json", withPagePath({ locale }));
+}
+
 export function trackFeedbackGithubClick(): void {
   trackEvent("feedback_github_click", withPagePath());
 }

@@ -5,7 +5,14 @@ import {
   type DebtStrategy,
 } from "../../../lib/debt/index";
 import {
+  downloadTextFile,
+  debtResultToJson,
+  debtTimelineToCsv,
+} from "../../../lib/export";
+import {
   trackDebtAdd,
+  trackDebtExportJson,
+  trackDebtExportTimelineCsv,
   trackDebtRemove,
   trackDebtStrategyChange,
 } from "../../../lib/analytics";
@@ -35,7 +42,7 @@ function parseNumber(value: string): number {
 }
 
 export function useDebtPlanner() {
-  const { localeEpoch } = useLocale();
+  const { locale, localeEpoch } = useLocale();
   const [startDateIso, setStartDateIso] = useState("");
   const [monthlyBudgetInr, setMonthlyBudgetInr] = useState("");
   const [selectedDebtStrategy, setSelectedDebtStrategy] = useState<DebtStrategy>(
@@ -80,6 +87,8 @@ export function useDebtPlanner() {
       ? debtModels.avalanche
       : debtModels.snowball;
 
+  const debtExportReady = activeDebtModel.rows.length > 0;
+
   function setDebtField(
     debtId: string,
     key: keyof DebtFormRow,
@@ -115,6 +124,53 @@ export function useDebtPlanner() {
     trackDebtStrategyChange(strategy);
   }
 
+  function exportDebtTimelineCsv(): void {
+    if (!debtExportReady) return;
+    const csv = debtTimelineToCsv(activeDebtModel.rows, {
+      startDateIso: startDateIso || undefined,
+    });
+    downloadTextFile(
+      `debt-timeline-${selectedDebtStrategy}.csv`,
+      csv,
+      "text/csv;charset=utf-8",
+    );
+    trackDebtExportTimelineCsv(selectedDebtStrategy, locale);
+  }
+
+  function exportDebtJson(): void {
+    if (!debtExportReady) return;
+    const budget = Math.max(0, parseNumber(monthlyBudgetInr));
+    const json = debtResultToJson({
+      exported_at: new Date().toISOString(),
+      start_date: startDateIso,
+      monthly_budget_inr: budget,
+      debts: debtInputs.map((d) => ({
+        id: d.id,
+        name: d.name,
+        balance_inr: d.balance_inr,
+        apr_pct: d.apr_pct,
+        minimum_payment_inr: d.minimum_payment_inr,
+      })),
+      strategies: {
+        avalanche: {
+          summary: debtModels.avalanche.summary,
+          warning: debtModels.avalanche.warning,
+        },
+        snowball: {
+          summary: debtModels.snowball.summary,
+          warning: debtModels.snowball.warning,
+        },
+      },
+      active_strategy: selectedDebtStrategy,
+    });
+    downloadTextFile(
+      `debt-planner-${selectedDebtStrategy}.json`,
+      json,
+      "application/json;charset=utf-8",
+    );
+    trackDebtExportJson(selectedDebtStrategy, locale);
+  }
+
   return {
     startDateIso,
     setStartDateIso,
@@ -128,5 +184,8 @@ export function useDebtPlanner() {
     removeDebt,
     debtModels,
     activeDebtModel,
+    debtExportReady,
+    exportDebtTimelineCsv,
+    exportDebtJson,
   };
 }

@@ -15,7 +15,16 @@ import {
   type StrategyTierPreset,
 } from "../../../lib/strategy/types";
 import { useLocale } from "../../locale/LocaleContext";
-import { trackStrategyTierPreset } from "../../../lib/analytics";
+import {
+  trackStrategyExportComparisonCsv,
+  trackStrategyExportJson,
+  trackStrategyTierPreset,
+} from "../../../lib/analytics";
+import {
+  downloadTextFile,
+  strategyComparisonToCsv,
+  strategyResultToJson,
+} from "../../../lib/export";
 
 type StrategyFormState = {
   principal_inr: string;
@@ -152,6 +161,32 @@ export function useStrategyPlanner() {
     trackStrategyTierPreset(preset.id, locale);
   }
 
+  function exportStrategyComparisonCsv(): void {
+    if (!ready || results.length === 0) return;
+    const csv = strategyComparisonToCsv(results);
+    downloadTextFile(
+      "strategy-comparison.csv",
+      csv,
+      "text/csv;charset=utf-8",
+    );
+    trackStrategyExportComparisonCsv(locale);
+  }
+
+  function exportStrategyJson(): void {
+    if (!ready || results.length === 0) return;
+    const json = strategyResultToJson({
+      exported_at: new Date().toISOString(),
+      inputs,
+      results,
+    });
+    downloadTextFile(
+      "strategy-planner.json",
+      json,
+      "application/json;charset=utf-8",
+    );
+    trackStrategyExportJson(locale);
+  }
+
   return {
     form,
     setField,
@@ -161,5 +196,7 @@ export function useStrategyPlanner() {
     locale,
     tierPresets: locale === "US" ? STRATEGY_TIER_PRESETS_US : STRATEGY_TIER_PRESETS,
     applyTierPreset,
+    exportStrategyComparisonCsv,
+    exportStrategyJson,
   };
 }

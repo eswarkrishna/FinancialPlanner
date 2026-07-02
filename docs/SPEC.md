@@ -216,6 +216,8 @@ Each debt: `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr`.
 
 **Outputs:** month rows, payoff month, total interest, warning when budget &lt; sum of minimums.
 
+**Export:** CSV export of active-strategy timeline + JSON export of debts, budget, and both strategy summaries.
+
 ---
 
 ### 4.11 Retirement planner
@@ -235,6 +237,8 @@ Each debt: `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr`.
 **Scenarios:** `base`, `conservative` (−2% return, +1% inflation), `optimistic` (+2% return, −1% inflation, +20% contribution).
 
 **Outputs:** projected corpus, real corpus, expense at retirement, target corpus (expense / SWR), funded ratio, yearly timeline.
+
+**Export:** CSV export of selected-scenario yearly timeline + JSON export of inputs and all scenario projections.
 
 ---
 
@@ -270,6 +274,8 @@ Month-1 prepay uses `recompute_tenure_keep_emi` (§4.4 policy 1). Post-loan equi
 #### 4.12.3 Outputs (per strategy row)
 
 `loan_close_month`, `total_interest_inr`, `interest_saved_vs_base_inr`, allocation breakdown, `equity_corpus_at_horizon_inr`, `equity_corpus_at_horizon_post_tax_inr` (LTCG 12.5% on gain above ₹1,25,000 exemption), `pf_corpus_at_horizon_inr`, `net_worth_at_horizon_inr`, `min_living_budget_inr`, `warnings[]`.
+
+**Export:** CSV export of strategy comparison table + JSON export of inputs and all strategy results.
 
 #### 4.12.4 Tier presets (UI)
 
@@ -593,8 +599,14 @@ When `VITE_GA_MEASUREMENT_ID` is set at build time, the hosted app may load **Go
 | `debt_add` | Add debt row | `debt_count`, `page_path` |
 | `debt_remove` | Remove debt row | `debt_count`, `page_path` |
 | `debt_strategy_change` | Avalanche / snowball schedule view | `strategy`, `page_path` |
+| `debt_export_timeline_csv` | Debt payoff timeline CSV export | `strategy`, `locale`, `page_path` |
+| `debt_export_json` | Debt planner JSON export | `strategy`, `locale`, `page_path` |
 | `retirement_scenario_select` | Retirement yearly timeline scenario | `scenario_id`, `page_path` |
+| `retirement_export_timeline_csv` | Retirement yearly timeline CSV export | `scenario_id`, `locale`, `page_path` |
+| `retirement_export_json` | Retirement planner JSON export | `scenario_id`, `locale`, `page_path` |
 | `strategy_tier_preset` | Strategy take-home tier shortcut | `preset_id`, `locale`, `page_path` |
+| `strategy_export_comparison_csv` | Strategy comparison CSV export | `locale`, `page_path` |
+| `strategy_export_json` | Strategy planner JSON export | `locale`, `page_path` |
 | `game_profile_change` | Game profile dropdown | `profile_id`, `page_path` |
 | `game_export_json` | Game payoff matrix JSON export | `profile_id`, `locale`, `page_path` |
 | `feedback_github_click` | Footer “Report on GitHub” | `page_path` |

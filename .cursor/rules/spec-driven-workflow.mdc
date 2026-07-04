@@ -1,0 +1,12 @@
+---
+description: Spec-driven workflow — read SPEC before feature work
+alwaysApply: true
+---
+
+# Spec-driven development
+
+- **Source of truth:** `docs/SPEC.md` (section numbers are stable references in commits and PRs).
+- **Orientation:** `docs/OVERVIEW.md` for architecture and doc map.
+- **New feature:** start with **`equity-create-feature`**; checklist in `docs/TASKS.md`.
+- **Non-goals:** Do not implement §10 items without first updating `docs/SPEC.md`.
+- **Data access:** Route all market data through `data/fetch.py`; do not call yfinance/OpenBB directly from UI or alert code.

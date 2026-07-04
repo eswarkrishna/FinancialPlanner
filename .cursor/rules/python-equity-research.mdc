@@ -1,0 +1,14 @@
+---
+description: Python equity research conventions
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Python equity research
+
+- Use `from datetime import UTC, datetime` — avoid `datetime.utcnow()`.
+- Money/prices: round for display only; keep float precision in calculations until final output.
+- Imports from repo root: ensure `PYTHONPATH=.` or run via `pytest` / documented CLI.
+- New strategies go in `strategies/` and are wired from `backtests/run_backtest.py` or a dedicated runner.
+- Alert thresholds belong in `config/watchlist.yaml`, not hardcoded in `alerts/daily_scan.py`.
+- Every user-facing script or dashboard must reference the §11 research disclaimer.

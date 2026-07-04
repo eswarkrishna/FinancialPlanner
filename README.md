@@ -93,6 +93,21 @@ git remote add origin https://github.com/yourusername/us-equity-research.git
 git push -u origin main
 ```
 
+## Agent setup (Cursor / Cloud Agents)
+
+This repo includes Cursor agent configuration:
+
+| Path | Purpose |
+|------|---------|
+| `AGENTS.md` | Agent instructions and command reference |
+| `docs/SPEC.md` | Product spec (source of truth) |
+| `docs/OVERVIEW.md` | Architecture overview |
+| `docs/TASKS.md` | Feature checklist |
+| `.cursor/rules/` | Spec-driven and Python conventions |
+| `.cursor/skills/` | `equity-create-feature`, `us-equity-research`, etc. |
+
+Start a Cloud Agent on this repo and reference `AGENTS.md` for workflows.
+
 ## Tests
 
 ```bash

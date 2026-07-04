@@ -78,6 +78,21 @@ dashboard/app.py          # Streamlit research desk
 tests/                    # pytest unit tests
 ```
 
+## Connect to GitHub
+
+If you created an empty private repo (e.g. `yourusername/us-equity-research`), push this scaffold:
+
+```bash
+./scripts/push-setup.sh yourusername/us-equity-research
+```
+
+Or manually:
+
+```bash
+git remote add origin https://github.com/yourusername/us-equity-research.git
+git push -u origin main
+```
+
 ## Tests
 
 ```bash

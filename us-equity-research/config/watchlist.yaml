@@ -1,0 +1,31 @@
+# US equity watchlist — edit symbols and alert thresholds as needed.
+market: US
+
+symbols:
+  - AAPL
+  - MSFT
+  - NVDA
+  - GOOGL
+  - AMZN
+  - META
+  - TSLA
+  - JPM
+  - V
+  - SPY
+
+alerts:
+  # RSI(14) below this triggers oversold alert
+  rsi_oversold: 30
+  # RSI(14) above this triggers overbought alert
+  rsi_overbought: 70
+  # Minimum absolute daily % change to flag as mover
+  min_daily_change_pct: 3.0
+  # Lookback days for history fetches
+  history_days: 120
+
+backtest:
+  default_symbol: AAPL
+  start: "2020-01-01"
+  end: null  # null = today
+  initial_cash: 100000
+  commission: 0.001

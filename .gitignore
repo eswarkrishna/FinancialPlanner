@@ -1,21 +1,8 @@
-node_modules
-dist
-*.local
-.DS_Store
-.env
-.env.*
-!.env.example
-!.env.development
-!.env.production
-coverage
-*.log
-.vite
 
-# Cursor local usage capture (sessionEnd hook); may contain prompts — do not commit
-.cursor/usage/
-
-# Android/Capacitor generated artifacts (keep source under android/ trackable)
-android/.gradle/
-android/build/
-android/**/build/
-android/local.properties
+# us-equity-research Python subtree
+us-equity-research/.venv/
+us-equity-research/__pycache__/
+us-equity-research/**/__pycache__/
+us-equity-research/.pytest_cache/
+us-equity-research/alerts/output/
+us-equity-research/backtests/output/

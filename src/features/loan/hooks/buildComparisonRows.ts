@@ -2,10 +2,9 @@ import { formatMoney } from "../../../lib/locale/formatMoney";
 import type { Locale } from "../../../lib/locale/types";
 import type { BuiltLoanModels } from "./buildLoanModels";
 import {
-  inPfTrancheLabel,
   isCashflowResult,
+  pfTrancheToLoanLabel,
   prepaySourceComparisonWord,
-  usPfTrancheLabel,
 } from "./loanModelHelpers";
 import type { ComparisonRow } from "./loanModelTypes";
 
@@ -132,9 +131,7 @@ export function buildComparisonRows(
     rows.push(
       row(
         "UE_PF_TO_LOAN",
-        locale === "US"
-          ? usPfTrancheLabel(startMonth)
-          : inPfTrancheLabel(startMonth),
+        pfTrancheToLoanLabel(locale, startMonth, models.v.unemployment_mode),
         ue.totals.payoff_month,
         ue.totals.total_interest_inr,
         ue.totals.total_paid_inr,

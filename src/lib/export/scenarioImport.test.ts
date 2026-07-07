@@ -62,4 +62,48 @@ describe("parseScenarioImportJson (SPEC §4.9 v1.7)", () => {
     if (outcome.success) return;
     expect(outcome.message).toMatch(/staged prepayments/i);
   });
+
+  it("returns error for unrecognised scenario_id", () => {
+    const outcome = parseScenarioImportJson(
+      JSON.stringify({
+        scenario_id: "NOT_A_REAL_SCENARIO",
+        inputs: {
+          ...REFERENCE_SCENARIO_IN,
+          prepay_source: "cash",
+        },
+      }),
+    );
+    expect(outcome.success).toBe(false);
+    if (outcome.success) return;
+    expect(outcome.message).toMatch(/unrecognised scenario_id/i);
+  });
+
+  it("returns error when export locale differs from active locale", () => {
+    const outcome = parseScenarioImportJson(
+      JSON.stringify({
+        scenario_id: "BASE",
+        locale: "US",
+        inputs: {
+          ...REFERENCE_SCENARIO_IN,
+          prepay_source: "cash",
+        },
+      }),
+      "IN",
+    );
+    expect(outcome.success).toBe(false);
+    if (outcome.success) return;
+    expect(outcome.message).toMatch(/US locale/i);
+  });
+
+  it("allows import without locale field for backward compatibility", () => {
+    const payload = {
+      scenario_id: "BASE",
+      inputs: {
+        ...REFERENCE_SCENARIO_IN,
+        prepay_source: "cash",
+      },
+    };
+    const outcome = parseScenarioImportJson(JSON.stringify(payload), "IN");
+    expect(outcome.success).toBe(true);
+  });
 });

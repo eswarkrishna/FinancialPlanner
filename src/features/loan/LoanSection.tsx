@@ -8,6 +8,7 @@ import { StagedPrepayEditor } from "./components/StagedPrepayEditor";
 import {
   type PrepaySource,
   type ScenarioView,
+  pfTrancheToLoanLabel,
   prepaySourceHintLabel,
   prepaySourceScheduleLabel,
   useLoanModels,
@@ -22,6 +23,8 @@ const WARNING_LABELS: Record<string, string> = {
     "Early 401(k) withdrawal costs (penalty/withholding) apply in this scenario.",
   LOAN_NOT_PAID_OFF:
     "Loan balance remains after the simulation horizon; payoff month is not reached.",
+  SCHEDULE_TRUNCATED:
+    "Schedule table shows the first 600 months only; totals reflect the full simulation.",
 };
 
 export function LoanSection() {
@@ -575,9 +578,11 @@ export function LoanSection() {
                     )}
                     {models.uePfToLoan && (
                       <option value="UE_PF_TO_LOAN">
-                        {isUs
-                          ? "Job loss: 401(k) to loan"
-                          : "Unemployment: PF to loan"}
+                        {pfTrancheToLoanLabel(
+                          locale,
+                          Number(inputs.unemployment_start_month) || 1,
+                          unemploymentOn,
+                        )}
                       </option>
                     )}
                     {models.uePfBridge && (

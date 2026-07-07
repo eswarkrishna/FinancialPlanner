@@ -3,6 +3,7 @@ import { computeEarlyWithdrawalCost } from "../k401/jobLoss";
 import {
   simulateUsCashflowSchedule,
   simulateUs401kTranchesToLoanCashflow,
+  simulateJl401kToLoanCashflow,
 } from "./cashflowUs";
 
 const baseJobLossInput = {
@@ -168,5 +169,20 @@ describe("simulateUsCashflowSchedule (SPEC-US §4.8)", () => {
     expect(result.warnings).toContain("LOAN_NOT_PAID_OFF");
     expect(result.rows[result.rows.length - 1]?.closing_inr).toBeGreaterThan(0);
     expect(result.totals.total_interest_inr).toBeLessThan(1_000_000);
+  });
+
+  it("stops runaway default simulation within row cap", () => {
+    const result = simulateJl401kToLoanCashflow({
+      ...baseJobLossInput,
+      cash_inr: 50_000,
+      k401_balance_inr: 80_000,
+      job_loss_start_month: 1,
+      tenure_months: 360,
+    });
+    expect(result.rows.length).toBeLessThanOrEqual(600);
+    expect(result.warnings).toContain("LOAN_NOT_PAID_OFF");
+    expect(
+      result.warnings.filter((w) => w === "LOAN_NOT_PAID_OFF").length,
+    ).toBe(1);
   });
 });

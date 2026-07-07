@@ -1,7 +1,11 @@
 import { computeEmi, monthlyRateFromAnnualPercent } from "./emi";
 import type { ScheduleRow, ScheduleTotals, TimedPrepaymentEvent } from "./amortisation";
 import { roundUsd } from "../money";
-import { BALANCE_EPSILON_INR } from "../shared/constants";
+import {
+  BALANCE_EPSILON_INR,
+  MAX_CASHFLOW_SIM_MONTHS,
+  MAX_CONSECUTIVE_PAYMENT_SHORTFALLS,
+} from "../shared/constants";
 import { trancheMonthsFromStart } from "../shared/trancheMonths";
 import {
   computeEarlyWithdrawalCost,
@@ -120,7 +124,8 @@ export function simulateUsCashflowSchedule(
   let minCash = cashBalance;
   const warnings: string[] = [];
   let m = 0;
-  const cap = input.tenure_months * 8;
+  let consecutiveShortfall = 0;
+  const cap = Math.min(input.tenure_months * 8, MAX_CASHFLOW_SIM_MONTHS);
   const monthlyExtra = Math.max(0, input.monthly_extra_to_loan_inr);
   const scheduleTranches =
     input.schedule_k401_tranches ?? input.job_loss_enabled;
@@ -226,9 +231,11 @@ export function simulateUsCashflowSchedule(
     };
 
     if (cashBalance >= emiDue) {
+      consecutiveShortfall = 0;
       cashBalance = roundUsd(cashBalance - emiDue);
       applyEmiPayment(emiDue);
     } else if (emiDue > 0) {
+      consecutiveShortfall += 1;
       events.push("payment_shortfall");
       applyEmiPayment(Math.max(0, cashBalance));
       cashBalance = 0;
@@ -364,6 +371,10 @@ export function simulateUsCashflowSchedule(
       }
     }
 
+    if (emiDue > 0 && emiPaid >= emiDue) {
+      consecutiveShortfall = 0;
+    }
+
     pushRow(
       rows,
       m,
@@ -384,6 +395,15 @@ export function simulateUsCashflowSchedule(
     totalPaid += roundUsd(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPS) break;
+    if (
+      consecutiveShortfall >= MAX_CONSECUTIVE_PAYMENT_SHORTFALLS &&
+      balance > BALANCE_EPS
+    ) {
+      if (!warnings.includes("LOAN_NOT_PAID_OFF")) {
+        warnings.push("LOAN_NOT_PAID_OFF");
+      }
+      break;
+    }
   }
 
   if (totalPenalty > 0 && !warnings.includes("EARLY_401K_WITHDRAWAL")) {
@@ -391,7 +411,7 @@ export function simulateUsCashflowSchedule(
   }
 
   const loanPaidOff = balance <= BALANCE_EPS;
-  if (!loanPaidOff && rows.length >= cap) {
+  if (!loanPaidOff && rows.length >= cap && !warnings.includes("LOAN_NOT_PAID_OFF")) {
     warnings.push("LOAN_NOT_PAID_OFF");
   }
   const totalInterest = loanPaidOff ? totalInterestIfPaidOff : totalInterestWithinTenure;

@@ -1,4 +1,8 @@
-import { baselineSchedule, schedulePrepayKeepTenure, simulateJlRedundancyToLoan } from "../../../lib/loan";
+import {
+  simulateJlRedundancyToLoan,
+  simulateUkBaseline,
+  simulateUkPrepayKeepTenure,
+} from "../../../lib/loan";
 import { REFERENCE_SCENARIO_UK } from "../../../lib/locale/constants";
 import { ukCashflowBaseInput } from "../../../features/loan/hooks/loanModelHelpers";
 import type { GoldenSnapshot } from "../goldens/buildGoldens";
@@ -41,17 +45,34 @@ function compactPayload(result: {
 /** SPEC-UK §10 / §15 — UK reference golden scenarios. */
 export function computeUkGoldenScenarios(): UkGoldenScenarioMap {
   const loan = REFERENCE_SCENARIO_UK;
-  const base = baselineSchedule(
+  const base = simulateUkBaseline(
     loan.principal_inr,
     loan.annual_interest_rate,
     loan.tenure_months,
+    {
+      overpayment_allowance_pct: loan.overpayment_allowance_pct,
+      erc_pct: loan.erc_pct,
+    },
   );
-  const prepayTenure = schedulePrepayKeepTenure(
+  const prepayTenure = simulateUkPrepayKeepTenure(
     loan.principal_inr,
     loan.annual_interest_rate,
     loan.tenure_months,
     1,
     25_000,
+    0,
+    {
+      overpayment_allowance_pct: loan.overpayment_allowance_pct,
+      erc_pct: loan.erc_pct,
+    },
+    {
+      cash_inr: loan.cash_inr,
+      isa_balance_inr: loan.isa_balance_inr,
+      gia_balance_inr: loan.gia_balance_inr,
+      gia_cost_basis_inr: loan.gia_cost_basis_inr,
+      cgt_rate_pct: loan.cgt_rate_pct,
+      cgt_annual_exempt_inr: loan.cgt_annual_exempt_inr,
+    },
   );
   const jl = simulateJlRedundancyToLoan(ukCashflowBaseInput(loan, 0));
 

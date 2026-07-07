@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { computeEmi } from "./emi";
 import { ErcBlockTracker } from "./erc";
 import { giaNetDraw } from "./giaLiquidation";
-import { simulateUkBaseline, simulateJlRedundancyToLoan } from "./cashflowUk";
+import {
+  simulateJlRedundancyToLoan,
+  simulateUkBaseline,
+  simulateUkCashflowSchedule,
+} from "./cashflowUk";
 import { netRedundancyGbp, computeAutoEnrolmentMonthly } from "../pension/autoEnrolment";
 import { REFERENCE_SCENARIO_UK } from "../locale/constants";
 import { ukCashflowBaseInput } from "../../features/loan/hooks/loanModelHelpers";
@@ -68,5 +72,121 @@ describe("SPEC-UK §10 acceptance", () => {
     });
     expect(r.rows.length).toBeGreaterThan(0);
     expect(r.net_redundancy_inr).toBe(36_000);
+  });
+
+  it("deducts scheduled payment from cash when job loss mode is off", () => {
+    const r = simulateUkCashflowSchedule({
+      ...ukCashflowBaseInput(
+        {
+          ...REFERENCE_SCENARIO_UK,
+          cash_inr: 5_000,
+          isa_balance_inr: 0,
+          gia_balance_inr: 0,
+          gia_cost_basis_inr: 0,
+          redundancy_payment_inr: 0,
+          monthly_uib_inr: 0,
+        },
+        0,
+      ),
+      extra_prepayments: [],
+    });
+    expect(r.rows[0]!.cash_balance_inr).toBeCloseTo(5_000 - r.emi_inr, 2);
+  });
+
+  it("uses liquid savings draws for employed prepay funding", () => {
+    const r = simulateUkCashflowSchedule({
+      ...ukCashflowBaseInput(
+        {
+          ...REFERENCE_SCENARIO_UK,
+          cash_inr: 0,
+          isa_balance_inr: 10_000,
+          gia_balance_inr: 0,
+          gia_cost_basis_inr: 0,
+          redundancy_payment_inr: 0,
+          monthly_uib_inr: 0,
+        },
+        0,
+      ),
+      extra_prepayments: [{ month: 1, amount_inr: 5_000 }],
+    });
+    expect(r.rows[0]!.prepayment_inr).toBe(5_000);
+    expect(r.rows[0]!.events.some((e) => e.startsWith("draw:isa:"))).toBe(true);
+  });
+
+  it("does not double-debit cash after savings draw covers EMI", () => {
+    const r = simulateUkCashflowSchedule({
+      ...ukCashflowBaseInput(
+        {
+          ...REFERENCE_SCENARIO_UK,
+          cash_inr: 500,
+          isa_balance_inr: 1_000,
+          gia_balance_inr: 0,
+          gia_cost_basis_inr: 0,
+          redundancy_payment_inr: 0,
+          monthly_uib_inr: 0,
+        },
+        0,
+      ),
+      job_loss_enabled: true,
+      extra_prepayments: [],
+    });
+    expect(r.rows[0]!.cash_balance_inr).toBeGreaterThanOrEqual(0);
+  });
+
+  it("clamps prepay to funded amount when draws cannot cover shortfall", () => {
+    const r = simulateUkCashflowSchedule({
+      ...ukCashflowBaseInput(
+        {
+          ...REFERENCE_SCENARIO_UK,
+          principal_inr: 12_000,
+          annual_interest_rate: 0,
+          tenure_months: 12,
+          cash_inr: 0,
+          isa_balance_inr: 0,
+          gia_balance_inr: 0,
+          gia_cost_basis_inr: 0,
+          redundancy_payment_inr: 0,
+          monthly_uib_inr: 0,
+        },
+        0,
+      ),
+      job_loss_enabled: true,
+      extra_prepayments: [{ month: 1, amount_inr: 5_000 }],
+    });
+    expect(r.rows[0]!.prepayment_inr).toBe(0);
+  });
+
+  it("resets CGT exemption each 12-month block", () => {
+    const emi = computeEmi(1_000_000, 4, 360);
+    const r = simulateUkCashflowSchedule({
+      ...ukCashflowBaseInput(
+        {
+          ...REFERENCE_SCENARIO_UK,
+          principal_inr: 1_000_000,
+          annual_interest_rate: 4,
+          tenure_months: 360,
+          cash_inr: 0,
+          isa_balance_inr: 0,
+          gia_balance_inr: 100_000,
+          gia_cost_basis_inr: 50_000,
+          monthly_income_inr: emi,
+          cgt_rate_pct: 20,
+          cgt_annual_exempt_inr: 1_000,
+          redundancy_payment_inr: 0,
+          monthly_uib_inr: 0,
+        },
+        0,
+      ),
+      extra_prepayments: [
+        { month: 1, amount_inr: 10_000 },
+        { month: 13, amount_inr: 10_000 },
+      ],
+    });
+    const taxForMonth = (month: number) => {
+      const evt = r.rows[month - 1]!.events.find((e) => e.startsWith("gia:cgt:"));
+      return evt ? Number(evt.split(":")[2]) : 0;
+    };
+    expect(taxForMonth(1)).toBeGreaterThan(0);
+    expect(taxForMonth(13)).toBe(taxForMonth(1));
   });
 });

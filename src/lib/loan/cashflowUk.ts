@@ -6,7 +6,7 @@ import {
   MAX_CASHFLOW_SIM_MONTHS,
   MAX_CONSECUTIVE_PAYMENT_SHORTFALLS,
 } from "../shared/constants";
-import { ErcBlockTracker, type ErcConfig } from "./erc";
+import { ErcBlockTracker, ercBlockIndex, type ErcConfig } from "./erc";
 import { giaNetDraw } from "./giaLiquidation";
 import { netRedundancyGbp } from "../pension/autoEnrolment";
 import {
@@ -50,6 +50,8 @@ export interface UkCashflowSimInput {
   redundancy_loan_fraction?: number;
   /** Bridge: redundancy to cash first; covers living + payment shortfall before prepay. */
   redundancy_bridge_liquidity_first?: boolean;
+  /** Apply redundancy event at U even when job loss mode is off. */
+  apply_redundancy_event?: boolean;
   monthly_jsa_inr: number;
   jsa_duration_months: number;
   smi_enabled: boolean;
@@ -192,6 +194,7 @@ export function simulateUkCashflowSchedule(
   let giaBalance = roundGbp(input.gia_balance_inr);
   let giaBasis = roundGbp(input.gia_cost_basis_inr || input.gia_balance_inr);
   let cgtExempt = roundGbp(input.cgt_annual_exempt_inr);
+  let cgtBlock = -1;
   let smiLoanBalance = 0;
   let totalErcFees = 0;
   let totalJsa = 0;
@@ -225,6 +228,11 @@ export function simulateUkCashflowSchedule(
 
   while (balance > BALANCE_EPS && m < cap) {
     m += 1;
+    const block = ercBlockIndex(m);
+    if (block !== cgtBlock) {
+      cgtBlock = block;
+      cgtExempt = roundGbp(input.cgt_annual_exempt_inr);
+    }
     const opening = balance;
     ercTracker.beginMonth(m, opening);
     const events: string[] = [];
@@ -264,7 +272,7 @@ export function simulateUkCashflowSchedule(
     }
 
     if (
-      inJobLoss &&
+      (inJobLoss || input.apply_redundancy_event === true) &&
       !redundancyApplied &&
       m === U &&
       input.redundancy_payment_inr > 0
@@ -304,40 +312,67 @@ export function simulateUkCashflowSchedule(
       // Bridge handled via cash; prepay from surplus after payment below
     }
 
+    const emiDue = roundGbp(interest + principal);
     let emiPaid = 0;
-    if (!input.job_loss_enabled) {
-      emiPaid = roundGbp(interest + principal);
+    if (emiDue <= 0) {
       consecutiveShortfall = 0;
-    } else if (cashBalance >= roundGbp(interest + principal)) {
-      cashBalance = roundGbp(cashBalance - interest - principal);
-      emiPaid = roundGbp(interest + principal);
+    } else if (!input.job_loss_enabled) {
+      if (cashBalance >= emiDue) {
+        cashBalance = roundGbp(cashBalance - emiDue);
+      } else {
+        const draw = drawSavings(
+          emiDue,
+          cashBalance,
+          isaBalance,
+          giaBalance,
+          giaBasis,
+          input.cgt_rate_pct,
+          cgtExempt,
+          events,
+        );
+        cashBalance = draw.cash;
+        isaBalance = draw.isa;
+        giaBalance = draw.gia;
+        giaBasis = draw.giaBasis;
+        cgtExempt = draw.cgtExempt;
+        if (draw.remaining > 0) {
+          cashBalance = roundGbp(cashBalance - draw.remaining);
+        }
+      }
+      emiPaid = emiDue;
       consecutiveShortfall = 0;
     } else if (paymentDue > 0) {
-      const draw = drawSavings(
-        roundGbp(interest + principal - cashBalance),
-        cashBalance,
-        isaBalance,
-        giaBalance,
-        giaBasis,
-        input.cgt_rate_pct,
-        cgtExempt,
-        events,
-      );
-      cashBalance = draw.cash;
-      isaBalance = draw.isa;
-      giaBalance = draw.gia;
-      giaBasis = draw.giaBasis;
-      cgtExempt = draw.cgtExempt;
-      if (draw.remaining > 0) {
-        consecutiveShortfall += 1;
-        principal = roundGbp(Math.max(0, principal - draw.remaining));
-        if (!warnings.includes("MORTGAGE_DEFAULT_RISK")) {
-          warnings.push("MORTGAGE_DEFAULT_RISK");
-        }
-      } else {
-        cashBalance = roundGbp(cashBalance - interest - principal);
-        emiPaid = roundGbp(interest + principal);
+      if (cashBalance >= emiDue) {
+        cashBalance = roundGbp(cashBalance - emiDue);
+        emiPaid = emiDue;
         consecutiveShortfall = 0;
+      } else {
+        const draw = drawSavings(
+          emiDue,
+          cashBalance,
+          isaBalance,
+          giaBalance,
+          giaBasis,
+          input.cgt_rate_pct,
+          cgtExempt,
+          events,
+        );
+        cashBalance = draw.cash;
+        isaBalance = draw.isa;
+        giaBalance = draw.gia;
+        giaBasis = draw.giaBasis;
+        cgtExempt = draw.cgtExempt;
+        const unpaid = roundGbp(Math.max(0, draw.remaining));
+        emiPaid = roundGbp(emiDue - unpaid);
+        if (unpaid > 0) {
+          consecutiveShortfall += 1;
+          principal = roundGbp(Math.max(0, principal - unpaid));
+          if (!warnings.includes("MORTGAGE_DEFAULT_RISK")) {
+            warnings.push("MORTGAGE_DEFAULT_RISK");
+          }
+        } else {
+          consecutiveShortfall = 0;
+        }
       }
     }
 
@@ -372,28 +407,29 @@ export function simulateUkCashflowSchedule(
     }
 
     prepayThisMonth = roundGbp(Math.min(prepayThisMonth, balance - principal));
-    if (prepayThisMonth > 0 && input.job_loss_enabled && cashBalance < prepayThisMonth) {
-      const draw = drawSavings(
-        roundGbp(prepayThisMonth - cashBalance),
-        cashBalance,
-        isaBalance,
-        giaBalance,
-        giaBasis,
-        input.cgt_rate_pct,
-        cgtExempt,
-        events,
-      );
-      cashBalance = roundGbp(draw.cash + Math.min(prepayThisMonth, cashBalance + (prepayThisMonth - draw.remaining)));
-      isaBalance = draw.isa;
-      giaBalance = draw.gia;
-      giaBasis = draw.giaBasis;
-      cgtExempt = draw.cgtExempt;
-      prepayThisMonth = roundGbp(
-        Math.min(prepayThisMonth, cashBalance + prepayThisMonth),
-      );
-    }
     if (prepayThisMonth > 0) {
-      cashBalance = roundGbp(Math.max(0, cashBalance - prepayThisMonth));
+      if (cashBalance >= prepayThisMonth) {
+        cashBalance = roundGbp(cashBalance - prepayThisMonth);
+      } else {
+        const draw = drawSavings(
+          prepayThisMonth,
+          cashBalance,
+          isaBalance,
+          giaBalance,
+          giaBasis,
+          input.cgt_rate_pct,
+          cgtExempt,
+          events,
+        );
+        cashBalance = draw.cash;
+        isaBalance = draw.isa;
+        giaBalance = draw.gia;
+        giaBasis = draw.giaBasis;
+        cgtExempt = draw.cgtExempt;
+        prepayThisMonth = roundGbp(
+          Math.max(0, prepayThisMonth - draw.remaining),
+        );
+      }
     }
 
     const ercResult = ercTracker.recordPrepayment(prepayThisMonth);
@@ -520,6 +556,17 @@ export function simulateUkPrepayKeepTenure(
   prepayAmount: number,
   recurringExtra = 0,
   ercConfig?: ErcConfig,
+  funding?: Partial<
+    Pick<
+      UkCashflowSimInput,
+      | "cash_inr"
+      | "isa_balance_inr"
+      | "gia_balance_inr"
+      | "gia_cost_basis_inr"
+      | "cgt_rate_pct"
+      | "cgt_annual_exempt_inr"
+    >
+  >,
 ): UkCashflowSimResult {
   return simulateUkCashflowSchedule(
     ukBaseInput({
@@ -529,6 +576,7 @@ export function simulateUkPrepayKeepTenure(
       monthly_extra_to_loan_inr: recurringExtra,
       erc_config: ercConfig ?? { overpayment_allowance_pct: 10, erc_pct: 0 },
       extra_prepayments: [{ month: prepayMonth, amount_inr: prepayAmount }],
+      ...funding,
     }),
   );
 }

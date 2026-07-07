@@ -78,6 +78,14 @@ export function buildUkLoanModels(
           oneTimePrepayInr,
           salaryRecurring,
           ercConfig,
+          {
+            cash_inr: v.cash_inr,
+            isa_balance_inr: v.isa_balance_inr,
+            gia_balance_inr: v.gia_balance_inr,
+            gia_cost_basis_inr: v.gia_cost_basis_inr || v.gia_balance_inr,
+            cgt_rate_pct: v.cgt_rate_pct,
+            cgt_annual_exempt_inr: v.cgt_annual_exempt_inr,
+          },
         ),
       )
     : null;
@@ -129,9 +137,9 @@ export function buildUkLoanModels(
       ? asBaseShape(
           simulateUkCashflowSchedule({
             ...ukBase(),
-            job_loss_enabled: true,
             extra_prepayments:
               v.cash_inr > 0 ? [{ month: 1, amount_inr: v.cash_inr }] : [],
+            apply_redundancy_event: true,
             redundancy_destination: "loan_prepay",
           }),
         )
@@ -145,6 +153,10 @@ export function buildUkLoanModels(
             simulateUkCashflowSchedule({
               ...ukBase(),
               job_loss_enabled: false,
+              apply_redundancy_event: true,
+              monthly_jsa_inr: 0,
+              smi_enabled: false,
+              redundancy_destination: "loan_prepay",
               extra_prepayments: [],
             }),
           )

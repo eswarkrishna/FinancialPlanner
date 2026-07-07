@@ -1,12 +1,12 @@
 # FinancialPlanner — overview
 
-High-level orientation. **Authoritative product rules:** [`SPEC.md`](SPEC.md) (India / INR) and [`SPEC-US.md`](SPEC-US.md) (United States / USD). **Agent workflow:** [`../AGENTS.md`](../AGENTS.md).
+High-level orientation. **Authoritative product rules:** [`SPEC.md`](SPEC.md) (India / INR), [`SPEC-US.md`](SPEC-US.md) (United States / USD), and [`SPEC-UK.md`](SPEC-UK.md) (United Kingdom / GBP). **Agent workflow:** [`../AGENTS.md`](../AGENTS.md).
 
 ## Problem
 
 Help borrowers **compare loan payoff strategies** (prepayments, tenure vs payment, optional job-loss + retirement-account withdrawal paths) with transparent amortisation numbers, and **compare three named repayment strategies** (equity blend, prepay heavy, aggressive prepay) per **SPEC §4.12** (IN) / **SPEC-US §4.12** (US).
 
-**Locales:** India (implemented) models EPFO-style PF tranches and INR; **US** (specced, not yet implemented) models 401(k) staged distributions, mortgage, and USD — see [`research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md).
+**Locales:** India (implemented) models EPFO-style PF tranches and INR; **US** (specced, partially implemented) models 401(k) staged distributions, mortgage, and USD — see [`research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md); **UK** (specced, not yet implemented) models a redundancy + JSA + SMI job-loss bridge, ISA-first equity sleeve, and GBP — pensions are locked before age 55/57, so there is **no** UK pension-tranche module — see [`research/2026-07-uk-employee-benefits-mapping.md`](research/2026-07-uk-employee-benefits-mapping.md).
 
 ## Users & personas
 
@@ -21,6 +21,7 @@ See **SPEC §3** (borrower optimiser, stress tester, comparator).
 | `src/App.tsx` (and other `features/`) | Dashboard inputs, scenario selection, comparison tables, timeline views. |
 | `docs/SPEC.md` | Source of truth for India locale behaviour and acceptance tests. |
 | `docs/SPEC-US.md` | Source of truth for US locale (401(k), mortgage, USD). |
+| `docs/SPEC-UK.md` | Source of truth for UK locale (redundancy/JSA/SMI bridge, ISA, GBP). |
 
 **Data flow:** form values → input parse/validation → simulation functions → summary + timeline rows → UI.
 
@@ -68,6 +69,7 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 |-----|---------|
 | [SPEC.md](SPEC.md) | India locale product & engineering specification |
 | [SPEC-US.md](SPEC-US.md) | US locale product & engineering specification |
+| [SPEC-UK.md](SPEC-UK.md) | UK locale product & engineering specification |
 | [TASKS.md](TASKS.md) | Feature delivery checklist (`[ ]` → `[x]`) |
 | [LEARNINGS.md](LEARNINGS.md) | Dated post-feature notes |
 | [research/README.md](research/README.md) | Spike and research index |
@@ -81,3 +83,4 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [2026-07-us-employee-benefits-mapping.md](research/2026-07-us-employee-benefits-mapping.md) | US locale summary spike (parity matrix + recommendations) |
 | [2026-07-us-employee-locale-deep-dive.md](research/2026-07-us-employee-locale-deep-dive.md) | US locale deep-dive: 401(k), UI, mortgage, LTCG, SS, Roth, vesting, games |
 | [2026-07-other-planner-areas.md](research/2026-07-other-planner-areas.md) | Beyond US employee: IN spec symmetry, UK/CA locales, HSA, PMI, ARM games, Tier P2 |
+| [2026-07-uk-employee-benefits-mapping.md](research/2026-07-uk-employee-benefits-mapping.md) | UK locale spike: NMPA lock, redundancy/JSA/SMI bridge, ISA/GIA, auto-enrolment, ERC |

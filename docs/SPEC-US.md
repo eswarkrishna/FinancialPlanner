@@ -3,6 +3,7 @@
 **Project:** `FinancialPlanner`  
 **Canonical spec (this file):** `docs/SPEC-US.md`  
 **India locale spec:** [`docs/SPEC.md`](SPEC.md) (shared solver architecture; section numbers align where features are parallel)  
+**UK locale spec:** [`docs/SPEC-UK.md`](SPEC-UK.md)  
 **Research:** [`docs/research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) (summary) · [`docs/research/2026-07-us-employee-locale-deep-dive.md`](research/2026-07-us-employee-locale-deep-dive.md) (full per-topic) · [`docs/research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) (IN symmetry, HSA, PMI, locales, Tier P2)  
 **Spec-driven workflow:** See `AGENTS.md`.
 
@@ -47,7 +48,7 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 | **Player** | Decision-maker in US§4.13 (`B`, `L`, `H`, `N`) — same roles as IN §4.13 |
 | **Payoff oracle** | Existing simulation (US§4.3–§4.8, US§4.10–§4.12) mapping actions → USD outcomes |
 
-**Locale switch:** Application exposes `locale: "IN" | "US"`. India behaviour remains governed by [`SPEC.md`](SPEC.md). US behaviour is governed by this file. Shared pure math (EMI formula, avalanche ordering) may live in locale-agnostic helpers parameterized by `roundMoney(amount, locale)`.
+**Locale switch:** Application exposes `locale: "IN" | "US" | "UK"`. India behaviour remains governed by [`SPEC.md`](SPEC.md), UK by [`SPEC-UK.md`](SPEC-UK.md). US behaviour is governed by this file. Shared pure math (EMI formula, avalanche ordering) may live in locale-agnostic helpers parameterized by `roundMoney(amount, locale)`.
 
 ---
 
@@ -399,7 +400,7 @@ Same as IN §5. UI `en-US` number formatting. Accessibility and validation uncha
 ## 6. Data Models (TypeScript sketch)
 
 ```ts
-type Locale = "IN" | "US";
+type Locale = "IN" | "US" | "UK";
 
 type PrepaymentPolicy =
   | "recompute_tenure_keep_payment"
@@ -447,7 +448,7 @@ Apply penalty and withholding only to cash-bound portion of each tranche; report
 
 ### Locale selector
 
-- Header or settings: **Country / locale** toggle `India (INR)` | `United States (USD)`.  
+- Header or settings: **Country / locale** toggle `India (INR)` | `United States (USD)` | `United Kingdom (GBP)` (UK option per [`SPEC-UK.md`](SPEC-UK.md) §8, feature-flagged until UK ships).  
 - Persist in `localStorage` key `financial-planner-locale`.  
 - Switching locale resets form defaults to US§15 / IN §15 reference values respectively (confirm dialog).
 
@@ -517,7 +518,7 @@ All IN §9 cases plus:
 - SECURE 2.0 $1,000 emergency withdrawal engine (v1.1).  
 - 401(k) loan as prepay funding source (v1.2).  
 - State-by-state unemployment insurance tables (user enters `monthly_uib_usd` in v1).  
-- **UK / Canada / other country locales** (desk research in [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) §3).  
+- **Canada / other country locales** beyond IN / US / UK (desk research in [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) §3). **UK is now specced** in [`SPEC-UK.md`](SPEC-UK.md) (implementation pending).  
 - **Wash-sale** / lot-level capital gains tracking (flat `ltcg_rate_pct` only).  
 - **Auto PMI cancellation** at 78% LTV (user flat `pmi_monthly_usd` or manual toggle in v1.1).  
 - **Property tax / escrow** modeling.
@@ -541,7 +542,7 @@ All IN §9 cases plus:
 3. Default job-loss tranche split: liquidity-first auto-default like IN? → **Yes for `JL_401K_BRIDGE` preset**; user chooses otherwise.  
 4. Show itemized penalty + withholding in schedule rows vs summary only? → **Both**: `events[]` per month + summary KPIs.
 
-**Resolved:** IN §4.10–§4.11 promoted to [`SPEC.md`](SPEC.md) (symmetry). UK/CA locales deferred per [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md).
+**Resolved:** IN §4.10–§4.11 promoted to [`SPEC.md`](SPEC.md) (symmetry). CA locale deferred per [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md). UK locale specced in [`SPEC-UK.md`](SPEC-UK.md) per [`2026-07-uk-employee-benefits-mapping.md`](research/2026-07-uk-employee-benefits-mapping.md).
 
 ---
 

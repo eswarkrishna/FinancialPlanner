@@ -224,10 +224,10 @@ After the window, JSA contribution is `0` — the schedule must show the income 
 **3. Savings draw order** — when monthly cash balance would go negative:
 
 ```text
-draw order: cash_gbp → isa_balance_gbp → gia_balance_gbp (net of CGT per §4.12.3 model)
+draw order: cash_gbp → isa_balance_gbp → gia_balance_gbp (net of CGT per §7.5)
 ```
 
-ISA draws are tax-free. GIA draws realise gains pro-rata to `gia_cost_basis_gbp` and apply the §4.12.3 CGT model; net proceeds fund the shortfall. Pension pot is **never** in the draw order.
+ISA draws are tax-free. GIA draws realise gains pro-rata to `gia_cost_basis_gbp` and apply the §7.5 liquidation model; net proceeds fund the shortfall. Pension pot is **never** in the draw order.
 
 **4. Support for Mortgage Interest (SMI)** — optional repayable-loan safety net:
 
@@ -579,7 +579,7 @@ All IN §9 cases plus:
 6. **SMI indexing + amount:** `U=1`, wait 3 → first credit month **4**; reference loan (balance ≥ £200,000) credit **£610.00/mo**; `smi_loan_balance_gbp` accumulates exactly the credits.  
 7. **Pension locked:** job-loss fixture with all cash exhausted — `pension_pot_gbp` unchanged in every row; forced pension-draw config throws `PENSION_LOCKED_NMPA`.  
 8. **ERC on excess:** balance £250,000, allowance 10%, prepay £37,500, `erc_pct=2` → fee **£250**; same prepay with `erc_pct=0` → fee 0 + `ERC_ALLOWANCE_EXCEEDED`.  
-9. **ERC block reset:** £25,000 prepay in month 1 and £25,000 in month 13 (10% allowance each block) → **no fee** in either block for the reference loan.  
+9. **ERC block reset:** £25,000 prepay in month 1 (block 1 allowance = 10% × £250,000) and **£21,841.09** prepay in month 13 (block 2 allowance = 10% × month-13 opening balance ≈ £218,410.93 after month-1 prepay and 11 scheduled payments) → **no ERC fee** in either block for the reference loan with `erc_pct = 2`.  
 10. **Auto-enrolment:** £60,000 salary, 5%/3% → employee **£183.46/mo**, employer **£110.08/mo** (±£0.01); `employment_type=self_employed` → employer **£0** regardless of inputs.  
 11. **GIA CGT:** corpus £50,000, basis £40,000, full liquidation, defaults → tax **£1,680**, net **£48,320**.  
 12. **Cashflow shortfall** fixture (no JSA, no redundancy) flags `MORTGAGE_DEFAULT_RISK`.  

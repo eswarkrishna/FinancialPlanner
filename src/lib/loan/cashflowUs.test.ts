@@ -181,5 +181,8 @@ describe("simulateUsCashflowSchedule (SPEC-US §4.8)", () => {
     });
     expect(result.rows.length).toBeLessThanOrEqual(600);
     expect(result.warnings).toContain("LOAN_NOT_PAID_OFF");
+    expect(
+      result.warnings.filter((w) => w === "LOAN_NOT_PAID_OFF").length,
+    ).toBe(1);
   });
 });

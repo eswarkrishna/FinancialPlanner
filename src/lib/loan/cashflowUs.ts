@@ -407,7 +407,7 @@ export function simulateUsCashflowSchedule(
   }
 
   const loanPaidOff = balance <= BALANCE_EPS;
-  if (!loanPaidOff && rows.length >= cap) {
+  if (!loanPaidOff && rows.length >= cap && !warnings.includes("LOAN_NOT_PAID_OFF")) {
     warnings.push("LOAN_NOT_PAID_OFF");
   }
   const totalInterest = loanPaidOff ? totalInterestIfPaidOff : totalInterestWithinTenure;

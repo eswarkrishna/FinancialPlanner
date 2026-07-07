@@ -160,10 +160,11 @@ export function pfTrancheToLoanLabel(
       ? `Job loss: 401(k) to loan ${tranches}`
       : `401(k) tranches to loan ${tranches}`;
   }
+  if (jobLossMode) {
+    return inPfTrancheLabel(startMonth);
+  }
   const tranches = `(75% m${tranche1Month} + 25% m${tranche2Month})`;
-  return jobLossMode
-    ? `Unemployment: PF to loan ${tranches}`
-    : `PF tranches to loan ${tranches}`;
+  return `PF tranches to loan ${tranches}`;
 }
 
 export function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {

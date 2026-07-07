@@ -1,7 +1,7 @@
 import { computeEmi, monthlyRateFromAnnualPercent } from "./emi";
 import type { ScheduleRow, ScheduleTotals, TimedPrepaymentEvent } from "./amortisation";
 import { roundInr } from "../money";
-import { BALANCE_EPSILON_INR } from "../shared/constants";
+import { BALANCE_EPSILON_INR, MAX_CASHFLOW_SIM_MONTHS, MAX_CONSECUTIVE_PAYMENT_SHORTFALLS } from "../shared/constants";
 import { trancheMonthsFromStart } from "../shared/trancheMonths";
 import { computePfUnemploymentWithdrawalPlan } from "../pf/unemployment";
 
@@ -97,7 +97,8 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
   let minCash = cashBalance;
   const warnings: string[] = [];
   let m = 0;
-  const cap = input.tenure_months * 8;
+  let consecutiveShortfall = 0;
+  const cap = Math.min(input.tenure_months * 8, MAX_CASHFLOW_SIM_MONTHS);
   const monthlyExtra = Math.max(0, input.monthly_extra_to_loan_inr);
   const uStart = input.unemployment_enabled
     ? Math.max(1, input.unemployment_start_month)
@@ -168,9 +169,11 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
     };
 
     if (cashBalance >= emiDue) {
+      consecutiveShortfall = 0;
       cashBalance = roundInr(cashBalance - emiDue);
       applyEmiPayment(emiDue);
     } else if (emiDue > 0) {
+      consecutiveShortfall += 1;
       events.push("emi_shortfall");
       applyEmiPayment(Math.max(0, cashBalance));
       cashBalance = 0;
@@ -252,9 +255,21 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
     totalPaid += roundInr(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPSILON_INR) break;
+    if (
+      consecutiveShortfall >= MAX_CONSECUTIVE_PAYMENT_SHORTFALLS &&
+      balance > BALANCE_EPSILON_INR
+    ) {
+      if (!warnings.includes("LOAN_NOT_PAID_OFF")) {
+        warnings.push("LOAN_NOT_PAID_OFF");
+      }
+      break;
+    }
   }
 
   const loanPaidOff = balance <= BALANCE_EPSILON_INR;
+  if (!loanPaidOff && rows.length >= cap && !warnings.includes("LOAN_NOT_PAID_OFF")) {
+    warnings.push("LOAN_NOT_PAID_OFF");
+  }
   const totalInterest = loanPaidOff ? totalInterestIfPaidOff : totalInterestWithinTenure;
 
   return {

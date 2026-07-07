@@ -5,6 +5,7 @@ import {
   type PrepaySource,
   type ScenarioView,
 } from "../loan/scenarioViews";
+import { EMPTY_LOAN_FORM } from "../loan/loanFormFields";
 import type { LoanInput } from "../schemas/index";
 
 /** Legacy single-key blob (v1.7); migrated to per-locale keys on read. */
@@ -67,10 +68,18 @@ function normalizePersistedState(
   if (!value.inputs || typeof value.inputs !== "object") return null;
   if (!isValidScenarioView(value.scenarioView)) return null;
   if (!isValidPrepaySource(value.prepaySource)) return null;
+  const mergedInputs = { ...EMPTY_LOAN_FORM };
+  for (const key of Object.keys(EMPTY_LOAN_FORM) as (keyof LoanInput)[]) {
+    const raw = (value.inputs as Record<string, unknown>)[key];
+    if (raw !== undefined && raw !== null) {
+      mergedInputs[key] = String(raw);
+    }
+  }
+
   return {
     version: LOAN_FORM_STORAGE_VERSION,
     locale,
-    inputs: value.inputs as Record<keyof LoanInput, string>,
+    inputs: mergedInputs,
     scenarioView: value.scenarioView,
     prepaySource: value.prepaySource,
     stagedPrepays: normalizeStagedPrepays(value.stagedPrepays),

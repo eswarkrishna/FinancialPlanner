@@ -2,7 +2,7 @@
   "emi_inr": 2528.27,
   "totals": {
     "total_paid_inr": 130000,
-    "total_interest_inr": 1655775.44,
+    "total_interest_inr": 77454.68,
     "total_prepayments_inr": 80000,
     "payoff_month": 0
   },
@@ -35,12 +35,12 @@
     ]
   },
   "last_row": {
-    "month": 2880,
-    "opening_inr": 1564521952877.47,
+    "month": 43,
+    "opening_inr": 345582.77,
     "interest_inr": 0,
     "principal_inr": 0,
     "prepayment_inr": 0,
-    "closing_inr": 1572996446788.89,
+    "closing_inr": 347454.68,
     "payment_inr": 0,
     "emi_inr": 2528.27,
     "cash_balance_inr": 0,
@@ -48,5 +48,5 @@
       "payment_shortfall"
     ]
   },
-  "row_count": 2880
+  "row_count": 43
 }

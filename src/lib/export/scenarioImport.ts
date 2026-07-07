@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Locale } from "../locale/types";
 import { loanInputToFormFields } from "../loan/loanFormFields";
 import {
   parsePrepaySource,
@@ -19,6 +20,7 @@ const stagedPrepayEventSchema = z.object({
 
 const scenarioImportSchema = z.object({
   scenario_id: z.string().min(1),
+  locale: z.enum(["IN", "US"]).optional(),
   inputs: z.record(z.unknown()),
   staged_prepayments: z.array(z.unknown()).optional(),
 });
@@ -51,7 +53,10 @@ function extractLoanInputs(
   return loanInputSchema.safeParse(rest);
 }
 
-export function parseScenarioImportJson(json: string): ScenarioImportOutcome {
+export function parseScenarioImportJson(
+  json: string,
+  activeLocale?: Locale,
+): ScenarioImportOutcome {
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
@@ -76,7 +81,24 @@ export function parseScenarioImportJson(json: string): ScenarioImportOutcome {
     };
   }
 
-  const scenarioView = SCENARIO_ID_TO_VIEW[envelope.data.scenario_id] ?? "BASE";
+  if (
+    envelope.data.locale !== undefined &&
+    activeLocale !== undefined &&
+    envelope.data.locale !== activeLocale
+  ) {
+    return {
+      success: false,
+      message: `This export is for the ${envelope.data.locale} locale; switch locale before importing.`,
+    };
+  }
+
+  const scenarioView = SCENARIO_ID_TO_VIEW[envelope.data.scenario_id];
+  if (!scenarioView) {
+    return {
+      success: false,
+      message: `Unrecognised scenario_id "${envelope.data.scenario_id}".`,
+    };
+  }
   const prepaySource = parsePrepaySource(envelope.data.inputs.prepay_source);
   const rawStaged =
     envelope.data.staged_prepayments ?? envelope.data.inputs.staged_prepayments;

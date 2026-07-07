@@ -148,6 +148,24 @@ export function inPfTrancheLabel(startMonth: number): string {
   return `UE PF to loan (75% m${tranche1Month} + 25%+interest m${tranche2Month})`;
 }
 
+export function pfTrancheToLoanLabel(
+  locale: Locale,
+  startMonth: number,
+  jobLossMode: boolean,
+): string {
+  const { tranche1Month, tranche2Month } = trancheMonthsFromStart(startMonth);
+  if (locale === "US") {
+    const tranches = `(50% m${tranche1Month} + 50% m${tranche2Month})`;
+    return jobLossMode
+      ? `Job loss: 401(k) to loan ${tranches}`
+      : `401(k) tranches to loan ${tranches}`;
+  }
+  const tranches = `(75% m${tranche1Month} + 25% m${tranche2Month})`;
+  return jobLossMode
+    ? `Unemployment: PF to loan ${tranches}`
+    : `PF tranches to loan ${tranches}`;
+}
+
 export function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
   return {
     principal_inr: v.principal_inr,

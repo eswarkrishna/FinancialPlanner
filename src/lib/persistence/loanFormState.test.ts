@@ -104,4 +104,22 @@ describe("loanFormState (SPEC §4.9 v1.7)", () => {
     localStorage.setItem(loanFormStorageKey("IN"), "not-json");
     expect(readLoanFormState("IN")).toBeNull();
   });
+
+  it("merges partial persisted inputs with defaults", () => {
+    localStorage.setItem(
+      loanFormStorageKey("IN"),
+      JSON.stringify({
+        version: LOAN_FORM_STORAGE_VERSION,
+        locale: "IN",
+        inputs: { principal_inr: "5000000" },
+        scenarioView: "BASE",
+        prepaySource: "cash",
+        stagedPrepays: [],
+      }),
+    );
+    const stored = readLoanFormState("IN");
+    expect(stored?.inputs.principal_inr).toBe("5000000");
+    expect(stored?.inputs.annual_interest_rate).toBe("");
+    expect(stored?.inputs.tenure_months).toBe("");
+  });
 });

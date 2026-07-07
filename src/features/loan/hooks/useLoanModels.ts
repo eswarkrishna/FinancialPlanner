@@ -47,6 +47,7 @@ import {
 import { buildComparisonRows } from "./buildComparisonRows";
 import { buildLoanModels } from "./buildLoanModels";
 import {
+  pfTrancheToLoanLabel,
   prepaySourceComparisonWord,
   prepaySourceHintLabel,
   prepaySourceScheduleLabel,
@@ -56,6 +57,7 @@ import { resolveActiveBundle } from "./resolveActiveBundle";
 
 export type { PrepaySource, ScenarioView };
 export {
+  pfTrancheToLoanLabel,
   prepaySourceComparisonWord,
   prepaySourceHintLabel,
   prepaySourceScheduleLabel,
@@ -327,22 +329,27 @@ export function useLoanModels() {
   }
 
   function importScenarioJson(file: File) {
-    void readImportFile(file).then((text) => {
-      const outcome = parseScenarioImportJson(text);
-      if (!outcome.success) {
-        setImportError(outcome.message);
+    void readImportFile(file)
+      .then((text) => {
+        const outcome = parseScenarioImportJson(text, locale);
+        if (!outcome.success) {
+          setImportError(outcome.message);
+          trackLoanImportScenarioJson(scenarioView, locale, false);
+          return;
+        }
+        setImportError(null);
+        applyLoanState({
+          inputs: outcome.inputs,
+          scenarioView: outcome.scenarioView,
+          prepaySource: outcome.prepaySource,
+          stagedPrepays: outcome.stagedPrepays,
+        });
+        trackLoanImportScenarioJson(outcome.scenarioView, locale, true);
+      })
+      .catch(() => {
+        setImportError("Failed to read file.");
         trackLoanImportScenarioJson(scenarioView, locale, false);
-        return;
-      }
-      setImportError(null);
-      applyLoanState({
-        inputs: outcome.inputs,
-        scenarioView: outcome.scenarioView,
-        prepaySource: outcome.prepaySource,
-        stagedPrepays: outcome.stagedPrepays,
       });
-      trackLoanImportScenarioJson(outcome.scenarioView, locale, true);
-    });
   }
 
   function exportScheduleCsv() {
@@ -362,6 +369,7 @@ export function useLoanModels() {
     const comp = comparisonRows.find((r) => r.id === scenarioView);
     const payload: ScenarioExportPayload = {
       exported_at: new Date().toISOString(),
+      locale,
       scenario_id: SCENARIO_LABELS[scenarioView],
       scenario_label: comp?.label ?? SCENARIO_LABELS[scenarioView],
       inputs: {

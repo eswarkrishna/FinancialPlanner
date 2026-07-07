@@ -371,6 +371,10 @@ export function simulateUsCashflowSchedule(
       }
     }
 
+    if (emiDue > 0 && emiPaid >= emiDue) {
+      consecutiveShortfall = 0;
+    }
+
     pushRow(
       rows,
       m,

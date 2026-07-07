@@ -1,6 +1,7 @@
 import type {
   CashflowSimResult,
   ScheduleRow,
+  UkCashflowSimResult,
   UsCashflowSimResult,
 } from "../../../lib/loan";
 import type { Locale } from "../../../lib/locale/types";
@@ -17,7 +18,7 @@ export function isCashflowResult(
     | { rows: ScheduleRow[]; totals: { payoff_month: number; total_interest_inr: number; total_paid_inr: number } }
     | CashflowSimResult
     | UsCashflowSimResult,
-): value is CashflowSimResult | UsCashflowSimResult {
+): value is CashflowSimResult | UsCashflowSimResult | UkCashflowSimResult {
   return "min_cash_balance_inr" in value;
 }
 
@@ -72,8 +73,10 @@ export function prepaySourceComparisonWord(
   locale: Locale = "IN",
 ): string {
   if (source === "cash") return "cash";
-  if (source === "pf") return locale === "US" ? "401(k)" : "PF";
-  return locale === "US" ? "brokerage" : "gold";
+  if (source === "isa") return "ISA";
+  if (source === "gia") return "GIA";
+  if (source === "pf") return locale === "US" ? "401(k)" : locale === "UK" ? "pension" : "PF";
+  return locale === "US" ? "brokerage" : locale === "UK" ? "GIA" : "gold";
 }
 
 export function prepaySourceScheduleLabel(
@@ -81,8 +84,10 @@ export function prepaySourceScheduleLabel(
   locale: Locale = "IN",
 ): string {
   if (source === "cash") return "Cash";
-  if (source === "pf") return locale === "US" ? "401(k)" : "PF";
-  return locale === "US" ? "Brokerage" : "Gold";
+  if (source === "isa") return "ISA";
+  if (source === "gia") return "GIA";
+  if (source === "pf") return locale === "US" ? "401(k)" : locale === "UK" ? "Pension" : "PF";
+  return locale === "US" ? "Brokerage" : locale === "UK" ? "GIA" : "Gold";
 }
 
 export function prepaySourceHintLabel(
@@ -90,8 +95,10 @@ export function prepaySourceHintLabel(
   locale: Locale = "IN",
 ): string {
   if (source === "cash") return "Cash";
-  if (source === "pf") return locale === "US" ? "401(k) vested" : "PF account";
-  return locale === "US" ? "Brokerage (liquid)" : "Gold (liquid)";
+  if (source === "isa") return "ISA (tax-free)";
+  if (source === "gia") return "GIA (taxable)";
+  if (source === "pf") return locale === "US" ? "401(k) vested" : locale === "UK" ? "Pension pot (locked)" : "PF account";
+  return locale === "US" ? "Brokerage (liquid)" : locale === "UK" ? "GIA (liquid)" : "Gold (liquid)";
 }
 
 export function monthly401kWithEmployerMatch(v: LoanInput): number {
@@ -153,6 +160,9 @@ export function pfTrancheToLoanLabel(
   startMonth: number,
   jobLossMode: boolean,
 ): string {
+  if (locale === "UK") {
+    return ukRedundancyLabel(startMonth, jobLossMode);
+  }
   const { tranche1Month, tranche2Month } = trancheMonthsFromStart(startMonth);
   if (locale === "US") {
     const tranches = `(50% m${tranche1Month} + 50% m${tranche2Month})`;
@@ -165,6 +175,44 @@ export function pfTrancheToLoanLabel(
   }
   const tranches = `(75% m${tranche1Month} + 25% m${tranche2Month})`;
   return `PF tranches to loan ${tranches}`;
+}
+
+export function ukCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
+  return {
+    principal_inr: v.principal_inr,
+    annual_interest_rate: v.annual_interest_rate,
+    tenure_months: v.tenure_months,
+    cash_inr: v.cash_inr,
+    isa_balance_inr: v.isa_balance_inr,
+    gia_balance_inr: v.gia_balance_inr,
+    gia_cost_basis_inr: v.gia_cost_basis_inr || v.gia_balance_inr,
+    pension_pot_inr: v.pf_corpus_inr,
+    monthly_income_inr: v.monthly_income_inr,
+    monthly_living_expense_inr: v.monthly_living_expense_inr,
+    monthly_extra_to_loan_inr: recurringToLoan,
+    job_loss_enabled: v.unemployment_mode,
+    job_loss_start_month: v.unemployment_start_month,
+    redundancy_payment_inr: v.redundancy_payment_inr,
+    marginal_tax_rate_pct: v.marginal_tax_rate_pct,
+    monthly_jsa_inr: v.monthly_uib_inr,
+    jsa_duration_months: v.jsa_duration_months,
+    smi_enabled: v.smi_enabled,
+    smi_wait_months: v.smi_wait_months,
+    smi_rate_pct: v.smi_rate_pct,
+    smi_capital_cap_inr: v.smi_capital_cap_inr,
+    cgt_rate_pct: v.cgt_rate_pct,
+    cgt_annual_exempt_inr: v.cgt_annual_exempt_inr,
+    erc_config: {
+      overpayment_allowance_pct: v.overpayment_allowance_pct,
+      erc_pct: v.erc_pct,
+    },
+  };
+}
+
+export function ukRedundancyLabel(startMonth: number, jobLossMode: boolean): string {
+  return jobLossMode
+    ? `Job loss: redundancy to loan (month ${startMonth})`
+    : `Redundancy prepay (month ${startMonth})`;
 }
 
 export function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {

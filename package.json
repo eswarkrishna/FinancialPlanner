@@ -12,7 +12,8 @@
     "lint": "tsc --noEmit -p tsconfig.json && eslint src",
     "lint:types": "tsc --noEmit -p tsconfig.json",
     "goldens:update": "npx tsx scripts/update-goldens.ts",
-    "goldens:update:us": "npx tsx scripts/update-goldens-us.ts"
+    "goldens:update:us": "npx tsx scripts/update-goldens-us.ts",
+    "goldens:update:uk": "npx tsx scripts/update-goldens-uk.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

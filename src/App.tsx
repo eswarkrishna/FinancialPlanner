@@ -104,6 +104,7 @@ export function App() {
               >
                 <option value="IN">India (INR)</option>
                 <option value="US">United States (USD)</option>
+                <option value="UK">United Kingdom (GBP)</option>
               </select>
             </label>
           </div>

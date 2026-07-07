@@ -40,7 +40,13 @@ function isValidScenarioView(value: unknown): value is ScenarioView {
 }
 
 function isValidPrepaySource(value: unknown): value is PrepaySource {
-  return value === "cash" || value === "pf" || value === "gold";
+  return (
+    value === "cash" ||
+    value === "pf" ||
+    value === "gold" ||
+    value === "isa" ||
+    value === "gia"
+  );
 }
 
 function normalizeStagedPrepays(value: unknown): StagedPrepayEntry[] {
@@ -50,7 +56,7 @@ function normalizeStagedPrepays(value: unknown): StagedPrepayEntry[] {
 
 function isValidPersistedState(value: Partial<LoanFormPersistedState>): value is LoanFormPersistedState {
   if (value.version !== LOAN_FORM_STORAGE_VERSION) return false;
-  if (value.locale !== "IN" && value.locale !== "US") return false;
+  if (value.locale !== "IN" && value.locale !== "US" && value.locale !== "UK") return false;
   if (!value.inputs || typeof value.inputs !== "object") return false;
   if (!isValidScenarioView(value.scenarioView)) return false;
   if (!isValidPrepaySource(value.prepaySource)) return false;
@@ -140,6 +146,7 @@ export function clearLoanFormState(locale?: Locale): void {
     }
     window.localStorage.removeItem(loanFormStorageKey("IN"));
     window.localStorage.removeItem(loanFormStorageKey("US"));
+    window.localStorage.removeItem(loanFormStorageKey("UK"));
     window.localStorage.removeItem(LOAN_FORM_STORAGE_KEY);
   } catch {
     // ignore

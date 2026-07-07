@@ -25,12 +25,16 @@ const WARNING_LABELS: Record<string, string> = {
     "Loan balance remains after the simulation horizon; payoff month is not reached.",
   SCHEDULE_TRUNCATED:
     "Schedule table shows the first 600 months only; totals reflect the full simulation.",
+  ERC_ALLOWANCE_EXCEEDED: "Overpayment exceeded the fee-free allowance (no ERC charged).",
+  JSA_WINDOW_ENDED: "JSA window ended; cash flow may still be negative.",
+  SMI_IS_A_LOAN: "SMI credits accrue as a repayable loan secured on your home.",
 };
 
 export function LoanSection() {
   const { locale } = useLocale();
   const money = (value: number) => formatMoney(value, locale);
   const isUs = locale === "US";
+  const isUk = locale === "UK";
   const {
     inputs,
     setField,
@@ -64,7 +68,7 @@ export function LoanSection() {
 
   const goldHaircutOn = inputs.gold_haircut_enabled === "true";
   const unemploymentOn = inputs.unemployment_mode === "true";
-  const currencyLabel = isUs ? "USD" : "INR";
+  const currencyLabel = isUk ? "GBP" : isUs ? "USD" : "INR";
 
   const tranche1 =
     withdrawalPlan && "tranche1_gross_usd" in withdrawalPlan
@@ -117,7 +121,7 @@ export function LoanSection() {
             />
           </label>
           <label>
-            Monthly {isUs ? "payment" : "cash"} to loan ({currencyLabel})
+            Monthly {isUs || isUk ? "payment" : "cash"} to loan ({currencyLabel})
             <input
               inputMode="decimal"
               value={inputs.monthly_cash_to_loan_inr}
@@ -140,7 +144,82 @@ export function LoanSection() {
               onChange={(e) => setField("monthly_salary_inr", e.target.value)}
             />
           </label>
-          {isUs && (
+          {isUk ? (
+            <>
+              <label>
+                Employment type
+                <select
+                  value={inputs.employment_type}
+                  onChange={(e) => setField("employment_type", e.target.value)}
+                >
+                  <option value="w2">PAYE employee</option>
+                  <option value="self_employed">Self-employed</option>
+                </select>
+              </label>
+              <label>
+                Annual salary (GBP)
+                <input
+                  inputMode="decimal"
+                  value={inputs.annual_salary_inr}
+                  onChange={(e) => setField("annual_salary_inr", e.target.value)}
+                />
+              </label>
+              <label>
+                ISA balance (GBP)
+                <input
+                  inputMode="decimal"
+                  value={inputs.isa_balance_inr}
+                  onChange={(e) => setField("isa_balance_inr", e.target.value)}
+                />
+              </label>
+              <label>
+                GIA balance (GBP)
+                <input
+                  inputMode="decimal"
+                  value={inputs.gia_balance_inr}
+                  onChange={(e) => setField("gia_balance_inr", e.target.value)}
+                />
+              </label>
+              <label>
+                GIA cost basis (GBP)
+                <input
+                  inputMode="decimal"
+                  value={inputs.gia_cost_basis_inr}
+                  onChange={(e) => setField("gia_cost_basis_inr", e.target.value)}
+                />
+              </label>
+              <label>
+                Pension pot (GBP, projection-only)
+                <input
+                  inputMode="decimal"
+                  value={inputs.pf_corpus_inr}
+                  onChange={(e) => setField("pf_corpus_inr", e.target.value)}
+                />
+              </label>
+              <label>
+                Overpayment allowance (%/yr)
+                <input
+                  inputMode="decimal"
+                  value={inputs.overpayment_allowance_pct}
+                  onChange={(e) => setField("overpayment_allowance_pct", e.target.value)}
+                />
+              </label>
+              <label>
+                ERC on excess (%)
+                <input
+                  inputMode="decimal"
+                  value={inputs.erc_pct}
+                  onChange={(e) => setField("erc_pct", e.target.value)}
+                />
+              </label>
+              {models && models.monthly401kWithMatch > 0 && (
+                <p className="field-hint">
+                  Auto-enrolment (employee + employer):{" "}
+                  {money(models.monthly401kWithMatch)}/mo
+                </p>
+              )}
+            </>
+          ) : isUs ? (
             <>
               <label>
                 Employment type
@@ -177,7 +256,8 @@ export function LoanSection() {
                 PMI active
               </label>
             </>
-          )}
+          ) : null}
+          {!isUk && (
           <label>
             {isUs ? "401(k) vested balance (USD)" : "PF corpus (INR)"}
             <input
@@ -186,6 +266,7 @@ export function LoanSection() {
               onChange={(e) => setField("pf_corpus_inr", e.target.value)}
             />
           </label>
+          )}
           {isUs ? (
             <>
               <label>
@@ -235,6 +316,8 @@ export function LoanSection() {
               </label>
             </>
           )}
+          {!isUk && (
+          <>
           <label>
             {isUs ? "Brokerage liquid (USD)" : "Gold liquid (INR)"}
             <input
@@ -261,10 +344,12 @@ export function LoanSection() {
               />
             </label>
           )}
+          </>
+          )}
         </div>
 
         <h3 className="subsection-title">
-          {isUs ? "Job loss & cashflow" : "Unemployment & cashflow"}
+          {isUk ? "Job loss & cashflow" : isUs ? "Job loss & cashflow" : "Unemployment & cashflow"}
         </h3>
         <div className="form-grid">
           <label className="checkbox-label">
@@ -273,12 +358,12 @@ export function LoanSection() {
               checked={unemploymentOn}
               onChange={(e) => setBoolField("unemployment_mode", e.target.checked)}
             />
-            {isUs ? "Job loss mode" : "Unemployment mode"}
+            {isUk ? "Job loss mode" : isUs ? "Job loss mode" : "Unemployment mode"}
           </label>
           {unemploymentOn && (
             <>
               <label>
-                {isUs ? "Job loss start month" : "Unemployment start month"}
+                {isUk ? "Job loss start month" : isUs ? "Job loss start month" : "Unemployment start month"}
                 <input
                   inputMode="numeric"
                   value={inputs.unemployment_start_month}
@@ -301,6 +386,50 @@ export function LoanSection() {
                   onChange={(e) => setField("monthly_income_inr", e.target.value)}
                 />
               </label>
+              {isUk && (
+                <>
+                  <label>
+                    Redundancy payment gross (GBP)
+                    <input
+                      inputMode="decimal"
+                      value={inputs.redundancy_payment_inr}
+                      onChange={(e) => setField("redundancy_payment_inr", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Marginal tax rate (%)
+                    <input
+                      inputMode="decimal"
+                      value={inputs.marginal_tax_rate_pct}
+                      onChange={(e) => setField("marginal_tax_rate_pct", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Monthly JSA (GBP)
+                    <input
+                      inputMode="decimal"
+                      value={inputs.monthly_uib_inr}
+                      onChange={(e) => setField("monthly_uib_inr", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    JSA duration (months)
+                    <input
+                      inputMode="numeric"
+                      value={inputs.jsa_duration_months}
+                      onChange={(e) => setField("jsa_duration_months", e.target.value)}
+                    />
+                  </label>
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={inputs.smi_enabled === "true"}
+                      onChange={(e) => setBoolField("smi_enabled", e.target.checked)}
+                    />
+                    Enable SMI safety net
+                  </label>
+                </>
+              )}
               {isUs && inputs.employment_type !== "self_employed" && (
                 <label>
                   Monthly UI benefit (USD)
@@ -337,6 +466,13 @@ export function LoanSection() {
           )}
         </div>
 
+        {isUk && unemploymentOn && (
+          <p className="hint">
+            Simplified job-loss scenario — not a benefits entitlement calculation.
+            Pension pot is never drawn before NMPA. Draw order: cash → ISA → GIA.
+          </p>
+        )}
+
         {isUs && unemploymentOn && (
           <p className="hint">
             Simplified job-loss scenario — not IRS hardship or plan rules. Early 401(k)
@@ -351,9 +487,9 @@ export function LoanSection() {
           <strong>Monthly salary</strong> is routed as extra principal in salary-sweep
           and prepay scenarios, but <strong>not</strong> in the baseline{" "}
           <strong>BASE</strong> row.{" "}
-          <strong>{isUs ? "Brokerage liquid" : "Gold liquid"}</strong> can be the
-          one-time prepay source; enable haircut to model liquidation discount.
-          {goldHaircutOn && models && (
+          <strong>{isUk ? "ISA/GIA" : isUs ? "Brokerage liquid" : "Gold liquid"}</strong> can be the
+          one-time prepay source{!isUk && "; enable haircut to model liquidation discount"}.
+          {!isUk && goldHaircutOn && models && (
             <>
               {" "}
               Effective {isUs ? "brokerage" : "gold"} after haircut:{" "}
@@ -432,10 +568,19 @@ export function LoanSection() {
                 }}
               >
                 <option value="cash">Cash</option>
-                <option value="pf">{isUs ? "401(k) account" : "PF account"}</option>
-                <option value="gold">
-                  {isUs ? "Brokerage (liquid)" : "Gold (liquid)"}
-                </option>
+                {isUk ? (
+                  <>
+                    <option value="isa">ISA</option>
+                    <option value="gia">GIA</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="pf">{isUs ? "401(k) account" : "PF account"}</option>
+                    <option value="gold">
+                      {isUs ? "Brokerage (liquid)" : "Gold (liquid)"}
+                    </option>
+                  </>
+                )}
               </select>
             </label>
             <div className="table-wrap comparison">
@@ -484,7 +629,7 @@ export function LoanSection() {
             <h2>Loan baseline summary</h2>
             <dl className="kpi">
               <div>
-                <dt>EMI</dt>
+                <dt>{isUk || isUs ? "Mortgage payment" : "EMI"}</dt>
                 <dd>{money(models.base.emi_inr)}</dd>
               </div>
               <div>
@@ -495,13 +640,17 @@ export function LoanSection() {
                 <dt>Liquid assets</dt>
                 <dd>
                   {money(
-                    models.v.cash_inr +
-                      models.v.pf_corpus_inr +
-                      (goldHaircutOn ? effectiveLiquidInr : models.v.gold_liquid_inr),
+                    isUk
+                      ? models.v.cash_inr +
+                          models.v.isa_balance_inr +
+                          models.v.gia_balance_inr
+                      : models.v.cash_inr +
+                          models.v.pf_corpus_inr +
+                          (goldHaircutOn ? effectiveLiquidInr : models.v.gold_liquid_inr),
                   )}
                 </dd>
               </div>
-              {withdrawalPlan && (
+              {withdrawalPlan && !isUk && (
                 <>
                   <div>
                     <dt>

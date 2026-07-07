@@ -10,6 +10,13 @@ export function roundUsd(value: number): number {
   return roundInr(value);
 }
 
-export function roundMoney(value: number, locale: "IN" | "US"): number {
-  return locale === "US" ? roundUsd(value) : roundInr(value);
+/** Half-up rounding to pence (SPEC-UK §4.0). */
+export function roundGbp(value: number): number {
+  return roundInr(value);
+}
+
+export function roundMoney(value: number, locale: "IN" | "US" | "UK"): number {
+  if (locale === "US") return roundUsd(value);
+  if (locale === "UK") return roundGbp(value);
+  return roundInr(value);
 }

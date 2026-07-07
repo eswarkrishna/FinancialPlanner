@@ -10,7 +10,8 @@ export function RetirementSection() {
   const { locale } = useLocale();
   const money = (value: number) => formatMoney(value, locale);
   const isUs = locale === "US";
-  const currencyLabel = isUs ? "USD" : "INR";
+  const isUk = locale === "UK";
+  const currencyLabel = isUk ? "GBP" : isUs ? "USD" : "INR";
   const {
     retirementInputs,
     selectedRetirementScenario,
@@ -25,8 +26,9 @@ export function RetirementSection() {
     exportRetirementJson,
   } = useRetirementPlanner();
 
-  const annualSsIncome =
-    (retirementBaseInput?.expected_social_security_monthly_inr ?? 0) * 12;
+  const annualSsIncome = isUk
+    ? (retirementBaseInput?.expected_social_security_monthly_inr ?? 0) * 52
+    : (retirementBaseInput?.expected_social_security_monthly_inr ?? 0) * 12;
 
   return (
     <>
@@ -95,12 +97,14 @@ export function RetirementSection() {
               }
             />
           </label>
-          {isUs && (
+          {(isUs || isUk) && (
             <label>
-              Expected Social Security (USD/mo)
+              {isUk
+                ? "Expected State Pension (GBP/wk)"
+                : "Expected Social Security (USD/mo)"}
               <input
                 inputMode="decimal"
-                placeholder="2000"
+                placeholder={isUk ? "241.30" : "2000"}
                 value={retirementInputs.expected_social_security_monthly_inr}
                 onChange={(event) =>
                   setRetirementField("expected_social_security_monthly_inr", event)

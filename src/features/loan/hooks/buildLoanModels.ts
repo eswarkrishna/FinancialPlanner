@@ -23,45 +23,63 @@ import {
   pfTrancheEvents,
   usCashflowBaseInput,
 } from "./loanModelHelpers";
+import { buildUkLoanModels } from "./buildUkLoanModels";
 import type { PrepaySource } from "../../../lib/loan/scenarioViews";
+
+import type { UkCashflowSimResult } from "../../../lib/loan/cashflowUk";
+
+type UkScheduleShape = {
+  emi_inr: number;
+  rows: UkCashflowSimResult["rows"];
+  totals: UkCashflowSimResult["totals"];
+  min_cash_balance_inr: number;
+  warnings: string[];
+};
 
 export type BuiltLoanModels = {
   v: LoanInput;
-  base: ReturnType<typeof baselineSchedule>;
-  baseSalarySweep: ReturnType<typeof scheduleFixedEmiWithMonthlyExtra> | null;
+  base: ReturnType<typeof baselineSchedule> | UkScheduleShape;
+  baseSalarySweep: ReturnType<typeof scheduleFixedEmiWithMonthlyExtra> | UkScheduleShape | null;
   prepayTenure:
     | ReturnType<typeof schedulePrepayKeepTenure>
     | ReturnType<typeof simulateUsCashflowSchedule>
+    | UkScheduleShape
     | null;
   prepayEmi:
     | ReturnType<typeof scheduleFixedEmiWithMonthlyExtra>
     | ReturnType<typeof simulateUsCashflowSchedule>
+    | UkScheduleShape
     | null;
-  baseInflow: ReturnType<typeof scheduleFixedEmiWithMonthlyExtra> | null;
+  baseInflow: ReturnType<typeof scheduleFixedEmiWithMonthlyExtra> | UkScheduleShape | null;
   prepayEmiInflow:
     | ReturnType<typeof scheduleFixedEmiWithMonthlyExtra>
     | ReturnType<typeof simulateUsCashflowSchedule>
+    | UkScheduleShape
     | null;
-  cashflowNoPf: ReturnType<typeof scheduleTimedPrepaysKeepEmi> | null;
+  cashflowNoPf: ReturnType<typeof scheduleTimedPrepaysKeepEmi> | UkScheduleShape | null;
   cashflowPlusPf:
     | ReturnType<typeof scheduleTimedPrepaysKeepEmi>
     | ReturnType<typeof simulateUsCashPlus401kCashflow>
+    | UkScheduleShape
     | null;
   uePfToLoan:
     | ReturnType<typeof scheduleTimedPrepaysKeepEmi>
     | ReturnType<typeof simulateUePfToLoanCashflow>
     | ReturnType<typeof simulateJl401kToLoanCashflow>
     | ReturnType<typeof simulateUs401kTranchesToLoanCashflow>
+    | UkScheduleShape
     | null;
   uePfBridge:
     | ReturnType<typeof simulateUePfBridgeCashflow>
     | ReturnType<typeof simulateJl401kBridgeCashflow>
+    | UkScheduleShape
     | null;
   ueDelayPrepay:
     | ReturnType<typeof simulateUeDelayPrepayCashflow>
     | ReturnType<typeof simulateJlDelayPrepayCashflow>
+    | UkScheduleShape
     | null;
-  stagedPrepay: ReturnType<typeof scheduleTimedPrepaysKeepEmi> | null;
+  stagedPrepay: ReturnType<typeof scheduleTimedPrepaysKeepEmi> | UkScheduleShape | null;
   canPrepay: boolean;
   monthlyExtra: number;
   salaryRecurring: number;
@@ -78,6 +96,9 @@ export function buildLoanModels(
   stagedEvents: { month: number; amount_inr: number }[],
   locale: Locale,
 ): BuiltLoanModels {
+  if (locale === "UK") {
+    return buildUkLoanModels(v, prepaySource, stagedEvents);
+  }
   const x = v.monthly_cash_to_loan_inr;
   const salaryRecurring = v.monthly_salary_inr;
   const recurringToLoan = x + salaryRecurring;

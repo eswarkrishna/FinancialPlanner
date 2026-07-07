@@ -20,7 +20,7 @@ const stagedPrepayEventSchema = z.object({
 
 const scenarioImportSchema = z.object({
   scenario_id: z.string().min(1),
-  locale: z.enum(["IN", "US"]).optional(),
+  locale: z.enum(["IN", "US", "UK"]).optional(),
   inputs: z.record(z.unknown()),
   staged_prepayments: z.array(z.unknown()).optional(),
 });

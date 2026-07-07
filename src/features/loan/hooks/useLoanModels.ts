@@ -131,12 +131,31 @@ export function useLoanModels() {
       pmi_active: inputs.pmi_active !== "false",
       hsa_balance_inr: inputs.hsa_balance_inr || 0,
       monthly_health_premium_inr: inputs.monthly_health_premium_inr || 0,
+      isa_balance_inr: inputs.isa_balance_inr || 0,
+      gia_balance_inr: inputs.gia_balance_inr || 0,
+      gia_cost_basis_inr: inputs.gia_cost_basis_inr || 0,
+      overpayment_allowance_pct: inputs.overpayment_allowance_pct || 10,
+      erc_pct: inputs.erc_pct || 0,
+      employee_pension_pct: inputs.employee_pension_pct || 5,
+      employer_pension_pct: inputs.employer_pension_pct || 3,
+      redundancy_payment_inr: inputs.redundancy_payment_inr || 0,
+      marginal_tax_rate_pct: inputs.marginal_tax_rate_pct || 20,
+      jsa_duration_months: inputs.jsa_duration_months || 6,
+      smi_enabled: inputs.smi_enabled === "true",
+      smi_wait_months: inputs.smi_wait_months || 3,
+      smi_rate_pct: inputs.smi_rate_pct || 3.66,
+      smi_capital_cap_inr: inputs.smi_capital_cap_inr || 200_000,
+      cgt_rate_pct: inputs.cgt_rate_pct || 24,
+      cgt_annual_exempt_inr: inputs.cgt_annual_exempt_inr || 3_000,
     });
   }, [inputs]);
 
   const effectiveLiquidInr = useMemo(() => {
     if (!parsed.success) return 0;
     const v = parsed.data;
+    if (locale === "UK") {
+      return v.isa_balance_inr + v.gia_balance_inr;
+    }
     if (locale === "US") {
       return effectiveBrokerageLiquidUsd(
         v.gold_liquid_inr,
@@ -234,7 +253,7 @@ export function useLoanModels() {
   }
 
   function setBoolField(
-    key: "gold_haircut_enabled" | "unemployment_mode" | "pmi_active",
+    key: "gold_haircut_enabled" | "unemployment_mode" | "pmi_active" | "smi_enabled",
     checked: boolean,
   ) {
     setImportError(null);

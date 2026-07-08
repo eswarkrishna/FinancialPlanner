@@ -9,8 +9,11 @@ import {
 } from "./browserNotifications";
 import { saveReleaseConsent, type ReleaseConsent } from "./consent";
 import {
+  clearAwaitingReloadSha,
   evaluateVersionChange,
+  loadAwaitingReloadSha,
   loadLastSeenCommitSha,
+  saveAwaitingReloadSha,
   saveLastSeenCommitSha,
 } from "./versionCheck";
 import type { StorageLike } from "./consent";
@@ -24,6 +27,8 @@ import { getBuildInfo } from "../buildInfo";
 export interface ReleaseCheckResult {
   isUpdate: boolean;
   shortCommit: string;
+  /** Commit that triggered the update alert (remote sha when polling ahead of the loaded bundle). */
+  commitSha: string;
 }
 
 function defaultStorage(): StorageLike | null {
@@ -66,30 +71,40 @@ export function checkLoadedBuildForUpdate(
 ): ReleaseCheckResult {
   const build = currentBuildVersion();
   if (!build || !storage) {
-    return { isUpdate: false, shortCommit: "" };
+    return { isUpdate: false, shortCommit: "", commitSha: "" };
   }
+
+  const awaitingReload = loadAwaitingReloadSha(storage);
+  if (awaitingReload) {
+    if (build.sha === awaitingReload) {
+      clearAwaitingReloadSha(storage);
+      saveLastSeenCommitSha(storage, build.sha);
+    }
+    return { isUpdate: false, shortCommit: build.short, commitSha: build.sha };
+  }
+
   const lastSeen = loadLastSeenCommitSha(storage);
   const { isUpdate, nextLastSeenSha } = evaluateVersionChange(lastSeen, build.sha);
   if (isUpdate) {
-    return { isUpdate: true, shortCommit: build.short };
+    return { isUpdate: true, shortCommit: build.short, commitSha: build.sha };
   }
   if (!lastSeen) {
     saveLastSeenCommitSha(storage, nextLastSeenSha);
   }
-  return { isUpdate: false, shortCommit: build.short };
+  return { isUpdate: false, shortCommit: build.short, commitSha: build.sha };
 }
 
 export async function pollRemoteVersionForUpdate(
   storage: StorageLike | null = defaultStorage(),
 ): Promise<ReleaseCheckResult> {
-  if (!storage) return { isUpdate: false, shortCommit: "" };
+  if (!storage) return { isUpdate: false, shortCommit: "", commitSha: "" };
 
   const remote = await fetchRemoteVersion();
   const build = currentBuildVersion();
   const currentSha = remote?.sha ?? build?.sha ?? "";
   const shortCommit = remote?.short ?? build?.short ?? "";
 
-  if (!currentSha) return { isUpdate: false, shortCommit };
+  if (!currentSha) return { isUpdate: false, shortCommit: "", commitSha: "" };
 
   const lastSeen = loadLastSeenCommitSha(storage);
   const { isUpdate } = evaluateVersionChange(lastSeen, currentSha);
@@ -101,22 +116,29 @@ export async function pollRemoteVersionForUpdate(
         releaseNotificationBody(shortCommit),
       );
     }
-    return { isUpdate: true, shortCommit };
+    return { isUpdate: true, shortCommit, commitSha: currentSha };
   }
 
   if (!lastSeen) {
     saveLastSeenCommitSha(storage, currentSha);
   }
 
-  return { isUpdate: false, shortCommit };
+  return { isUpdate: false, shortCommit, commitSha: currentSha };
 }
 
 export function acknowledgeVersionUpdate(
   sha: string,
   storage: StorageLike | null = defaultStorage(),
+  loadedBundleSha?: string | null,
 ): void {
   if (!storage || !sha) return;
   saveLastSeenCommitSha(storage, sha);
+  const bundleSha = loadedBundleSha ?? currentBuildVersion()?.sha ?? null;
+  if (bundleSha && bundleSha !== sha) {
+    saveAwaitingReloadSha(storage, sha);
+  } else {
+    clearAwaitingReloadSha(storage);
+  }
 }
 
 export function consentAllowsPolling(consent: ReleaseConsent | null): boolean {

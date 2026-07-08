@@ -591,7 +591,7 @@ Notify visitors when a **new deployed version** of the site is available (git co
 **Notification delivery**
 
 - If consent is `accept` and permission is `granted`, show a browser notification: title **“FinancialPlanner update”**; body includes short commit id and “open to refresh”. No loan or user financial data.
-- Also show an in-app non-modal strip when a new version is detected on visit: **“A new version is available”** with **Reload** and dismiss (×). Reload performs `location.reload()`.
+- Also show an in-app non-modal strip when a new version is detected on visit: **“A new version is available”** with **Reload** and dismiss (×). Reload performs `location.reload()`. Dismiss and reload must persist the **detected** commit sha (including from remote `version.json` when the tab still runs an older bundle).
 - Service worker (`sw.js`) mirrors remote checks when registered; notification click focuses an open tab or opens the site scope.
 
 **Privacy**

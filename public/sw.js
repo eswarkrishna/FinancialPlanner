@@ -2,32 +2,32 @@ const VERSION_CACHE = "fp-version-v1";
 
 let versionCheckUrl = "version.json";
 
-function scopeBase(): string {
+function scopeBase() {
   const scope = self.registration?.scope ?? "/";
   return scope.endsWith("/") ? scope : `${scope}/`;
 }
 
-function iconUrl(): string {
+function iconUrl() {
   return `${scopeBase()}favicon.svg`;
 }
 
-function openSiteUrl(): string {
+function openSiteUrl() {
   return scopeBase();
 }
 
-async function readStoredSha(): Promise<string | null> {
+async function readStoredSha() {
   const cache = await caches.open(VERSION_CACHE);
   const response = await cache.match("sha");
   if (!response) return null;
   return response.text();
 }
 
-async function writeStoredSha(sha: string): Promise<void> {
+async function writeStoredSha(sha) {
   const cache = await caches.open(VERSION_CACHE);
   await cache.put("sha", new Response(sha));
 }
 
-async function checkForUpdate(notify: boolean): Promise<void> {
+async function checkForUpdate(notify) {
   try {
     const response = await fetch(`${versionCheckUrl}?t=${Date.now()}`, {
       cache: "no-store",

@@ -3,6 +3,7 @@
 export const RELEASE_NOTIFICATION_CONSENT_KEY =
   "financial-planner-release-notification-consent";
 export const LAST_SEEN_COMMIT_SHA_KEY = "financial-planner-last-seen-commit-sha";
+export const AWAITING_RELOAD_SHA_KEY = "financial-planner-awaiting-reload-sha";
 
 export const VERSION_POLL_INTERVAL_MS = 60 * 60 * 1000;
 

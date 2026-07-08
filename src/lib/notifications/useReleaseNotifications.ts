@@ -6,13 +6,25 @@ import {
   acknowledgeVersionUpdate,
   checkLoadedBuildForUpdate,
   consentAllowsPolling,
-  currentBuildVersion,
   pollRemoteVersionForUpdate,
   rejectReleaseNotifications,
 } from "./releaseNotifications";
 import { isNotificationApiSupported } from "./browserNotifications";
 import { pingServiceWorkerVersionCheck } from "./serviceWorker";
 import { shouldPromptForConsent } from "./versionCheck";
+
+function applyUpdateResult(
+  result: { isUpdate: boolean; shortCommit: string; commitSha: string },
+  setShowNewVersion: (show: boolean) => void,
+  setNewVersionShort: (short: string) => void,
+  setPendingUpdateSha: (sha: string) => void,
+): boolean {
+  if (!result.isUpdate) return false;
+  setShowNewVersion(true);
+  setNewVersionShort(result.shortCommit);
+  setPendingUpdateSha(result.commitSha);
+  return true;
+}
 
 export function useReleaseNotifications(): {
   showConsent: boolean;
@@ -29,21 +41,17 @@ export function useReleaseNotifications(): {
   );
   const [showNewVersion, setShowNewVersion] = useState(false);
   const [newVersionShort, setNewVersionShort] = useState("");
+  const [pendingUpdateSha, setPendingUpdateSha] = useState("");
   const notificationsSupported = isNotificationApiSupported();
 
   const runVersionCheck = useCallback(async () => {
     const loaded = checkLoadedBuildForUpdate();
-    if (loaded.isUpdate) {
-      setShowNewVersion(true);
-      setNewVersionShort(loaded.shortCommit);
+    if (applyUpdateResult(loaded, setShowNewVersion, setNewVersionShort, setPendingUpdateSha)) {
       return;
     }
     if (!consentAllowsPolling(consent)) return;
     const remote = await pollRemoteVersionForUpdate();
-    if (remote.isUpdate) {
-      setShowNewVersion(true);
-      setNewVersionShort(remote.shortCommit);
-    }
+    applyUpdateResult(remote, setShowNewVersion, setNewVersionShort, setPendingUpdateSha);
   }, [consent]);
 
   useEffect(() => {
@@ -82,20 +90,19 @@ export function useReleaseNotifications(): {
   }, []);
 
   const dismissNewVersion = useCallback(() => {
-    const build = currentBuildVersion();
-    if (build) {
-      acknowledgeVersionUpdate(build.sha);
+    if (pendingUpdateSha) {
+      acknowledgeVersionUpdate(pendingUpdateSha);
     }
+    setPendingUpdateSha("");
     setShowNewVersion(false);
-  }, []);
+  }, [pendingUpdateSha]);
 
   const reloadForUpdate = useCallback(() => {
-    const build = currentBuildVersion();
-    if (build) {
-      acknowledgeVersionUpdate(build.sha);
+    if (pendingUpdateSha) {
+      acknowledgeVersionUpdate(pendingUpdateSha);
     }
     window.location.reload();
-  }, []);
+  }, [pendingUpdateSha]);
 
   return {
     showConsent:

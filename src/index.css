@@ -22,6 +22,8 @@
   --tab-hover-text: #334155;
   --surface-muted: #f8fafc;
   --surface-subtle: #f1f5f9;
+  --code-bg: #e2e8f0;
+  --code-text: #334155;
   --accent-active-bg: var(--accent);
   --accent-active-text: #ffffff;
   --accent-active-hover: var(--accent-strong);

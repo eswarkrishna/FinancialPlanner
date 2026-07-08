@@ -3,7 +3,6 @@
  * Run: npx tsx scripts/a11y-audit.ts
  */
 import puppeteer from "puppeteer";
-import axe from "axe-core";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

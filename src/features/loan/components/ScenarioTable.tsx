@@ -1,6 +1,7 @@
 import { type ScheduleRow } from "../../../lib/loan";
 import { formatMoney } from "../../../lib/locale/formatMoney";
 import type { Locale } from "../../../lib/locale/types";
+import { TableWrap } from "../../../components/TableWrap";
 
 interface ScenarioTableProps {
   rows: ScheduleRow[];
@@ -36,7 +37,7 @@ export function ScenarioTable({
   const money = (value: number) => formatMoney(value, locale);
 
   return (
-    <div className="table-wrap">
+    <TableWrap label="Loan amortisation schedule">
       <table className="schedule">
         <thead>
           <tr>
@@ -73,6 +74,6 @@ export function ScenarioTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </TableWrap>
   );
 }

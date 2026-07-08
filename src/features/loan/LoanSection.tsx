@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { formatMoney } from "../../lib/locale/formatMoney";
 import { trackLoanPrepaySourceChange, trackLoanScenarioViewChange } from "../../lib/analytics";
 import { useLocale } from "../locale/LocaleContext";
+import { TableWrap } from "../../components/TableWrap";
 import { ScheduleChart } from "./components/ScheduleChart";
 import { ScenarioTable } from "./components/ScenarioTable";
 import { StagedPrepayEditor } from "./components/StagedPrepayEditor";
@@ -523,12 +524,12 @@ export function LoanSection() {
           />
         </div>
         {importError && (
-          <ul className="errors">
+          <ul className="errors" aria-live="assertive">
             <li>{importError}</li>
           </ul>
         )}
         {!parsed.success && (
-          <ul className="errors">
+          <ul className="errors" aria-live="assertive">
             {parsed.error.issues.map((issue) => (
               <li key={issue.path.join(".")}>{issue.message}</li>
             ))}
@@ -583,7 +584,7 @@ export function LoanSection() {
                 )}
               </select>
             </label>
-            <div className="table-wrap comparison">
+            <TableWrap label="Loan scenario comparison" className="comparison">
               <table>
                 <thead>
                   <tr>
@@ -622,7 +623,7 @@ export function LoanSection() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableWrap>
           </section>
 
           <section className="card">
@@ -765,7 +766,7 @@ export function LoanSection() {
             </div>
 
             {activeWarnings.length > 0 && (
-              <ul className="errors">
+              <ul className="errors" aria-live="assertive">
                 {activeWarnings.map((w) => (
                   <li key={w}>{WARNING_LABELS[w] ?? w}</li>
                 ))}

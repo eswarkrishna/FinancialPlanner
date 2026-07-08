@@ -2,6 +2,7 @@ import { formatMoney } from "../../lib/locale/formatMoney";
 import type { StrategyResult, StrategyWarning } from "../../lib/strategy/types";
 import type { Locale } from "../../lib/locale/types";
 import { BarChart } from "../../components/BarChart";
+import { TableWrap } from "../../components/TableWrap";
 import { useStrategyPlanner } from "./hooks/useStrategyPlanner";
 
 const STRATEGY_LABELS: Record<StrategyResult["strategy_id"], string> = {
@@ -282,7 +283,7 @@ export function StrategySection() {
             }))}
           />
         )}
-        <div className="table-wrap comparison">
+        <TableWrap label="Strategy comparison results" className="comparison">
           <table>
             <thead>
               <tr>
@@ -326,7 +327,7 @@ export function StrategySection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
       </section>
 
       <section className="card">
@@ -336,7 +337,7 @@ export function StrategySection() {
             Enter principal, annual rate, tenure, and horizon to see allocations.
           </p>
         )}
-        <div className="table-wrap comparison">
+        <TableWrap label="Strategy allocation breakdown" className="comparison">
           <table>
             <thead>
               <tr>
@@ -372,7 +373,7 @@ export function StrategySection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
       </section>
     </>
   );

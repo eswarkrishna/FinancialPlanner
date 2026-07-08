@@ -74,6 +74,11 @@ export function App() {
     trackPageView(`tab/${activeTab}`, `FinancialPlanner — ${label}`);
   }, [activeTab]);
 
+  useEffect(() => {
+    const lang = locale === "US" ? "en-US" : locale === "UK" ? "en-GB" : "en-IN";
+    document.documentElement.lang = lang;
+  }, [locale]);
+
   function selectTab(tabId: TabId) {
     if (tabId === activeTab) return;
     trackTabSelect(tabId);
@@ -115,7 +120,13 @@ export function App() {
           </p>
         </div>
         <nav className="app-tabs" aria-label="Planner sections">
-          <div className="app-tabs-scroll" role="tablist">
+          <div
+            className="app-tabs-scroll"
+            role="tablist"
+            aria-orientation="horizontal"
+            tabIndex={0}
+            aria-label="Planner section tabs"
+          >
             {PLANNER_TABS.map((tab) => (
               <button
                 key={tab.id}

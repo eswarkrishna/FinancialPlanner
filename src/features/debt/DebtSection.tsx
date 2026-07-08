@@ -2,6 +2,7 @@ import { formatMoneyFinite } from "../../lib/locale/formatMoney";
 import { type DebtStrategy } from "../../lib/debt";
 import { buildDebtBalanceCurve } from "../../lib/loan/chartData";
 import { LineChart } from "../../components/LineChart";
+import { TableWrap } from "../../components/TableWrap";
 import { useLocale } from "../locale/LocaleContext";
 import { useDebtPlanner } from "./hooks/useDebtPlanner";
 
@@ -62,7 +63,7 @@ export function DebtSection() {
           </label>
         </div>
 
-        <div className="table-wrap comparison debt-input-table">
+        <TableWrap label="Debt input rows" className="comparison debt-input-table">
           <table>
             <thead>
               <tr>
@@ -119,6 +120,7 @@ export function DebtSection() {
                     <button
                       type="button"
                       className="btn secondary"
+                      aria-label={`Remove debt ${row.name || row.id}`}
                       onClick={() => removeDebt(row.id)}
                     >
                       Remove
@@ -128,7 +130,7 @@ export function DebtSection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
         <div className="actions">
           <button type="button" className="btn secondary" onClick={addDebt}>
             Add debt
@@ -147,7 +149,7 @@ export function DebtSection() {
 
       <section className="card">
         <h2>Debt strategy comparison</h2>
-        <div className="table-wrap comparison">
+        <TableWrap label="Debt strategy comparison" className="comparison">
           <table>
             <thead>
               <tr>
@@ -170,7 +172,7 @@ export function DebtSection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
       </section>
 
       <section className="card">
@@ -204,7 +206,7 @@ export function DebtSection() {
             locale={locale}
           />
         )}
-        <div className="table-wrap">
+        <TableWrap label="Debt payoff timeline">
           <table>
             <thead>
               <tr>
@@ -229,7 +231,7 @@ export function DebtSection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
       </section>
     </>
   );

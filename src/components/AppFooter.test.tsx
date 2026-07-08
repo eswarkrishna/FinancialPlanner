@@ -13,7 +13,9 @@ describe("AppFooter", () => {
 
     expect(screen.getByText(/Latest push:/)).toBeInTheDocument();
     expect(screen.getByRole("time")).toHaveAttribute("dateTime", info!.commitIsoDate);
-    const link = screen.getByRole("link", { name: info!.commitShort });
+    const link = screen.getByRole("link", {
+      name: `View commit ${info!.commitShort} on GitHub (opens in new tab)`,
+    });
     expect(link).toHaveAttribute(
       "href",
       `https://github.com/${info!.githubRepo}/commit/${info!.commitSha}`,
@@ -33,7 +35,9 @@ describe("AppFooter", () => {
     const info = getBuildInfo();
     renderWithLocale(<AppFooter />);
 
-    const link = screen.getByRole("link", { name: "Report on GitHub" });
+    const link = screen.getByRole("link", {
+      name: "Report an issue on GitHub (opens in new tab)",
+    });
     expect(link).toHaveAttribute(
       "href",
       `https://github.com/${info!.githubRepo}/issues/new`,

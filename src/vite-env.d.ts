@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vitest-axe/extend-expect" />
 
 interface ImportMetaEnv {
   readonly VITE_GA_MEASUREMENT_ID?: string;

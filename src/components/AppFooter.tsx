@@ -28,7 +28,13 @@ function BuildMetaLine() {
         {formatBuildCommitDate(info.commitIsoDate)}
       </time>
       {" · "}
-      <a href={commitUrl} target="_blank" rel="noopener noreferrer" onClick={trackFooterCommitLinkClick}>
+      <a
+        href={commitUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`View commit ${info.commitShort} on GitHub (opens in new tab)`}
+        onClick={trackFooterCommitLinkClick}
+      >
         <code>{info.commitShort}</code>
       </a>
     </p>
@@ -46,6 +52,7 @@ function FooterFeedback() {
           href={issuesUrl}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Report an issue on GitHub (opens in new tab)"
           onClick={trackFeedbackGithubClick}
         >
           Report on GitHub
@@ -152,6 +159,7 @@ export function AppFooter() {
                 href="https://tools.google.com/dlpage/gaoptout"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Google Analytics opt-out add-on (opens in new tab)"
                 onClick={trackFooterGaOptoutClick}
               >
                 Google&apos;s opt-out add-on

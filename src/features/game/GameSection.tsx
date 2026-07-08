@@ -1,6 +1,7 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
 import type { GameProfileId } from "../../lib/game";
 import { GameLegendPanel } from "./GameLegendPanel";
+import { TableWrap } from "../../components/TableWrap";
 import {
   describeGameProfile,
   describeWarning,
@@ -67,7 +68,7 @@ export function GameSection() {
           </p>
         )}
         {!parsed.success && (
-          <ul className="errors">
+          <ul className="errors" aria-live="assertive">
             {parsed.error.issues.map((i) => (
               <li key={i.path.join(".")}>{i.message}</li>
             ))}
@@ -109,7 +110,7 @@ export function GameSection() {
               {result.payoff_matrix.length} cells · underlying scenarios:{" "}
               {result.underlying_scenario_ids.join(", ")}
             </p>
-            <div className="table-wrap comparison">
+            <TableWrap label="Strategic payoff matrix" className="comparison">
               <table>
                 <thead>
                   <tr>
@@ -143,7 +144,7 @@ export function GameSection() {
                   })}
                 </tbody>
               </table>
-            </div>
+            </TableWrap>
           </section>
 
           <section className="card">

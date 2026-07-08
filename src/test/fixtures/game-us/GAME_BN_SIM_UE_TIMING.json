@@ -1,0 +1,173 @@
+{
+  "game_profile_id": "GAME_BN_SIM_UE_TIMING",
+  "matrix_size": 12,
+  "payoff_matrix": [
+    {
+      "cell_key": "B_PREPAY_0|||||N_UE_M1|N_PF_LOAN",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_LOAN"
+      },
+      "payoffs": {
+        "B": 310525.14
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||N_UE_M1|N_PF_BRIDGE",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_BRIDGE"
+      },
+      "payoffs": {
+        "B": 83689.52
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||N_UE_M12|N_PF_LOAN",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "n_employment": "N_UE_M12",
+        "n_pf_route": "N_PF_LOAN"
+      },
+      "payoffs": {
+        "B": 294627.44
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||N_UE_M12|N_PF_BRIDGE",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "n_employment": "N_UE_M12",
+        "n_pf_route": "N_PF_BRIDGE"
+      },
+      "payoffs": {
+        "B": 78427.48
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||N_UE_M24|N_PF_LOAN",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "n_employment": "N_UE_M24",
+        "n_pf_route": "N_PF_LOAN"
+      },
+      "payoffs": {
+        "B": 277748.66
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||N_UE_M24|N_PF_BRIDGE",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "n_employment": "N_UE_M24",
+        "n_pf_route": "N_PF_BRIDGE"
+      },
+      "payoffs": {
+        "B": 72970.56
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||||N_UE_M1|N_PF_LOAN",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_LOAN"
+      },
+      "payoffs": {
+        "B": 330462.83
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||||N_UE_M1|N_PF_BRIDGE",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_BRIDGE"
+      },
+      "payoffs": {
+        "B": 130096.77
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||||N_UE_M12|N_PF_LOAN",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "n_employment": "N_UE_M12",
+        "n_pf_route": "N_PF_LOAN"
+      },
+      "payoffs": {
+        "B": 315593.19
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||||N_UE_M12|N_PF_BRIDGE",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "n_employment": "N_UE_M12",
+        "n_pf_route": "N_PF_BRIDGE"
+      },
+      "payoffs": {
+        "B": 125444.04
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||||N_UE_M24|N_PF_LOAN",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "n_employment": "N_UE_M24",
+        "n_pf_route": "N_PF_LOAN"
+      },
+      "payoffs": {
+        "B": 299842.44
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||||N_UE_M24|N_PF_BRIDGE",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "n_employment": "N_UE_M24",
+        "n_pf_route": "N_PF_BRIDGE"
+      },
+      "payoffs": {
+        "B": 120625.55
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "n_employment": "N_UE_M24",
+        "n_pf_route": "N_PF_BRIDGE"
+      },
+      "payoffs": {
+        "B": 120625.55
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "b_lump": "B_PREPAY_25",
+    "n_employment": "N_UE_M24",
+    "n_pf_route": "N_PF_BRIDGE"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "UE_PF_TO_LOAN",
+    "UE_PF_BRIDGE"
+  ]
+}

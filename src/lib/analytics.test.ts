@@ -1,13 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  buildClickParams,
   initAnalytics,
-  initClickTracking,
   isAnalyticsEnabled,
   resetAnalyticsForTests,
-  trackClick,
   trackHomePageView,
+  trackLoanExportScheduleCsv,
   trackPageView,
+  trackTabSelect,
 } from "./analytics";
 
 describe("analytics", () => {
@@ -25,7 +24,7 @@ describe("analytics", () => {
 
   it("does not throw when tracking without init", () => {
     expect(() => trackPageView("tab/loan", "Loan")).not.toThrow();
-    expect(() => trackClick(document.createElement("button"))).not.toThrow();
+    expect(() => trackTabSelect("loan")).not.toThrow();
   });
 
   it("queues bootstrap commands as Arguments objects for gtag.js", () => {
@@ -69,55 +68,22 @@ describe("analytics", () => {
       });
     });
 
-    it("builds click params without form values", () => {
-      const button = document.createElement("button");
-      button.id = "tab-loan";
-      button.setAttribute("role", "tab");
-      button.setAttribute("aria-label", "Loan");
-      button.textContent = "Loan";
+    it("tracks tab_select with tab_id and page_path (§5.1)", () => {
+      trackTabSelect("loan");
 
-      expect(buildClickParams(button, "/tab/loan")).toEqual({
-        element_tag: "button",
-        element_id: "tab-loan",
-        element_role: "tab",
-        element_label: "Loan",
-        element_text: "Loan",
-        page_path: "/tab/loan",
+      expect(gtagSpy).toHaveBeenCalledWith("event", "tab_select", {
+        tab_id: "loan",
+        page_path: expect.any(String),
       });
     });
 
-    it("tracks clicks via gtag", () => {
-      const link = document.createElement("a");
-      link.href = "https://example.com";
-      link.textContent = "Example";
+    it("tracks loan_export_schedule_csv with scenario_view and locale (§5.1)", () => {
+      trackLoanExportScheduleCsv("BASE", "IN");
 
-      trackClick(link, "/");
-
-      expect(gtagSpy).toHaveBeenCalledWith("event", "click", {
-        element_tag: "a",
-        link_url: "https://example.com/",
-        element_text: "Example",
-        page_path: "/",
-      });
-    });
-
-    it("records delegated document clicks once", () => {
-      initClickTracking();
-      initClickTracking();
-
-      const button = document.createElement("button");
-      button.textContent = "Go";
-      document.body.appendChild(button);
-      button.click();
-
-      const clickEvents = gtagSpy.mock.calls.filter(
-        (call) => call[0] === "event" && call[1] === "click",
-      );
-
-      expect(clickEvents).toHaveLength(1);
-      expect(clickEvents[0]?.[2]).toMatchObject({
-        element_tag: "button",
-        element_text: "Go",
+      expect(gtagSpy).toHaveBeenCalledWith("event", "loan_export_schedule_csv", {
+        scenario_view: "BASE",
+        locale: "IN",
+        page_path: expect.any(String),
       });
     });
   });

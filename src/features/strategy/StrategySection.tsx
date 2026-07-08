@@ -1,6 +1,7 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
 import type { StrategyResult, StrategyWarning } from "../../lib/strategy/types";
 import type { Locale } from "../../lib/locale/types";
+import { BarChart } from "../../components/BarChart";
 import { useStrategyPlanner } from "./hooks/useStrategyPlanner";
 
 const STRATEGY_LABELS: Record<StrategyResult["strategy_id"], string> = {
@@ -20,6 +21,8 @@ function warningCopy(locale: Locale): Record<StrategyWarning, string> {
         : "Living budget under ₹15,000/month — too tight.",
     AGGRESSIVE_PCT_INVALID: "Repayment pct outside 0–100; clamped.",
     HORIZON_TOO_SHORT: "Horizon ends before loan close; redirection skipped.",
+    TAX_SIMPLIFIED:
+      "Post-tax brokerage corpus uses a flat LTCG rate; short-term gains are not modeled.",
   };
 }
 
@@ -32,6 +35,8 @@ export function StrategySection() {
     tierPresets,
     applyTierPreset,
     locale,
+    exportStrategyComparisonCsv,
+    exportStrategyJson,
   } = useStrategyPlanner();
   const money = (value: number) => formatMoney(value, locale);
   const isUs = locale === "US";
@@ -230,24 +235,31 @@ export function StrategySection() {
               }
             />
           </label>
-          <label>
-            Tax regime (display)
-            <select
-              value={form.tax_regime}
-              onChange={(e) =>
-                setField("tax_regime", e.target.value as "" | "old" | "new")
-              }
-            >
-              <option value="">—</option>
-              <option value="new">New</option>
-              <option value="old">Old</option>
-            </select>
-          </label>
         </div>
       </section>
 
       <section className="card">
-        <h2>Strategy comparison</h2>
+        <div className="schedule-head">
+          <h2>Strategy comparison</h2>
+          {strategyFormReady && (
+            <div className="actions inline-actions">
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportStrategyComparisonCsv}
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportStrategyJson}
+              >
+                Export JSON
+              </button>
+            </div>
+          )}
+        </div>
         <p className="hint">
           Net worth at horizon = equity corpus + cash buffer + PF − loan balance.
           Projections use the same rounding rules as the rest of the dashboard.
@@ -256,6 +268,19 @@ export function StrategySection() {
           <p className="hint">
             Enter principal, annual rate, tenure, and horizon to compare strategies.
           </p>
+        )}
+        {strategyFormReady && results.length > 0 && (
+          <BarChart
+            title="Net worth at horizon by strategy"
+            yLabel="Net worth"
+            locale={locale}
+            items={results.map((row, index) => ({
+              id: row.strategy_id,
+              label: STRATEGY_LABELS[row.strategy_id],
+              value_inr: row.net_worth_at_horizon_inr,
+              color: ["#1d4ed8", "#0d9488", "#b45309"][index % 3]!,
+            }))}
+          />
         )}
         <div className="table-wrap comparison">
           <table>

@@ -9,9 +9,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit -p tsconfig.json",
+    "lint": "tsc --noEmit -p tsconfig.json && eslint src",
+    "lint:types": "tsc --noEmit -p tsconfig.json",
     "goldens:update": "npx tsx scripts/update-goldens.ts",
-    "goldens:update:us": "npx tsx scripts/update-goldens-us.ts"
+    "goldens:update:us": "npx tsx scripts/update-goldens-us.ts",
+    "goldens:update:uk": "npx tsx scripts/update-goldens-uk.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
@@ -22,6 +24,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -29,8 +32,13 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^10.6.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
     "jsdom": "^25.0.1",
     "typescript": "~5.7.2",
+    "typescript-eslint": "^8.62.1",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"
   }

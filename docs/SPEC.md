@@ -8,10 +8,11 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.4  
+**Version:** 1.9  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
+**UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation
 
 ---
@@ -82,6 +83,7 @@ Optional **strategic interaction** modelling (§4.13) compares borrower, lender,
 | `gold_liquid_inr` | number | no |
 | `gold_haircut_pct` | number | no | 0–100 applied to gold if user enables |
 | `monthly_cash_to_loan_inr` | number | no | Recurring INR applied as **extra principal** after each month’s scheduled EMI (§4.5). v1 UI label: “Monthly cash to loan”; does **not** deduct living expenses—use §4.8 for budgeted cashflow. |
+| `monthly_salary_inr` | number | no | Optional stress-test: INR routed as **extra principal** after EMI in scenarios that include salary sweep (`BASE_PLUS_SALARY_SWEEP`, prepay rows, §4.8 when configured). **Excluded from `BASE`.** v1 UI label: “Monthly salary”. |
 
 ### 4.3 Baseline computation
 
@@ -126,14 +128,15 @@ Implement as named presets + freeform builder.
 
 | Scenario ID | Description |
 |-------------|-------------|
-| `BASE` | No prepayment |
+| `BASE` | No prepayment; scheduled EMI only for full original tenure (§4.3). **Ignores** `monthly_salary_inr` and `monthly_cash_to_loan_inr`. |
 | `PREPAY_CASH_25L_TENURE` | One-time prepay ₹25,00,000 from cash at month 1; policy `recompute_tenure_keep_emi` |
 | `PREPAY_CASH_25L_EMI` | One-time prepay ₹25,00,000 at month 1; policy `recompute_emi_keep_tenure` |
 | `PREPAY_FULL_50L` | Full payoff at month 1 from combined sources (user selects funding mix) |
 | `PREPAY_CUSTOM` | User-defined amount + month + policy |
 | `EXTRA_EMI` | Recurring extra principal |
 | `STAGED_PREPAY` | Multiple timed prepayments (array) |
-| `BASE_PLUS_MONTHLY_INFLOW` | Baseline EMI + fixed `monthly_cash_to_loan_inr` each month after EMI (§4.5); compare **payoff months** to BASE |
+| `BASE_PLUS_SALARY_SWEEP` | Baseline EMI + `monthly_salary_inr` as extra principal each month (§4.5); compare **payoff months** to `BASE` |
+| `BASE_PLUS_MONTHLY_INFLOW` | Baseline EMI + fixed `monthly_cash_to_loan_inr` each month after EMI (§4.5); does **not** include `monthly_salary_inr`; compare **payoff months** to `BASE` |
 | `PREPAY_EMI_PLUS_MONTHLY_INFLOW` | One-time prepay (e.g. ₹25L) month 1 + **keep original EMI** + same monthly extra to loan; compare payoff months |
 
 ### 4.7 Unemployment + PF withdrawal module (required)
@@ -195,8 +198,13 @@ For each scenario:
 - **Summary KPIs:** payoff month (date), total interest, total outflows, total prepayments, interest vs baseline delta  
 - **Schedule table:** month index, opening balance, interest, principal, extra principal, prepayment, closing balance, cash_balance (if enabled), events  
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
+- **Charts (v1.8):** debt tab — total balance over time; retirement tab — nominal corpus by year; strategies tab — net worth at horizon bar chart (reuse shared SVG components).
 
 **Export:** CSV export of schedule + JSON export of scenario config.
+
+**Import (v1.7):** JSON import of a previously exported loan scenario config (§4.9 payload shape). Restores numeric inputs, one-time prepay source, staged prepayments, and the exported scenario view when recognised. Invalid files surface an inline error; no silent partial apply.
+
+**Persistence (v1.7):** Loan tab form state (inputs, scenario view, prepay source, staged prepayments) is stored in **`localStorage`** using **separate keys per locale** (`financial-planner-loan-form-IN`, `financial-planner-loan-form-US`) so a refresh preserves user edits and switching the active locale does not overwrite another locale's saved state. Legacy single-key blobs are migrated on read. Locale switch resets to the reference scenario for the new locale (existing behaviour). Analytics must not transmit stored values (§5.1).
 
 ### 4.10 Multi-debt payoff planner
 
@@ -213,6 +221,8 @@ Each debt: `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr`.
 **Strategies:** `avalanche` (highest APR first), `snowball` (lowest balance first).
 
 **Outputs:** month rows, payoff month, total interest, warning when budget &lt; sum of minimums.
+
+**Export:** CSV export of active-strategy timeline + JSON export of debts, budget, and both strategy summaries.
 
 ---
 
@@ -233,6 +243,8 @@ Each debt: `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr`.
 **Scenarios:** `base`, `conservative` (−2% return, +1% inflation), `optimistic` (+2% return, −1% inflation, +20% contribution).
 
 **Outputs:** projected corpus, real corpus, expense at retirement, target corpus (expense / SWR), funded ratio, yearly timeline.
+
+**Export:** CSV export of selected-scenario yearly timeline + JSON export of inputs and all scenario projections.
 
 ---
 
@@ -268,6 +280,8 @@ Month-1 prepay uses `recompute_tenure_keep_emi` (§4.4 policy 1). Post-loan equi
 #### 4.12.3 Outputs (per strategy row)
 
 `loan_close_month`, `total_interest_inr`, `interest_saved_vs_base_inr`, allocation breakdown, `equity_corpus_at_horizon_inr`, `equity_corpus_at_horizon_post_tax_inr` (LTCG 12.5% on gain above ₹1,25,000 exemption), `pf_corpus_at_horizon_inr`, `net_worth_at_horizon_inr`, `min_living_budget_inr`, `warnings[]`.
+
+**Export:** CSV export of strategy comparison table + JSON export of inputs and all strategy results.
 
 #### 4.12.4 Tier presets (UI)
 
@@ -563,8 +577,153 @@ All §4.1–§4.2 loan and asset fields apply to the oracle.
 - **Deterministic:** same inputs → same outputs (document rounding).  
 - **Explainability:** hover / help text showing formulas.  
 - **Privacy:** default offline-first; no server required for v1.  
-- **Accessibility:** labels for all inputs, readable tables.  
+- **Accessibility:** labels for all inputs, readable tables; planner tab bar supports arrow-key navigation (WAI-ARIA tabs pattern).  
 - **Validation:** block negative numbers; show inline errors.
+- **Form persistence (v1.7):** loan tab inputs survive browser refresh via `localStorage`; locale-specific keys; cleared on confirmed locale switch.
+
+### 5.1 Analytics (optional GA4)
+
+When `VITE_GA_MEASUREMENT_ID` is set at build time, the hosted app may load **Google Analytics 4** (`gtag.js`). Analytics must **not** transmit loan amounts, form field values, or other user-entered financial data.
+
+**Privacy rules (all tiers)**
+
+- Never send principal, EMI, corpus, salary, export file contents, or free-text user input.
+- `utm_*` and `referrer_host` are allowed only when they contain **no** email-like tokens or obvious PII; truncate each string to **64** characters; omit empty values.
+- `locale` on any event is `IN` \| `US` \| `UK` (see [`SPEC-UK.md`](SPEC-UK.md) §5).
+- Acquisition parameters captured on first load are stored in **`sessionStorage`** for the browser tab session only (not `localStorage`); they are attached to later events in the same session but never written to form-persistence keys (§5 form persistence).
+
+**Page views**
+
+- Initial load: virtual path `/`, title `FinancialPlanner — Home`.
+- Tab change: virtual path `/tab/{tab_id}` with a human-readable title.
+
+#### 5.1.1 Tier 1 — Acquisition & conversion capture
+
+Ship first. Enables channel attribution and GA4 conversion reporting without new UI beyond an optional share control (§8).
+
+**`session_start`** — fire **once** per browser tab session, immediately after `initAnalytics()` succeeds and before the first `page_view`:
+
+| Parameter | Source | Notes |
+|-----------|--------|-------|
+| `utm_source` | `URLSearchParams` | Standard UTM |
+| `utm_medium` | `URLSearchParams` | Standard UTM |
+| `utm_campaign` | `URLSearchParams` | Standard UTM |
+| `utm_content` | `URLSearchParams` | Optional |
+| `utm_term` | `URLSearchParams` | Optional; search keywords only — never user-typed form text |
+| `referrer_host` | `document.referrer` | Hostname only (e.g. `google.com`); empty when direct |
+| `landing_tab` | `?tab=` or default `loan` | Tab ID at first paint |
+| `locale` | active locale | `IN` \| `US` \| `UK` |
+| `page_path` | current path | Same helper as other events |
+
+**GA4 conversion events** — document in `README.md`; mark these as conversions in the GA4 property (operator step, not code):
+
+| Event | Rationale |
+|-------|-----------|
+| `loan_export_schedule_csv` | Primary loan value moment |
+| `loan_export_scenario_json` | Saved scenario |
+| `debt_export_timeline_csv` | Debt planner value |
+| `debt_export_json` | Debt planner value |
+| `retirement_export_timeline_csv` | Retirement value |
+| `retirement_export_json` | Retirement value |
+| `strategy_export_comparison_csv` | Strategy comparison value |
+| `strategy_export_json` | Strategy value |
+| `game_export_json` | Strategic module value |
+| `share_link_copy` | Viral distribution |
+| `feedback_github_click` | Product feedback intent |
+
+**`share_link_copy`** — user activates “Copy link to this tab” (§8):
+
+| Parameter | Value |
+|-----------|-------|
+| `tab_id` | Active tab |
+| `locale` | Active locale |
+| `page_path` | Current path |
+
+Copied URL must be the canonical tab URL (`tabPageUrl` from SEO helpers) with `utm_source=share` and `utm_medium=copy` appended. No scenario inputs or amounts in the URL.
+
+#### 5.1.2 Tier 2 — Engagement, performance & consent capture
+
+Ship after Tier 1. Adds session-quality metrics and EU/UK-friendly consent.
+
+**`session_summary`** — fire **once** on `pagehide` / `visibilitychange` (hidden) when analytics initialized; use `navigator.sendBeacon` or `gtag` `transport_type: 'beacon'` when available:
+
+| Parameter | Value |
+|-----------|-------|
+| `tabs_visited_count` | Distinct `tab_id` values seen this session (integer ≥ 1) |
+| `had_export` | `true` if any export event fired this session, else `false` |
+| `locale` | Locale at session end |
+| `page_path` | Path at unload |
+
+**`web_vitals`** — fire when Core Web Vitals are available (e.g. `web-vitals` library); one event per metric per page load:
+
+| Parameter | Value |
+|-----------|-------|
+| `metric_name` | `LCP` \| `INP` \| `CLS` \| `FCP` \| `TTFB` |
+| `metric_value` | Rounded number (CLS to 3 decimal places) |
+| `metric_rating` | `good` \| `needs-improvement` \| `poor` per web.dev thresholds |
+| `page_path` | Current path |
+
+**`analytics_consent`** — fire when user acts on the consent banner (§8):
+
+| Parameter | Value |
+|-----------|-------|
+| `decision` | `accept` \| `reject` |
+| `page_path` | Current path |
+
+**Consent gate (Tier 2):** when `VITE_GA_MEASUREMENT_ID` is set, show a compact footer-region banner on first visit until the user chooses. Persist choice in `localStorage` key `financial-planner-analytics-consent` (`accept` \| `reject`). **Do not** call `initAnalytics()` until `accept`. If `reject`, skip all GA loading for that browser profile. Banner copy references §5.1 privacy rules and links to footer terms.
+
+**`feedback_helpful`** (optional Tier 2 UI) — thumbs up/down on active tab:
+
+| Parameter | Value |
+|-----------|-------|
+| `helpful` | `true` \| `false` |
+| `tab_id` | Active tab |
+| `locale` | Active locale |
+| `page_path` | Current path |
+
+No free-text field; no follow-up PII.
+
+#### 5.1.3 Named interaction events (baseline + Tier 1–2)
+
+Explicit `gtag` events — not inferred from generic DOM clicks:
+
+| Event name | When | Parameters (no PII) |
+|------------|------|-------------------|
+| `session_start` | First analytics init per tab session (§5.1.1) | `utm_*`, `referrer_host`, `landing_tab`, `locale`, `page_path` |
+| `tab_select` | User selects a planner tab | `tab_id`, `page_path` |
+| `locale_change` | User confirms locale switch | `locale` (`IN` \| `US` \| `UK`), `page_path` |
+| `loan_load_reference` | “Load reference scenario” | `locale`, `page_path` |
+| `loan_export_schedule_csv` | Loan schedule CSV export | `scenario_view`, `locale`, `page_path` |
+| `loan_export_scenario_json` | Loan scenario JSON export | `scenario_view`, `locale`, `page_path` |
+| `loan_import_scenario_json` | Loan scenario JSON import (file) | `scenario_view`, `locale`, `page_path`, `success` (`true` \| `false`) |
+| `loan_scenario_view_change` | Loan schedule scenario dropdown | `scenario_view`, `locale`, `page_path` |
+| `loan_prepay_source_change` | One-time prepay source dropdown | `prepay_source`, `locale`, `page_path` |
+| `loan_staged_prepay_add` | Add staged prepayment row | `page_path` |
+| `loan_staged_prepay_remove` | Remove staged prepayment row | `page_path` |
+| `debt_add` | Add debt row | `debt_count`, `page_path` |
+| `debt_remove` | Remove debt row | `debt_count`, `page_path` |
+| `debt_strategy_change` | Avalanche / snowball schedule view | `strategy`, `page_path` |
+| `debt_export_timeline_csv` | Debt payoff timeline CSV export | `strategy`, `locale`, `page_path` |
+| `debt_export_json` | Debt planner JSON export | `strategy`, `locale`, `page_path` |
+| `retirement_scenario_select` | Retirement yearly timeline scenario | `scenario_id`, `page_path` |
+| `retirement_export_timeline_csv` | Retirement yearly timeline CSV export | `scenario_id`, `locale`, `page_path` |
+| `retirement_export_json` | Retirement planner JSON export | `scenario_id`, `locale`, `page_path` |
+| `strategy_tier_preset` | Strategy take-home tier shortcut | `preset_id`, `locale`, `page_path` |
+| `strategy_export_comparison_csv` | Strategy comparison CSV export | `locale`, `page_path` |
+| `strategy_export_json` | Strategy planner JSON export | `locale`, `page_path` |
+| `game_profile_change` | Game profile dropdown | `profile_id`, `page_path` |
+| `game_export_json` | Game payoff matrix JSON export | `profile_id`, `locale`, `page_path` |
+| `share_link_copy` | “Copy link to this tab” (§5.1.1) | `tab_id`, `locale`, `page_path` |
+| `session_summary` | Tab session end (§5.1.2) | `tabs_visited_count`, `had_export`, `locale`, `page_path` |
+| `web_vitals` | Core Web Vitals sample (§5.1.2) | `metric_name`, `metric_value`, `metric_rating`, `page_path` |
+| `analytics_consent` | Consent banner choice (§5.1.2) | `decision`, `page_path` |
+| `feedback_helpful` | Thumbs up/down (§5.1.2, optional) | `helpful`, `tab_id`, `locale`, `page_path` |
+| `feedback_github_click` | Footer “Report on GitHub” | `page_path` |
+| `footer_commit_link_click` | Footer commit SHA link | `page_path` |
+| `footer_terms_toggle` | Terms `<details>` open/close | `open` (boolean), `page_path` |
+| `footer_ga_optout_click` | GA opt-out link in terms | `page_path` |
+
+**Out of scope for analytics:** per-keystroke input changes, amortisation row data, exported file contents, blanket delegated click listeners on all DOM elements, third-party ad/marketing pixels, and cross-session user IDs derived from form data.
 
 ---
 
@@ -727,6 +886,12 @@ Engineers must add unit tests for off-by-one with an example: `U=1` → tranche2
 - Show in the **site footer** on every screen: label **“Latest push”**, human-readable commit date, and short SHA linking to `https://github.com/{owner}/{repo}/commit/{sha}`. Default repo: `eswarkrishna/FinancialPlanner` (override via `VITE_GITHUB_REPO` at build).  
 - If git metadata is unavailable (e.g. tarball without `.git`), **omit** the line — do not show placeholders or “unknown”.
 
+### Analytics UI (§5.1 Tier 1–2)
+
+- **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
+- **Consent banner (Tier 2)** — when GA is enabled, show above the footer on first visit until accept/reject. Buttons: “Accept analytics” / “No thanks”. Dismiss persists per §5.1.2. Must not block calculator inputs (non-modal strip).  
+- **Helpful? (Tier 2, optional)** — thumbs up/down near tab content heading; one vote per tab per session (disable after click).
+
 ### Comparison table columns
 
 Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows; Min cash balance (if simulated); Notes/warnings.
@@ -755,7 +920,8 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 4. **Prepay ₹25L at month 1 + keep tenure 168**: EMI ~ **half** of baseline within **₹50** (rounding).  
 5. **PF unemployment**: for `PF0=2_500_000`, verify inflows **1,875,000** then **625,000** on correct months.  
 6. **Cashflow**: constructed fixture where income=0, living+EMI exhaust cash in `k` months → system flags shortfall.  
-7. **Monthly inflow to loan:** for fixed `monthly_cash_to_loan_inr` &gt; 0, payoff month count is **strictly less** than baseline for the same principal/rate/tenure (reference loan).
+7. **Monthly inflow to loan:** for fixed `monthly_cash_to_loan_inr` &gt; 0, payoff month count is **strictly less** than `BASE` for the same principal/rate/tenure (reference loan).  
+7b. **BASE vs salary sweep:** reference loan (§15) with `monthly_salary_inr=100_000` and `monthly_cash_to_loan_inr=0` — `BASE` payoff month = **168**; `BASE_PLUS_SALARY_SWEEP` payoff month ~ **38** (±1 month).
 
 ### Multi-debt & retirement (§4.10–§4.11)
 
@@ -783,6 +949,22 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 
 17. **Latest push footer:** when built from git, footer shows “Latest push”, commit date, and short SHA; SHA links to the matching GitHub commit URL for the default repo.
 
+### Analytics (§5.1)
+
+18. **Named events:** with GA enabled in tests, `tab_select` and `loan_export_schedule_csv` call `gtag` with the event names and parameters in §5.1; generic delegated `click` events are **not** emitted for arbitrary DOM clicks.  
+19. **Tier 1 `session_start`:** with GA mocked, first init emits `session_start` with `referrer_host` and `landing_tab`; `utm_source` present when `?utm_source=test` in URL.  
+20. **Tier 1 `share_link_copy`:** copy control produces a URL containing `utm_source=share` and fires `share_link_copy` with `tab_id`.  
+21. **Tier 1 locale param:** `locale_change` accepts `UK` as `locale` value.  
+22. **Tier 2 `session_summary`:** after visiting two tabs and one export in a mocked session, unload handler emits `session_summary` with `tabs_visited_count` ≥ 2 and `had_export` = `true`.  
+23. **Tier 2 consent:** when consent storage is `reject`, `initAnalytics` does not set `initialized`; no `gtag` calls occur until `accept`.  
+24. **Tier 2 `web_vitals`:** mocked LCP sample emits `web_vitals` with `metric_name` = `LCP` and `metric_rating` in allowed enum.
+
+### Persistence & import (§4.9 v1.7)
+
+25. **Loan form persistence:** after loading the reference scenario and editing a field, a simulated refresh (re-mount) restores the same input values from `localStorage` for the active locale.  
+26. **Scenario JSON round-trip:** export scenario JSON, parse via import helper, and verify principal/rate/tenure match exported `inputs` within coercion rules.  
+27. **Import error handling:** malformed JSON or missing required numeric fields returns a user-visible error without mutating form state.
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -792,7 +974,8 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 - **Multi-loan** creditor games (`GAME_MULTI_CREDITOR`) until §4.13.8 Tier P2 is promoted.  
 - Lender-specific day-count conventions (ACT/365) unless user requests later.  
 - **Machine-learned** or historical lender models; opponents use user-selected discrete actions only.  
-- Legal settlement / IBC negotiation outcomes.
+- Legal settlement / IBC negotiation outcomes.  
+- **Analytics:** third-party ad pixels (Meta, LinkedIn, etc.), fingerprinting, storing full `document.referrer` URLs with query strings, or encoding user financial inputs in share/UTM links (§5.1).
 
 **In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 

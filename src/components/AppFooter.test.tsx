@@ -28,4 +28,16 @@ describe("AppFooter", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Terms and conditions")).toBeInTheDocument();
   });
+
+  it("shows GitHub issues link for feedback", () => {
+    const info = getBuildInfo();
+    renderWithLocale(<AppFooter />);
+
+    const link = screen.getByRole("link", { name: "Report on GitHub" });
+    expect(link).toHaveAttribute(
+      "href",
+      `https://github.com/${info!.githubRepo}/issues/new`,
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+  });
 });

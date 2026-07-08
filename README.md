@@ -92,7 +92,22 @@ The measurement ID is baked in at **build time** (or dev-server start). Defaults
 2. **Production:** update `.env.production`, or set GitHub Actions secret `VITE_GA_MEASUREMENT_ID` to override it on deploy. Redeploy by pushing to `main` or re-running the workflow.
 3. **Local:** `npm run dev` picks up `.env.development`. To override or disable, use `.env.local` (see [`.env.example`](.env.example)).
 
-The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/tab/loan`, etc.). Clicks are recorded with element labels only—loan inputs and personal data are not transmitted. See footer terms for the privacy note.
+The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/tab/loan`, etc.). Named interaction events (tab changes, exports, locale switches, etc.) are sent per `docs/SPEC.md` §5.1—loan inputs and personal data are not transmitted. See footer terms for the privacy note.
+
+### User feedback
+
+Every page footer includes **Report on GitHub**, which opens a new issue on the repo (`VITE_GITHUB_REPO`, default `eswarkrishna/FinancialPlanner`).
+
+### SEO
+
+Build-time and runtime SEO use `VITE_SITE_URL` (default in `.env.production`: GitHub Pages demo URL).
+
+- **Meta tags:** description, canonical, Open Graph, Twitter cards, JSON-LD (`WebApplication`)
+- **Assets:** `public/favicon.svg`, `public/og-image.png`
+- **Tab URLs:** `?tab=loan|debt|retirement|strategies|strategic` (updates `document.title` and meta tags)
+- **Generated on build:** `dist/robots.txt`, `dist/sitemap.xml`
+
+Override `VITE_SITE_URL` when deploying to a custom CloudFront domain.
 
 ## Licence
 

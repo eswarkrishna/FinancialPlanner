@@ -9,13 +9,20 @@ interface ScenarioTableProps {
   locale?: Locale;
 }
 
-function calendarLabel(monthIndex: number, startDateIso?: string): string | null {
+function calendarLabel(
+  monthIndex: number,
+  startDateIso?: string,
+  locale: Locale = "IN",
+): string | null {
   if (!startDateIso) return null;
   const start = new Date(startDateIso);
   if (Number.isNaN(start.getTime())) return null;
   const d = new Date(start);
   d.setMonth(d.getMonth() + monthIndex - 1);
-  return d.toLocaleDateString("en-IN", { year: "numeric", month: "short" });
+  return d.toLocaleDateString(locale === "US" ? "en-US" : "en-IN", {
+    year: "numeric",
+    month: "short",
+  });
 }
 
 export function ScenarioTable({
@@ -48,7 +55,7 @@ export function ScenarioTable({
           {rows.map((row, i) => (
             <tr key={row.month}>
               <td>{row.month}</td>
-              {showDate && <td>{calendarLabel(row.month, startDateIso) ?? "—"}</td>}
+              {showDate && <td>{calendarLabel(row.month, startDateIso, locale) ?? "—"}</td>}
               <td>{money(row.opening_inr)}</td>
               <td>{money(row.interest_inr)}</td>
               <td>{money(row.principal_inr)}</td>

@@ -29,10 +29,12 @@ describe("App shell composition", () => {
 
     await user.click(screen.getByRole("tab", { name: "Multi-debt" }));
     expect(screen.getByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Loan & assets" })).not.toBeInTheDocument();
+    expect(window.location.search).toBe("?tab=debt");
+    expect(document.title).toBe("FinancialPlanner — Multi-debt");
 
     await user.click(screen.getByRole("tab", { name: "Retirement" }));
     expect(screen.getByRole("heading", { name: "Retirement planner" })).toBeInTheDocument();
+    expect(window.location.search).toBe("?tab=retirement");
 
     await user.click(screen.getByRole("tab", { name: "Strategies" }));
     expect(screen.getByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
@@ -41,5 +43,47 @@ describe("App shell composition", () => {
     expect(
       screen.getByRole("heading", { name: "Strategic scenarios" }),
     ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Loan" }));
+    expect(window.location.search).toBe("");
+    expect(document.title).toBe("FinancialPlanner — Loan");
+  });
+
+  it("opens the tab from the URL query param", () => {
+    window.history.replaceState({}, "", "/?tab=strategies");
+    renderWithLocale(<App />);
+
+    expect(screen.getByRole("tab", { name: "Strategies" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
+  });
+
+  it("normalizes ?tab=loan to the canonical loan URL", () => {
+    window.history.replaceState({}, "", "/?tab=loan");
+    renderWithLocale(<App />);
+
+    expect(screen.getByRole("tab", { name: "Loan" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(window.location.search).toBe("");
+  });
+
+  it("moves focus between tabs with arrow keys", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<App />);
+
+    const loanTab = screen.getByRole("tab", { name: "Loan" });
+    loanTab.focus();
+    await user.keyboard("{ArrowRight}");
+
+    expect(screen.getByRole("tab", { name: "Multi-debt" })).toHaveFocus();
+    expect(screen.getByRole("tab", { name: "Multi-debt" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(window.location.search).toBe("?tab=debt");
   });
 });

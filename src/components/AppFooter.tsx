@@ -4,6 +4,14 @@ import {
   getBuildInfo,
   githubCommitUrl,
 } from "../lib/buildInfo";
+import { githubIssuesUrl } from "../lib/feedback";
+import {
+  trackFeedbackGithubClick,
+  trackFooterCommitLinkClick,
+  trackFooterGaOptoutClick,
+  trackFooterTermsToggle,
+} from "../lib/analytics";
+import { useLocale } from "../features/locale/LocaleContext";
 
 function BuildMetaLine() {
   const info = getBuildInfo();
@@ -20,14 +28,32 @@ function BuildMetaLine() {
         {formatBuildCommitDate(info.commitIsoDate)}
       </time>
       {" · "}
-      <a href={commitUrl} target="_blank" rel="noopener noreferrer">
+      <a href={commitUrl} target="_blank" rel="noopener noreferrer" onClick={trackFooterCommitLinkClick}>
         <code>{info.commitShort}</code>
       </a>
     </p>
   );
 }
 
-import { useLocale } from "../features/locale/LocaleContext";
+function FooterFeedback() {
+  const issuesUrl = githubIssuesUrl();
+
+  return (
+    <section className="footer-feedback" aria-label="Feedback">
+      <p className="footer-feedback-lead">Help us improve</p>
+      <p className="footer-feedback-actions">
+        <a
+          href={issuesUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={trackFeedbackGithubClick}
+        >
+          Report on GitHub
+        </a>
+      </p>
+    </section>
+  );
+}
 
 function DisclaimerLead() {
   const { locale } = useLocale();
@@ -37,6 +63,17 @@ function DisclaimerLead() {
         Educational planning only. 401(k) withdrawal rules, taxes, lender prepayment
         charges, and mortgage terms vary. Verify with your plan administrator, lender,
         and a qualified financial adviser.
+      </p>
+    );
+  }
+  if (locale === "UK") {
+    return (
+      <p className="footer-lead">
+        Educational planning only. Pension access rules, redundancy entitlements,
+        Jobseeker&apos;s Allowance, Support for Mortgage Interest, ISA limits, tax rates,
+        and mortgage early repayment charges vary. Verify with GOV.UK, your pension
+        provider, your lender, and a qualified financial adviser. Figures use 2026/27
+        defaults.
       </p>
     );
   }
@@ -54,8 +91,14 @@ export function AppFooter() {
     <footer className="footer">
       <BuildMetaLine />
       <DisclaimerLead />
+      <FooterFeedback />
 
-      <details className="footer-terms">
+      <details
+        className="footer-terms"
+        onToggle={(event) => {
+          trackFooterTermsToggle((event.currentTarget as HTMLDetailsElement).open);
+        }}
+      >
         <summary className="footer-terms-summary">Terms and conditions</summary>
         <div className="footer-terms-body">
           <p className="footer-terms-intro">
@@ -101,18 +144,23 @@ export function AppFooter() {
             </li>
             <li>
               <strong>Analytics.</strong> The public site may use Google Analytics 4 to
-              collect anonymous usage (e.g. which page or tab you open and which
-              controls you click). No loan amounts or personal data are sent. You can
+              collect anonymous usage (e.g. which tab you open, exports, and named
+              control actions). No loan amounts or personal data are sent. You can
               block this with a browser extension or
               opt out via{" "}
               <a
                 href="https://tools.google.com/dlpage/gaoptout"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={trackFooterGaOptoutClick}
               >
                 Google&apos;s opt-out add-on
               </a>
               .
+            </li>
+            <li>
+              <strong>Feedback.</strong> GitHub issue reports are voluntary and processed
+              on GitHub, not stored in this app.
             </li>
             <li>
               <strong>Third parties.</strong> References to institutions (e.g. EPFO,

@@ -15,7 +15,10 @@ const VISIBLE_CATEGORIES: LegendCategory[] = [
   "warnings",
 ];
 
-export function GameLegendPanel() {
+import type { Locale } from "../../lib/locale/types";
+
+export function GameLegendPanel({ locale }: { locale: Locale }) {
+  const currencyLabel = locale === "US" ? "USD" : "INR";
   return (
     <section className="card game-legend" aria-labelledby="game-legend-heading">
       <details className="game-legend-details" open>
@@ -25,7 +28,7 @@ export function GameLegendPanel() {
         <p className="hint game-legend-intro">
           Tables and recommendations use short internal codes (e.g.{" "}
           <code>B_PREPAY_25</code>). Below is the plain-English meaning. Payoff
-          amounts are in INR.
+          amounts are in {currencyLabel}.
         </p>
         <div className="game-legend-grid">
           {VISIBLE_CATEGORIES.map((category) => (

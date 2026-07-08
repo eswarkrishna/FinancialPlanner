@@ -1,0 +1,19 @@
+/** Default UK-only loan fields for IN/US reference scenarios (schema defaults). */
+export const LOAN_UK_FIELD_DEFAULTS = {
+  isa_balance_inr: 0,
+  gia_balance_inr: 0,
+  gia_cost_basis_inr: 0,
+  overpayment_allowance_pct: 10,
+  erc_pct: 0,
+  employee_pension_pct: 5,
+  employer_pension_pct: 3,
+  redundancy_payment_inr: 0,
+  marginal_tax_rate_pct: 20,
+  jsa_duration_months: 6,
+  smi_enabled: false,
+  smi_wait_months: 3,
+  smi_rate_pct: 3.66,
+  smi_capital_cap_inr: 200_000,
+  cgt_rate_pct: 24,
+  cgt_annual_exempt_inr: 3_000,
+} as const;

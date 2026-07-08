@@ -1,4 +1,8 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
+import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "../../lib/retirement/constants";
+import { trackRetirementScenarioSelect } from "../../lib/analytics";
+import { buildRetirementCorpusCurve } from "../../lib/loan/chartData";
+import { LineChart } from "../../components/LineChart";
 import { useLocale } from "../locale/LocaleContext";
 import { useRetirementPlanner } from "./hooks/useRetirementPlanner";
 
@@ -6,7 +10,8 @@ export function RetirementSection() {
   const { locale } = useLocale();
   const money = (value: number) => formatMoney(value, locale);
   const isUs = locale === "US";
-  const currencyLabel = isUs ? "USD" : "INR";
+  const isUk = locale === "UK";
+  const currencyLabel = isUk ? "GBP" : isUs ? "USD" : "INR";
   const {
     retirementInputs,
     selectedRetirementScenario,
@@ -16,10 +21,14 @@ export function RetirementSection() {
     setRetirementField,
     formatPercent,
     retirementBaseInput,
+    yearsInvalid,
+    exportRetirementTimelineCsv,
+    exportRetirementJson,
   } = useRetirementPlanner();
 
-  const annualSsIncome =
-    (retirementBaseInput.expected_social_security_monthly_inr ?? 0) * 12;
+  const annualSsIncome = isUk
+    ? (retirementBaseInput?.expected_social_security_monthly_inr ?? 0) * 52
+    : (retirementBaseInput?.expected_social_security_monthly_inr ?? 0) * 12;
 
   return (
     <>
@@ -88,12 +97,14 @@ export function RetirementSection() {
               }
             />
           </label>
-          {isUs && (
+          {(isUs || isUk) && (
             <label>
-              Expected Social Security (USD/mo)
+              {isUk
+                ? "Expected State Pension (GBP/wk)"
+                : "Expected Social Security (USD/mo)"}
               <input
                 inputMode="decimal"
-                placeholder="2000"
+                placeholder={isUk ? "241.30" : "2000"}
                 value={retirementInputs.expected_social_security_monthly_inr}
                 onChange={(event) =>
                   setRetirementField("expected_social_security_monthly_inr", event)
@@ -105,7 +116,12 @@ export function RetirementSection() {
             Yearly timeline scenario
             <select
               value={selectedRetirementScenario}
-              onChange={(event) => setSelectedRetirementScenario(event.target.value)}
+              disabled={yearsInvalid || retirementScenarios.length === 0}
+              onChange={(event) => {
+                const next = event.target.value;
+                setSelectedRetirementScenario(next);
+                trackRetirementScenarioSelect(next);
+              }}
             >
               {retirementScenarios.map((scenario) => (
                 <option key={scenario.id} value={scenario.id}>
@@ -115,10 +131,14 @@ export function RetirementSection() {
             </select>
           </label>
         </div>
+        {yearsInvalid && (
+          <p className="hint warning">
+            Enter years to retirement (at least 1) to run projections.
+          </p>
+        )}
         <p className="hint">
-          <strong>Safe withdrawal %:</strong> leaving it blank stores 0 for this form; the
-          retirement engine still enforces a small minimum rate so expense targets stay
-          numerically stable (enter e.g. 4 once you want classic “% of portfolio” semantics).
+          <strong>Safe withdrawal %:</strong> leave blank to use the classic{" "}
+          {DEFAULT_SAFE_WITHDRAWAL_RATE_PCT}% default (SPEC §4.11).
           {isUs && (
             <>
               {" "}
@@ -132,6 +152,9 @@ export function RetirementSection() {
 
       <section className="card">
         <h2>Retirement scenarios</h2>
+        {yearsInvalid ? (
+          <p className="hint">Enter valid years to retirement to see scenario comparison.</p>
+        ) : (
         <div className="table-wrap comparison">
           <table>
             <thead>
@@ -188,10 +211,46 @@ export function RetirementSection() {
             </tbody>
           </table>
         </div>
+        )}
       </section>
 
       <section className="card">
-        <h2>Retirement yearly corpus timeline ({activeRetirementScenario.label})</h2>
+        <div className="schedule-head">
+          <h2>
+            Retirement yearly corpus timeline (
+            {activeRetirementScenario?.label ?? "—"})
+          </h2>
+          {!yearsInvalid && activeRetirementScenario && (
+            <div className="actions inline-actions">
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportRetirementTimelineCsv}
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                className="btn secondary btn-sm"
+                onClick={exportRetirementJson}
+              >
+                Export JSON
+              </button>
+            </div>
+          )}
+        </div>
+        {yearsInvalid || !activeRetirementScenario ? (
+          <p className="hint">Enter valid years to retirement to see the yearly timeline.</p>
+        ) : (
+        <>
+        <LineChart
+          title="Nominal corpus growth"
+          points={buildRetirementCorpusCurve(activeRetirementScenario.projection.yearly)}
+          stroke="#7c3aed"
+          yLabel="Corpus"
+          xLabel="Year"
+          locale={locale}
+        />
         <div className="table-wrap">
           <table>
             <thead>
@@ -212,6 +271,8 @@ export function RetirementSection() {
             </tbody>
           </table>
         </div>
+        </>
+        )}
       </section>
     </>
   );

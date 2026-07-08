@@ -1,6 +1,7 @@
 /** JSON export payload for a loan scenario run (SPEC §4.9). */
 export interface ScenarioExportPayload {
   exported_at: string;
+  locale?: "IN" | "US" | "UK";
   scenario_id: string;
   scenario_label: string;
   inputs: Record<string, unknown>;

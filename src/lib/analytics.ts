@@ -1,5 +1,6 @@
 /**
  * Google Analytics 4 (gtag.js). Loads only when VITE_GA_MEASUREMENT_ID is set at build time.
+ * Named interaction events per docs/SPEC.md §5.1.
  */
 
 declare global {
@@ -11,10 +12,9 @@ declare global {
 
 type Gtag = (...args: unknown[]) => void;
 
-type ClickParams = Record<string, string | number | boolean>;
+type AnalyticsParams = Record<string, string | number | boolean>;
 
 let initialized = false;
-let clickTrackingBound = false;
 
 function measurementId(): string {
   return import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() ?? "";
@@ -44,6 +44,7 @@ export function initAnalytics(): void {
   window.dataLayer = window.dataLayer ?? [];
   // gtag.js expects dataLayer entries as `arguments` objects, not Arrays.
   window.gtag = function gtag() {
+    // eslint-disable-next-line prefer-rest-params -- gtag.js contract requires `arguments`
     window.dataLayer?.push(arguments);
   } as Gtag;
   window.gtag("js", new Date());
@@ -70,58 +71,8 @@ function currentPagePath(): string {
   return window.location.pathname || pagePath("/");
 }
 
-function truncate(value: string, max = 100): string {
-  const trimmed = value.trim().replace(/\s+/g, " ");
-  return trimmed.length <= max ? trimmed : `${trimmed.slice(0, max - 1)}…`;
-}
-
-/** Build GA4 click parameters from a DOM element (no PII from form values). */
-export function buildClickParams(
-  element: Element,
-  pagePathOverride?: string,
-): ClickParams {
-  const html = element as HTMLElement;
-  const tag = element.tagName.toLowerCase();
-  const params: ClickParams = {
-    element_tag: tag,
-    page_path: pagePathOverride ?? currentPagePath(),
-  };
-
-  if (element.id) {
-    params.element_id = element.id;
-  }
-
-  const role = element.getAttribute("role");
-  if (role) {
-    params.element_role = role;
-  }
-
-  const ariaLabel = element.getAttribute("aria-label");
-  if (ariaLabel) {
-    params.element_label = truncate(ariaLabel);
-  }
-
-  const type = element.getAttribute("type");
-  if (type) {
-    params.element_type = type;
-  }
-
-  if (tag === "a" && element instanceof HTMLAnchorElement && element.href) {
-    params.link_url = element.href;
-  }
-
-  const text =
-    ariaLabel ??
-    html.innerText ??
-    element.textContent ??
-    element.getAttribute("name") ??
-    element.getAttribute("value") ??
-    "";
-  if (text) {
-    params.element_text = truncate(text);
-  }
-
-  return params;
+function withPagePath(params: AnalyticsParams = {}): AnalyticsParams {
+  return { ...params, page_path: currentPagePath() };
 }
 
 /** Initial landing page view (home). */
@@ -142,39 +93,177 @@ export function trackPageView(pageSuffix: string, pageTitle?: string): void {
 
 export function trackEvent(
   eventName: string,
-  params?: Record<string, string | number | boolean>,
+  params?: AnalyticsParams,
 ): void {
   if (!initialized || !window.gtag) return;
   window.gtag("event", eventName, params ?? {});
 }
 
-/** Send a GA4 click event for a DOM element. */
-export function trackClick(element: Element, pagePathOverride?: string): void {
-  trackEvent("click", buildClickParams(element, pagePathOverride));
+export function trackTabSelect(tabId: string): void {
+  trackEvent("tab_select", withPagePath({ tab_id: tabId }));
 }
 
-function onDocumentClick(event: MouseEvent): void {
-  const target = event.target;
-  if (!(target instanceof Element)) {
-    return;
-  }
-  trackClick(target);
+export function trackLocaleChange(locale: string): void {
+  trackEvent("locale_change", withPagePath({ locale }));
 }
 
-/** Delegated listener: records every click in the app (inputs excluded from values). */
-export function initClickTracking(): void {
-  if (!initialized || clickTrackingBound || typeof document === "undefined") {
-    return;
-  }
-  clickTrackingBound = true;
-  document.addEventListener("click", onDocumentClick, true);
+export function trackLoanLoadReference(locale: string): void {
+  trackEvent("loan_load_reference", withPagePath({ locale }));
+}
+
+export function trackLoanExportScheduleCsv(
+  scenarioView: string,
+  locale: string,
+): void {
+  trackEvent(
+    "loan_export_schedule_csv",
+    withPagePath({ scenario_view: scenarioView, locale }),
+  );
+}
+
+export function trackLoanExportScenarioJson(
+  scenarioView: string,
+  locale: string,
+): void {
+  trackEvent(
+    "loan_export_scenario_json",
+    withPagePath({ scenario_view: scenarioView, locale }),
+  );
+}
+
+export function trackLoanImportScenarioJson(
+  scenarioView: string,
+  locale: string,
+  success: boolean,
+): void {
+  trackEvent(
+    "loan_import_scenario_json",
+    withPagePath({
+      scenario_view: scenarioView,
+      locale,
+      success: success ? "true" : "false",
+    }),
+  );
+}
+
+export function trackLoanScenarioViewChange(
+  scenarioView: string,
+  locale: string,
+): void {
+  trackEvent(
+    "loan_scenario_view_change",
+    withPagePath({ scenario_view: scenarioView, locale }),
+  );
+}
+
+export function trackLoanPrepaySourceChange(
+  prepaySource: string,
+  locale: string,
+): void {
+  trackEvent(
+    "loan_prepay_source_change",
+    withPagePath({ prepay_source: prepaySource, locale }),
+  );
+}
+
+export function trackLoanStagedPrepayAdd(): void {
+  trackEvent("loan_staged_prepay_add", withPagePath());
+}
+
+export function trackLoanStagedPrepayRemove(): void {
+  trackEvent("loan_staged_prepay_remove", withPagePath());
+}
+
+export function trackDebtAdd(debtCount: number): void {
+  trackEvent("debt_add", withPagePath({ debt_count: debtCount }));
+}
+
+export function trackDebtRemove(debtCount: number): void {
+  trackEvent("debt_remove", withPagePath({ debt_count: debtCount }));
+}
+
+export function trackDebtStrategyChange(strategy: string): void {
+  trackEvent("debt_strategy_change", withPagePath({ strategy }));
+}
+
+export function trackRetirementScenarioSelect(scenarioId: string): void {
+  trackEvent("retirement_scenario_select", withPagePath({ scenario_id: scenarioId }));
+}
+
+export function trackStrategyTierPreset(presetId: string, locale: string): void {
+  trackEvent(
+    "strategy_tier_preset",
+    withPagePath({ preset_id: presetId, locale }),
+  );
+}
+
+export function trackGameProfileChange(profileId: string): void {
+  trackEvent("game_profile_change", withPagePath({ profile_id: profileId }));
+}
+
+export function trackGameExportJson(profileId: string, locale: string): void {
+  trackEvent(
+    "game_export_json",
+    withPagePath({ profile_id: profileId, locale }),
+  );
+}
+
+export function trackDebtExportTimelineCsv(strategy: string, locale: string): void {
+  trackEvent(
+    "debt_export_timeline_csv",
+    withPagePath({ strategy, locale }),
+  );
+}
+
+export function trackDebtExportJson(strategy: string, locale: string): void {
+  trackEvent(
+    "debt_export_json",
+    withPagePath({ strategy, locale }),
+  );
+}
+
+export function trackRetirementExportTimelineCsv(
+  scenarioId: string,
+  locale: string,
+): void {
+  trackEvent(
+    "retirement_export_timeline_csv",
+    withPagePath({ scenario_id: scenarioId, locale }),
+  );
+}
+
+export function trackRetirementExportJson(scenarioId: string, locale: string): void {
+  trackEvent(
+    "retirement_export_json",
+    withPagePath({ scenario_id: scenarioId, locale }),
+  );
+}
+
+export function trackStrategyExportComparisonCsv(locale: string): void {
+  trackEvent("strategy_export_comparison_csv", withPagePath({ locale }));
+}
+
+export function trackStrategyExportJson(locale: string): void {
+  trackEvent("strategy_export_json", withPagePath({ locale }));
+}
+
+export function trackFeedbackGithubClick(): void {
+  trackEvent("feedback_github_click", withPagePath());
+}
+
+export function trackFooterCommitLinkClick(): void {
+  trackEvent("footer_commit_link_click", withPagePath());
+}
+
+export function trackFooterTermsToggle(open: boolean): void {
+  trackEvent("footer_terms_toggle", withPagePath({ open }));
+}
+
+export function trackFooterGaOptoutClick(): void {
+  trackEvent("footer_ga_optout_click", withPagePath());
 }
 
 /** Reset module state for tests. */
 export function resetAnalyticsForTests(): void {
-  if (clickTrackingBound && typeof document !== "undefined") {
-    document.removeEventListener("click", onDocumentClick, true);
-  }
-  clickTrackingBound = false;
   initialized = false;
 }

@@ -3,15 +3,16 @@
 **Project:** `FinancialPlanner`  
 **Canonical spec (this file):** `docs/SPEC-US.md`  
 **India locale spec:** [`docs/SPEC.md`](SPEC.md) (shared solver architecture; section numbers align where features are parallel)  
+**UK locale spec:** [`docs/SPEC-UK.md`](SPEC-UK.md)  
 **Research:** [`docs/research/2026-07-us-employee-benefits-mapping.md`](research/2026-07-us-employee-benefits-mapping.md) (summary) · [`docs/research/2026-07-us-employee-locale-deep-dive.md`](research/2026-07-us-employee-locale-deep-dive.md) (full per-topic) · [`docs/research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) (IN symmetry, HSA, PMI, locales, Tier P2)  
 **Spec-driven workflow:** See `AGENTS.md`.
 
 ---
 
-**Version:** 1.2  
+**Version:** 1.4  
 **Audience:** Engineers / Cursor agents implementing the US locale  
 **Locale:** United States (USD; optional thousands separators in UI)  
-**Status:** Draft for implementation (research-backed v1.2)  
+**Status:** Partially implemented — loan, debt, retirement, strategy tabs and US goldens ship in code; remaining gaps tracked in §13 (game profile aliases `GAME_US_*`, full `_inr` field rename deferred).
 **Parity target:** Same planner tabs and decision surfaces as India locale for **employed US workers** modeling mortgage payoff, multi-debt, retirement, repayment strategies, and strategic games.
 
 ---
@@ -47,7 +48,7 @@ The app must produce **transparent numbers**: amortisation tables, totals, inter
 | **Player** | Decision-maker in US§4.13 (`B`, `L`, `H`, `N`) — same roles as IN §4.13 |
 | **Payoff oracle** | Existing simulation (US§4.3–§4.8, US§4.10–§4.12) mapping actions → USD outcomes |
 
-**Locale switch:** Application exposes `locale: "IN" | "US"`. India behaviour remains governed by [`SPEC.md`](SPEC.md). US behaviour is governed by this file. Shared pure math (EMI formula, avalanche ordering) may live in locale-agnostic helpers parameterized by `roundMoney(amount, locale)`.
+**Locale switch:** Application exposes `locale: "IN" | "US" | "UK"`. India behaviour remains governed by [`SPEC.md`](SPEC.md), UK by [`SPEC-UK.md`](SPEC-UK.md). US behaviour is governed by this file. Shared pure math (EMI formula, avalanche ordering) may live in locale-agnostic helpers parameterized by `roundMoney(amount, locale)`.
 
 ---
 
@@ -106,7 +107,8 @@ All monetary fields use suffix `_usd` instead of IN `_inr`. Minimum prepayment: 
 | `vested_fraction_pct` | number | no | Default `100`; apply to `k401_vested_balance_usd` for withdrawals |
 | `brokerage_liquid_usd` | number | no | Taxable account |
 | `brokerage_haircut_pct` | number | no | 0–100 if user enables liquidation discount |
-| `monthly_cash_to_loan_usd` | number | no | Recurring extra principal after scheduled payment (US§4.5) |
+| `monthly_cash_to_loan_usd` | number | no | Recurring extra principal after scheduled payment (US§4.5); does **not** include salary sweep |
+| `monthly_salary_usd` | number | no | Optional stress-test: USD routed as **extra principal** after payment in scenarios that include salary sweep (`BASE_PLUS_SALARY_SWEEP`, prepay rows, §4.8 when configured). **Excluded from `BASE`.** v1 UI label: “Monthly salary”. |
 | `monthly_401k_deferral_usd` | number | no | Employee pre-tax deferral (projection only) |
 | `annual_salary_usd` | number | no | For employer match formula |
 | `employer_match_rate_pct` | number | no | Default **50** (50% of deferral) |
@@ -156,14 +158,15 @@ Same as IN §4.5 with `_usd` fields.
 
 | Scenario ID | Description |
 |-------------|-------------|
-| `BASE` | No prepayment |
+| `BASE` | No prepayment; scheduled payment only for full original tenure (§4.3). **Ignores** `monthly_salary_usd` and `monthly_cash_to_loan_usd`. |
 | `PREPAY_CASH_50K_TENURE` | One-time $50,000 from cash at month 1; `recompute_tenure_keep_payment` |
 | `PREPAY_CASH_50K_PAYMENT` | One-time $50,000 at month 1; `recompute_payment_keep_tenure` |
 | `PREPAY_FULL_100K` | Full payoff at month 1 from combined sources (user funding mix) |
 | `PREPAY_CUSTOM` | User-defined amount + month + policy |
 | `EXTRA_PRINCIPAL` | Recurring extra principal |
 | `STAGED_PREPAY` | Multiple timed prepayments |
-| `BASE_PLUS_MONTHLY_INFLOW` | Baseline payment + fixed `monthly_cash_to_loan_usd` |
+| `BASE_PLUS_SALARY_SWEEP` | Baseline payment + `monthly_salary_usd` as extra principal each month (§4.5); compare **payoff months** to `BASE` |
+| `BASE_PLUS_MONTHLY_INFLOW` | Baseline payment + fixed `monthly_cash_to_loan_usd` each month after payment (§4.5); does **not** include `monthly_salary_usd`; compare **payoff months** to `BASE` |
 | `PREPAY_PAYMENT_PLUS_MONTHLY_INFLOW` | One-time prepay month 1 + keep original payment + monthly extra |
 
 ---
@@ -397,7 +400,7 @@ Same as IN §5. UI `en-US` number formatting. Accessibility and validation uncha
 ## 6. Data Models (TypeScript sketch)
 
 ```ts
-type Locale = "IN" | "US";
+type Locale = "IN" | "US" | "UK";
 
 type PrepaymentPolicy =
   | "recompute_tenure_keep_payment"
@@ -445,7 +448,7 @@ Apply penalty and withholding only to cash-bound portion of each tranche; report
 
 ### Locale selector
 
-- Header or settings: **Country / locale** toggle `India (INR)` | `United States (USD)`.  
+- Header or settings: **Country / locale** toggle `India (INR)` | `United States (USD)` | `United Kingdom (GBP)` (UK option per [`SPEC-UK.md`](SPEC-UK.md) §8, feature-flagged until UK ships).  
 - Persist in `localStorage` key `financial-planner-locale`.  
 - Switching locale resets form defaults to US§15 / IN §15 reference values respectively (confirm dialog).
 
@@ -484,6 +487,7 @@ All IN §9 cases plus:
 4. **401(k) job loss:** for `K0=100_000`, verify gross inflows **50,000** then **50,000** on months `U` and `U+11`; cash-bound tranche net **$27,200** each at 10% penalty + 22% withholding ($40k gross).  
 5. **Cashflow shortfall** fixture flags warning.  
 6. **Monthly inflow** shortens payoff vs BASE.  
+6b. **BASE vs salary sweep:** reference mortgage (US§15) with `monthly_salary_usd=10_000` and `monthly_cash_to_loan_usd=0` — `BASE` payoff month = **360**; `BASE_PLUS_SALARY_SWEEP` payoff month materially less than baseline (document reference in test).  
 7. **Employer match:** $120k salary, $1k deferral, 50%/6% → **$300/mo** match.  
 8. **Debt avalanche** total interest ≤ snowball for reference debts.  
 9. **Retirement:** contribution monotonicity and conservative ≤ optimistic funded ratio.  
@@ -514,7 +518,7 @@ All IN §9 cases plus:
 - SECURE 2.0 $1,000 emergency withdrawal engine (v1.1).  
 - 401(k) loan as prepay funding source (v1.2).  
 - State-by-state unemployment insurance tables (user enters `monthly_uib_usd` in v1).  
-- **UK / Canada / other country locales** (desk research in [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) §3).  
+- **Canada / other country locales** beyond IN / US / UK (desk research in [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) §3). **UK is now specced** in [`SPEC-UK.md`](SPEC-UK.md) (implementation pending).  
 - **Wash-sale** / lot-level capital gains tracking (flat `ltcg_rate_pct` only).  
 - **Auto PMI cancellation** at 78% LTV (user flat `pmi_monthly_usd` or manual toggle in v1.1).  
 - **Property tax / escrow** modeling.
@@ -538,7 +542,7 @@ All IN §9 cases plus:
 3. Default job-loss tranche split: liquidity-first auto-default like IN? → **Yes for `JL_401K_BRIDGE` preset**; user chooses otherwise.  
 4. Show itemized penalty + withholding in schedule rows vs summary only? → **Both**: `events[]` per month + summary KPIs.
 
-**Resolved:** IN §4.10–§4.11 promoted to [`SPEC.md`](SPEC.md) (symmetry). UK/CA locales deferred per [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md).
+**Resolved:** IN §4.10–§4.11 promoted to [`SPEC.md`](SPEC.md) (symmetry). CA locale deferred per [`2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md). UK locale specced in [`SPEC-UK.md`](SPEC-UK.md) per [`2026-07-uk-employee-benefits-mapping.md`](research/2026-07-uk-employee-benefits-mapping.md).
 
 ---
 

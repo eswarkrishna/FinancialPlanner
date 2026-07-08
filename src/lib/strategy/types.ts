@@ -56,7 +56,8 @@ export type StrategyWarning =
   | "FRAGILE_CASH_FLOW"
   | "BELOW_SUBSISTENCE"
   | "AGGRESSIVE_PCT_INVALID"
-  | "HORIZON_TOO_SHORT";
+  | "HORIZON_TOO_SHORT"
+  | "TAX_SIMPLIFIED";
 
 /** Spec §4.12.6 — three take-home tier presets surfaced in the UI. */
 export interface StrategyTierPreset {
@@ -75,4 +76,10 @@ export const STRATEGY_TIER_PRESETS_US: readonly StrategyTierPreset[] = [
   { id: "tier_a", label: "Tier A — $18k take-home", monthly_take_home_inr: 18_000 },
   { id: "tier_b", label: "Tier B — $12k take-home", monthly_take_home_inr: 12_000 },
   { id: "tier_c", label: "Tier C — $8k take-home", monthly_take_home_inr: 8_000 },
+];
+
+export const STRATEGY_TIER_PRESETS_UK: readonly StrategyTierPreset[] = [
+  { id: "tier_a", label: "Tier A — £9k take-home", monthly_take_home_inr: 9_000 },
+  { id: "tier_b", label: "Tier B — £6k take-home", monthly_take_home_inr: 6_000 },
+  { id: "tier_c", label: "Tier C — £4k take-home", monthly_take_home_inr: 4_000 },
 ];

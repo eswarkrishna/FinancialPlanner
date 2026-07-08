@@ -4,18 +4,6 @@ import {
   buildPrincipalCurve,
   effectiveBrokerageLiquidUsd,
   effectiveGoldLiquidInr,
-  scheduleFixedEmiWithMonthlyExtra,
-  schedulePrepayKeepTenure,
-  scheduleTimedPrepaysKeepEmi,
-  simulateJl401kBridgeCashflow,
-  simulateJl401kToLoanCashflow,
-  simulateJlDelayPrepayCashflow,
-  simulateUeDelayPrepayCashflow,
-  simulateUePfBridgeCashflow,
-  simulateUePfToLoanCashflow,
-  type CashflowSimResult,
-  type ScheduleRow,
-  type UsCashflowSimResult,
 } from "../../../lib/loan";
 import {
   downloadTextFile,
@@ -23,13 +11,28 @@ import {
   scenarioToJson,
   type ScenarioExportPayload,
 } from "../../../lib/export";
-import { formatMoney } from "../../../lib/locale/formatMoney";
-import type { Locale } from "../../../lib/locale/types";
+import { parseScenarioImportJson } from "../../../lib/export/scenarioImport";
 import {
-  loanFormFromScenario,
-  referenceScenarioForLocale,
-  useLocale,
-} from "../../locale/LocaleContext";
+  trackLoanExportScheduleCsv,
+  trackLoanExportScenarioJson,
+  trackLoanImportScenarioJson,
+  trackLoanLoadReference,
+  trackLoanStagedPrepayAdd,
+  trackLoanStagedPrepayRemove,
+} from "../../../lib/analytics";
+import { EMPTY_LOAN_FORM } from "../../../lib/loan/loanFormFields";
+import type { PrepaySource } from "../../../lib/loan/scenarioViews";
+import { SCENARIO_LABELS, type ScenarioView } from "../../../lib/loan/scenarioViews";
+import {
+  newStagedPrepayEntry,
+  parseStagedPrepays,
+  type StagedPrepayEntry,
+} from "../../../lib/loan/stagedPrepays";
+import {
+  LOAN_FORM_STORAGE_VERSION,
+  readLoanFormState,
+  writeLoanFormState,
+} from "../../../lib/persistence/loanFormState";
 import {
   loanInputSchema,
   type LoanInput,
@@ -37,217 +40,63 @@ import {
 import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf/index";
 import { computeK401JobLossWithdrawalPlan } from "../../../lib/k401/index";
 import {
-  newStagedPrepayEntry,
-  parseStagedPrepays,
-  type StagedPrepayEntry,
-} from "../components/StagedPrepayEditor";
+  loanFormFromScenario,
+  referenceScenarioForLocale,
+  useLocale,
+} from "../../locale/LocaleContext";
+import { buildComparisonRows } from "./buildComparisonRows";
+import { buildLoanModels } from "./buildLoanModels";
+import {
+  pfTrancheToLoanLabel,
+  prepaySourceComparisonWord,
+  prepaySourceHintLabel,
+  prepaySourceScheduleLabel,
+  scenarioViewIsAvailable,
+} from "./loanModelHelpers";
+import { resolveActiveBundle } from "./resolveActiveBundle";
 
-export type ScenarioView =
-  | "BASE"
-  | "PREPAY_TENURE"
-  | "PREPAY_EMI"
-  | "BASE_INFLOW"
-  | "PREPAY_EMI_INFLOW"
-  | "CASHFLOW_NO_PF"
-  | "CASHFLOW_PLUS_PF"
-  | "UE_PF_TO_LOAN"
-  | "UE_PF_BRIDGE"
-  | "UE_DELAY_PREPAY"
-  | "STAGED_PREPAY";
-
-type ScheduleBundle = {
-  rows: ScheduleRow[];
-  totals: {
-    payoff_month: number;
-    total_interest_inr: number;
-    total_paid_inr: number;
-    total_prepayments_inr?: number;
-  };
-  cashBalances?: number[];
-  warnings?: string[];
+export type { PrepaySource, ScenarioView };
+export {
+  pfTrancheToLoanLabel,
+  prepaySourceComparisonWord,
+  prepaySourceHintLabel,
+  prepaySourceScheduleLabel,
 };
 
-function isCashflowResult(
-  value:
-    | { rows: ScheduleRow[]; totals: ScheduleBundle["totals"] }
-    | CashflowSimResult
-    | UsCashflowSimResult,
-): value is CashflowSimResult | UsCashflowSimResult {
-  return "min_cash_balance_inr" in value;
-}
-
-function scenarioViewIsAvailable(
-  view: ScenarioView,
-  models: {
-    baseInflow: unknown;
-    prepayTenure: unknown;
-    prepayEmi: unknown;
-    prepayEmiInflow: unknown;
-    cashflowNoPf: unknown;
-    cashflowPlusPf: unknown;
-    uePfToLoan: unknown;
-    uePfBridge: unknown;
-    ueDelayPrepay: unknown;
-    stagedPrepay: unknown;
-  },
-): boolean {
-  switch (view) {
-    case "BASE":
-      return true;
-    case "BASE_INFLOW":
-      return models.baseInflow != null;
-    case "PREPAY_TENURE":
-      return models.prepayTenure != null;
-    case "PREPAY_EMI":
-      return models.prepayEmi != null;
-    case "PREPAY_EMI_INFLOW":
-      return models.prepayEmiInflow != null;
-    case "CASHFLOW_NO_PF":
-      return models.cashflowNoPf != null;
-    case "CASHFLOW_PLUS_PF":
-      return models.cashflowPlusPf != null;
-    case "UE_PF_TO_LOAN":
-      return models.uePfToLoan != null;
-    case "UE_PF_BRIDGE":
-      return models.uePfBridge != null;
-    case "UE_DELAY_PREPAY":
-      return models.ueDelayPrepay != null;
-    case "STAGED_PREPAY":
-      return models.stagedPrepay != null;
-    default:
-      return false;
+function initialLoanState(locale: ReturnType<typeof useLocale>["locale"]) {
+  const stored = readLoanFormState(locale);
+  if (stored) {
+    return {
+      inputs: stored.inputs,
+      scenarioView: stored.scenarioView,
+      prepaySource: stored.prepaySource,
+      stagedPrepays: stored.stagedPrepays,
+    };
   }
-}
-
-export type PrepaySource = "cash" | "pf" | "gold";
-
-export function prepaySourceComparisonWord(
-  source: PrepaySource,
-  locale: Locale = "IN",
-): string {
-  if (source === "cash") return "cash";
-  if (source === "pf") return locale === "US" ? "401(k)" : "PF";
-  return locale === "US" ? "brokerage" : "gold";
-}
-
-export function prepaySourceScheduleLabel(
-  source: PrepaySource,
-  locale: Locale = "IN",
-): string {
-  if (source === "cash") return "Cash";
-  if (source === "pf") return locale === "US" ? "401(k)" : "PF";
-  return locale === "US" ? "Brokerage" : "Gold";
-}
-
-export function prepaySourceHintLabel(
-  source: PrepaySource,
-  locale: Locale = "IN",
-): string {
-  if (source === "cash") return "Cash";
-  if (source === "pf") return locale === "US" ? "401(k) vested" : "PF account";
-  return locale === "US" ? "Brokerage (liquid)" : "Gold (liquid)";
-}
-
-type ComparisonRow = {
-  id: string;
-  label: string;
-  payoffMonth: number;
-  totalInterest: number;
-  totalPaid: number;
-  deltaVsBaseMonths: number;
-  deltaInterestVsBase: number;
-  minCashBalance?: number;
-};
-
-const SCENARIO_LABELS: Record<ScenarioView, string> = {
-  BASE: "BASE",
-  PREPAY_TENURE: "PREPAY_TENURE",
-  PREPAY_EMI: "PREPAY_EMI",
-  BASE_INFLOW: "BASE_PLUS_MONTHLY_INFLOW",
-  PREPAY_EMI_INFLOW: "PREPAY_EMI_PLUS_MONTHLY_INFLOW",
-  CASHFLOW_NO_PF: "CASHFLOW_NO_PF",
-  CASHFLOW_PLUS_PF: "CASHFLOW_PLUS_PF",
-  UE_PF_TO_LOAN: "UE_PF_TO_LOAN",
-  UE_PF_BRIDGE: "UE_PF_BRIDGE",
-  UE_DELAY_PREPAY: "UE_DELAY_PREPAY",
-  STAGED_PREPAY: "STAGED_PREPAY",
-};
-
-const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
-  principal_inr: "",
-  annual_interest_rate: "",
-  tenure_months: "",
-  start_date: "",
-  cash_inr: "",
-  monthly_salary_inr: "",
-  pf_corpus_inr: "",
-  pf_annual_interest_rate_pct: "",
-  monthly_pf_addition_inr: "",
-  gold_liquid_inr: "",
-  gold_haircut_enabled: "false",
-  gold_haircut_pct: "",
-  monthly_cash_to_loan_inr: "",
-  unemployment_mode: "false",
-  unemployment_start_month: "1",
-  monthly_living_expense_inr: "",
-  monthly_income_inr: "",
-  monthly_uib_inr: "",
-  vested_fraction_pct: "100",
-  early_withdrawal_tax_withholding_pct: "22",
-  employer_match_rate_pct: "50",
-  employer_match_cap_pct_of_salary: "6",
-  annual_salary_inr: "",
-  employment_type: "w2",
-  pmi_monthly_inr: "",
-  pmi_active: "true",
-  hsa_balance_inr: "",
-  monthly_health_premium_inr: "",
-};
-
-function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
   return {
-    principal_inr: v.principal_inr,
-    annual_interest_rate: v.annual_interest_rate,
-    tenure_months: v.tenure_months,
-    cash_inr: v.cash_inr,
-    monthly_income_inr: v.monthly_income_inr,
-    monthly_living_expense_inr: v.monthly_living_expense_inr,
-    monthly_extra_to_loan_inr: recurringToLoan,
-    monthly_uib_inr: v.monthly_uib_inr,
-    job_loss_start_month: v.unemployment_start_month,
-    k401_balance_inr: v.pf_corpus_inr,
-    vested_fraction_pct: v.vested_fraction_pct,
-    early_withdrawal_tax_withholding_pct: v.early_withdrawal_tax_withholding_pct,
-    pmi_monthly_inr: v.pmi_monthly_inr,
-    pmi_active: v.pmi_active,
-    hsa_balance_inr: v.hsa_balance_inr,
-    monthly_health_premium_inr: v.monthly_health_premium_inr,
-  };
-}
-
-function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
-  return {
-    principal_inr: v.principal_inr,
-    annual_interest_rate: v.annual_interest_rate,
-    tenure_months: v.tenure_months,
-    cash_inr: v.cash_inr,
-    monthly_income_inr: v.monthly_income_inr,
-    monthly_living_expense_inr: v.monthly_living_expense_inr,
-    monthly_extra_to_loan_inr: recurringToLoan,
-    unemployment_start_month: v.unemployment_start_month,
-    pf_corpus_inr: v.pf_corpus_inr,
-    pf_annual_interest_rate_pct: v.pf_annual_interest_rate_pct,
-    monthly_pf_addition_inr: v.monthly_pf_addition_inr,
+    inputs: EMPTY_LOAN_FORM,
+    scenarioView: "BASE" as ScenarioView,
+    prepaySource: "cash" as PrepaySource,
+    stagedPrepays: [] as StagedPrepayEntry[],
   };
 }
 
 export function useLoanModels() {
   const { locale } = useLocale();
-  const [inputs, setInputs] =
-    useState<Record<keyof LoanInput, string>>(EMPTY_LOAN_FORM);
-  const [scenarioView, setScenarioView] = useState<ScenarioView>("BASE");
-  const [prepaySource, setPrepaySource] = useState<PrepaySource>("cash");
-  const [stagedPrepays, setStagedPrepays] = useState<StagedPrepayEntry[]>([]);
+  const skipPersistRef = useRef(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [inputs, setInputs] = useState<Record<keyof LoanInput, string>>(
+    () => initialLoanState(locale).inputs,
+  );
+  const [scenarioView, setScenarioView] = useState<ScenarioView>(
+    () => initialLoanState(locale).scenarioView,
+  );
+  const [prepaySource, setPrepaySource] = useState<PrepaySource>(
+    () => initialLoanState(locale).prepaySource,
+  );
+  const [stagedPrepays, setStagedPrepays] = useState<StagedPrepayEntry[]>(
+    () => initialLoanState(locale).stagedPrepays,
+  );
 
   const parsed = useMemo(() => {
     return loanInputSchema.safeParse({
@@ -282,12 +131,31 @@ export function useLoanModels() {
       pmi_active: inputs.pmi_active !== "false",
       hsa_balance_inr: inputs.hsa_balance_inr || 0,
       monthly_health_premium_inr: inputs.monthly_health_premium_inr || 0,
+      isa_balance_inr: inputs.isa_balance_inr || 0,
+      gia_balance_inr: inputs.gia_balance_inr || 0,
+      gia_cost_basis_inr: inputs.gia_cost_basis_inr || 0,
+      overpayment_allowance_pct: inputs.overpayment_allowance_pct || 10,
+      erc_pct: inputs.erc_pct || 0,
+      employee_pension_pct: inputs.employee_pension_pct || 5,
+      employer_pension_pct: inputs.employer_pension_pct || 3,
+      redundancy_payment_inr: inputs.redundancy_payment_inr || 0,
+      marginal_tax_rate_pct: inputs.marginal_tax_rate_pct || 20,
+      jsa_duration_months: inputs.jsa_duration_months || 6,
+      smi_enabled: inputs.smi_enabled === "true",
+      smi_wait_months: inputs.smi_wait_months || 3,
+      smi_rate_pct: inputs.smi_rate_pct || 3.66,
+      smi_capital_cap_inr: inputs.smi_capital_cap_inr || 200_000,
+      cgt_rate_pct: inputs.cgt_rate_pct || 24,
+      cgt_annual_exempt_inr: inputs.cgt_annual_exempt_inr || 3_000,
     });
   }, [inputs]);
 
   const effectiveLiquidInr = useMemo(() => {
     if (!parsed.success) return 0;
     const v = parsed.data;
+    if (locale === "UK") {
+      return v.isa_balance_inr + v.gia_balance_inr;
+    }
     if (locale === "US") {
       return effectiveBrokerageLiquidUsd(
         v.gold_liquid_inr,
@@ -306,165 +174,13 @@ export function useLoanModels() {
 
   const models = useMemo(() => {
     if (!parsed.success) return null;
-    const v = parsed.data;
-    const x = v.monthly_cash_to_loan_inr;
-    const salaryRecurring = v.monthly_salary_inr;
-    const recurringToLoan = x + salaryRecurring;
-    const base = scheduleFixedEmiWithMonthlyExtra(
-      v.principal_inr,
-      v.annual_interest_rate,
-      v.tenure_months,
-      salaryRecurring,
-    );
-    const oneTimePrepayInr =
-      prepaySource === "cash"
-        ? v.cash_inr
-        : prepaySource === "pf"
-          ? v.pf_corpus_inr
-          : effectiveLiquidInr;
-    const canPrepay = oneTimePrepayInr > 0;
-    const prepayTenure = canPrepay
-      ? schedulePrepayKeepTenure(
-          v.principal_inr,
-          v.annual_interest_rate,
-          v.tenure_months,
-          1,
-          oneTimePrepayInr,
-          salaryRecurring,
-        )
-      : null;
-    const prepayEmi = canPrepay
-      ? scheduleFixedEmiWithMonthlyExtra(
-          v.principal_inr,
-          v.annual_interest_rate,
-          v.tenure_months,
-          salaryRecurring,
-          { month: 1, amount: oneTimePrepayInr },
-        )
-      : null;
-    const baseInflow =
-      x > 0
-        ? scheduleFixedEmiWithMonthlyExtra(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            recurringToLoan,
-          )
-        : null;
-    const prepayEmiInflow =
-      canPrepay && x > 0
-        ? scheduleFixedEmiWithMonthlyExtra(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            recurringToLoan,
-            { month: 1, amount: oneTimePrepayInr },
-          )
-        : null;
-    const pfPlan = computePfUnemploymentWithdrawalPlan(
-      v.pf_corpus_inr,
-      v.pf_annual_interest_rate_pct,
-      v.monthly_pf_addition_inr,
-    );
-    const k401Plan = computeK401JobLossWithdrawalPlan(
-      v.pf_corpus_inr,
-      v.vested_fraction_pct,
-    );
-    const isUs = locale === "US";
-    const cashflowNoPf =
-      v.cash_inr > 0 || x > 0
-        ? scheduleTimedPrepaysKeepEmi(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            [{ month: 1, amount_inr: v.cash_inr }],
-            recurringToLoan,
-          )
-        : null;
-    const cashflowPlusPf =
-      (v.cash_inr > 0 || x > 0) && v.pf_corpus_inr > 0
-        ? scheduleTimedPrepaysKeepEmi(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            isUs
-              ? [
-                  { month: 1, amount_inr: v.cash_inr },
-                  { month: 1, amount_inr: k401Plan.tranche1_gross_usd },
-                  { month: 12, amount_inr: k401Plan.tranche2_gross_usd },
-                ]
-              : [
-                  { month: 1, amount_inr: v.cash_inr },
-                  { month: 1, amount_inr: pfPlan.tranche1_inr },
-                  { month: 12, amount_inr: pfPlan.tranche2_inr },
-                ],
-            recurringToLoan,
-          )
-        : null;
-    const uePfToLoan =
-      v.pf_corpus_inr > 0
-        ? v.unemployment_mode
-          ? isUs
-            ? simulateJl401kToLoanCashflow(usCashflowBaseInput(v, salaryRecurring))
-            : simulateUePfToLoanCashflow(cashflowBaseInput(v, salaryRecurring))
-          : scheduleTimedPrepaysKeepEmi(
-              v.principal_inr,
-              v.annual_interest_rate,
-              v.tenure_months,
-              isUs
-                ? [
-                    { month: 1, amount_inr: k401Plan.tranche1_gross_usd },
-                    { month: 12, amount_inr: k401Plan.tranche2_gross_usd },
-                  ]
-                : [
-                    { month: 1, amount_inr: pfPlan.tranche1_inr },
-                    { month: 12, amount_inr: pfPlan.tranche2_inr },
-                  ],
-              salaryRecurring,
-            )
-        : null;
-    const uePfBridge =
-      v.unemployment_mode && v.pf_corpus_inr > 0
-        ? isUs
-          ? simulateJl401kBridgeCashflow(usCashflowBaseInput(v, recurringToLoan))
-          : simulateUePfBridgeCashflow(cashflowBaseInput(v, recurringToLoan))
-        : null;
-    const ueDelayPrepay =
-      v.unemployment_mode && v.pf_corpus_inr > 0
-        ? isUs
-          ? simulateJlDelayPrepayCashflow(usCashflowBaseInput(v, recurringToLoan))
-          : simulateUeDelayPrepayCashflow(cashflowBaseInput(v, recurringToLoan))
-        : null;
-    const stagedPrepay =
-      stagedEvents.length > 0
-        ? scheduleTimedPrepaysKeepEmi(
-            v.principal_inr,
-            v.annual_interest_rate,
-            v.tenure_months,
-            stagedEvents,
-            recurringToLoan,
-          )
-        : null;
-
-    return {
-      v,
-      base,
-      prepayTenure,
-      prepayEmi,
-      baseInflow,
-      prepayEmiInflow,
-      cashflowNoPf,
-      cashflowPlusPf,
-      uePfToLoan,
-      uePfBridge,
-      ueDelayPrepay,
-      stagedPrepay,
-      canPrepay,
-      monthlyExtra: x,
+    return buildLoanModels(
+      parsed.data,
       prepaySource,
       effectiveLiquidInr,
-      k401Plan,
-    };
+      stagedEvents,
+      locale,
+    );
   }, [parsed, prepaySource, effectiveLiquidInr, stagedEvents, locale]);
 
   useEffect(() => {
@@ -476,164 +192,13 @@ export function useLoanModels() {
 
   const baseInterest = models?.base.totals.total_interest_inr ?? 0;
 
-  const comparisonRows = useMemo((): ComparisonRow[] => {
-    if (!models) return [];
-    const baseM = models.base.totals.payoff_month;
-    const row = (
-      id: string,
-      label: string,
-      payoffMonth: number,
-      totalInterest: number,
-      totalPaid: number,
-      minCashBalance?: number,
-    ): ComparisonRow => ({
-      id,
-      label,
-      payoffMonth,
-      totalInterest,
-      totalPaid,
-      deltaVsBaseMonths: baseM - payoffMonth,
-      deltaInterestVsBase: baseInterest - totalInterest,
-      minCashBalance,
-    });
-
-    const rows: ComparisonRow[] = [
-      row(
-        "BASE",
-        "BASE",
-        models.base.totals.payoff_month,
-        models.base.totals.total_interest_inr,
-        models.base.totals.total_paid_inr,
-      ),
-    ];
-    if (models.baseInflow) {
-      rows.push(
-        row(
-          "BASE_INFLOW",
-          `BASE + ${formatMoney(models.monthlyExtra, locale)}/mo to loan`,
-          models.baseInflow.totals.payoff_month,
-          models.baseInflow.totals.total_interest_inr,
-          models.baseInflow.totals.total_paid_inr,
-        ),
-      );
-    }
-    if (models.prepayTenure) {
-      rows.push(
-        row(
-          "PREPAY_TENURE",
-          `Prepay from ${prepaySourceComparisonWord(models.prepaySource, locale)} + keep tenure`,
-          models.prepayTenure.totals.payoff_month,
-          models.prepayTenure.totals.total_interest_inr,
-          models.prepayTenure.totals.total_paid_inr,
-        ),
-      );
-    }
-    if (models.prepayEmi) {
-      rows.push(
-        row(
-          "PREPAY_EMI",
-          `Prepay from ${prepaySourceComparisonWord(models.prepaySource, locale)} + keep EMI`,
-          models.prepayEmi.totals.payoff_month,
-          models.prepayEmi.totals.total_interest_inr,
-          models.prepayEmi.totals.total_paid_inr,
-        ),
-      );
-    }
-    if (models.prepayEmiInflow) {
-      rows.push(
-        row(
-          "PREPAY_EMI_INFLOW",
-          `Prepay from ${prepaySourceComparisonWord(models.prepaySource, locale)} + keep EMI + ${formatMoney(models.monthlyExtra, locale)}/mo`,
-          models.prepayEmiInflow.totals.payoff_month,
-          models.prepayEmiInflow.totals.total_interest_inr,
-          models.prepayEmiInflow.totals.total_paid_inr,
-        ),
-      );
-    }
-    if (models.cashflowNoPf) {
-      rows.push(
-        row(
-          "CASHFLOW_NO_PF",
-          "Cash prepay (month 1) + monthly cashflow",
-          models.cashflowNoPf.totals.payoff_month,
-          models.cashflowNoPf.totals.total_interest_inr,
-          models.cashflowNoPf.totals.total_paid_inr,
-        ),
-      );
-    }
-    if (models.cashflowPlusPf) {
-      rows.push(
-        row(
-          "CASHFLOW_PLUS_PF",
-          locale === "US"
-            ? "Cash + monthly cashflow + 401(k) tranches"
-            : "Cash + monthly cashflow + PF tranches",
-          models.cashflowPlusPf.totals.payoff_month,
-          models.cashflowPlusPf.totals.total_interest_inr,
-          models.cashflowPlusPf.totals.total_paid_inr,
-        ),
-      );
-    }
-    if (models.uePfToLoan) {
-      const ue = models.uePfToLoan;
-      let minCash: number | undefined;
-      if (isCashflowResult(ue)) {
-        minCash = ue.min_cash_balance_inr;
-      }
-      rows.push(
-        row(
-          "UE_PF_TO_LOAN",
-          locale === "US"
-            ? "JL 401(k) to loan (50% m1 + 50% m12)"
-            : "UE PF to loan (75% m1 + 25%+interest m12)",
-          ue.totals.payoff_month,
-          ue.totals.total_interest_inr,
-          ue.totals.total_paid_inr,
-          minCash,
-        ),
-      );
-    }
-    if (models.uePfBridge) {
-      rows.push(
-        row(
-          "UE_PF_BRIDGE",
-          locale === "US"
-            ? "JL 401(k) bridge (tranche 1 → cash, tranche 2 split)"
-            : "UE PF bridge (tranche 1 → cash, tranche 2 split)",
-          models.uePfBridge.totals.payoff_month,
-          models.uePfBridge.totals.total_interest_inr,
-          models.uePfBridge.totals.total_paid_inr,
-          models.uePfBridge.min_cash_balance_inr,
-        ),
-      );
-    }
-    if (models.ueDelayPrepay) {
-      rows.push(
-        row(
-          "UE_DELAY_PREPAY",
-          locale === "US"
-            ? "JL delay prepay (tranche 1 → cash, tranche 2 → loan)"
-            : "UE delay prepay (tranche 1 → cash, tranche 2 → loan)",
-          models.ueDelayPrepay.totals.payoff_month,
-          models.ueDelayPrepay.totals.total_interest_inr,
-          models.ueDelayPrepay.totals.total_paid_inr,
-          models.ueDelayPrepay.min_cash_balance_inr,
-        ),
-      );
-    }
-    if (models.stagedPrepay) {
-      rows.push(
-        row(
-          "STAGED_PREPAY",
-          `Custom staged prepay (${stagedEvents.length} event${stagedEvents.length === 1 ? "" : "s"})`,
-          models.stagedPrepay.totals.payoff_month,
-          models.stagedPrepay.totals.total_interest_inr,
-          models.stagedPrepay.totals.total_paid_inr,
-        ),
-      );
-    }
-    return rows;
-  }, [models, baseInterest, stagedEvents.length, locale]);
+  const comparisonRows = useMemo(
+    () =>
+      models
+        ? buildComparisonRows(models, baseInterest, stagedEvents.length, locale)
+        : [],
+    [models, baseInterest, stagedEvents.length, locale],
+  );
 
   const withdrawalPlan = useMemo(() => {
     if (!models) return null;
@@ -650,62 +215,10 @@ export function useLoanModels() {
     );
   }, [models, locale]);
 
-  const activeBundle = useMemo((): ScheduleBundle | null => {
-    if (!models) return null;
-
-    if (scenarioView === "BASE") {
-      return { rows: models.base.rows, totals: models.base.totals };
-    }
-    if (scenarioView === "PREPAY_TENURE" && models.prepayTenure) {
-      return { rows: models.prepayTenure.rows, totals: models.prepayTenure.totals };
-    }
-    if (scenarioView === "PREPAY_EMI" && models.prepayEmi) {
-      return { rows: models.prepayEmi.rows, totals: models.prepayEmi.totals };
-    }
-    if (scenarioView === "BASE_INFLOW" && models.baseInflow) {
-      return { rows: models.baseInflow.rows, totals: models.baseInflow.totals };
-    }
-    if (scenarioView === "PREPAY_EMI_INFLOW" && models.prepayEmiInflow) {
-      return { rows: models.prepayEmiInflow.rows, totals: models.prepayEmiInflow.totals };
-    }
-    if (scenarioView === "CASHFLOW_NO_PF" && models.cashflowNoPf) {
-      return { rows: models.cashflowNoPf.rows, totals: models.cashflowNoPf.totals };
-    }
-    if (scenarioView === "CASHFLOW_PLUS_PF" && models.cashflowPlusPf) {
-      return { rows: models.cashflowPlusPf.rows, totals: models.cashflowPlusPf.totals };
-    }
-    if (scenarioView === "UE_PF_TO_LOAN" && models.uePfToLoan) {
-      if (isCashflowResult(models.uePfToLoan)) {
-        return {
-          rows: models.uePfToLoan.rows,
-          totals: models.uePfToLoan.totals,
-          cashBalances: models.uePfToLoan.rows.map((r) => r.cash_balance_inr),
-          warnings: models.uePfToLoan.warnings,
-        };
-      }
-      return { rows: models.uePfToLoan.rows, totals: models.uePfToLoan.totals };
-    }
-    if (scenarioView === "UE_PF_BRIDGE" && models.uePfBridge) {
-      return {
-        rows: models.uePfBridge.rows,
-        totals: models.uePfBridge.totals,
-        cashBalances: models.uePfBridge.rows.map((r) => r.cash_balance_inr),
-        warnings: models.uePfBridge.warnings,
-      };
-    }
-    if (scenarioView === "UE_DELAY_PREPAY" && models.ueDelayPrepay) {
-      return {
-        rows: models.ueDelayPrepay.rows,
-        totals: models.ueDelayPrepay.totals,
-        cashBalances: models.ueDelayPrepay.rows.map((r) => r.cash_balance_inr),
-        warnings: models.ueDelayPrepay.warnings,
-      };
-    }
-    if (scenarioView === "STAGED_PREPAY" && models.stagedPrepay) {
-      return { rows: models.stagedPrepay.rows, totals: models.stagedPrepay.totals };
-    }
-    return { rows: models.base.rows, totals: models.base.totals };
-  }, [models, scenarioView]);
+  const activeBundle = useMemo(
+    () => (models ? resolveActiveBundle(models, scenarioView, locale) : null),
+    [models, scenarioView, locale],
+  );
 
   const activeRows = activeBundle?.rows ?? [];
   const activeCashBalances = activeBundle?.cashBalances;
@@ -719,25 +232,70 @@ export function useLoanModels() {
     [activeRows],
   );
 
+  useEffect(() => {
+    if (skipPersistRef.current) {
+      skipPersistRef.current = false;
+      return;
+    }
+    writeLoanFormState({
+      version: LOAN_FORM_STORAGE_VERSION,
+      locale,
+      inputs,
+      scenarioView,
+      prepaySource,
+      stagedPrepays,
+    });
+  }, [locale, inputs, scenarioView, prepaySource, stagedPrepays]);
+
   function setField<K extends keyof LoanInput>(key: K, value: string) {
+    setImportError(null);
     setInputs((prev) => ({ ...prev, [key]: value }));
   }
 
   function setBoolField(
-    key: "gold_haircut_enabled" | "unemployment_mode" | "pmi_active",
+    key: "gold_haircut_enabled" | "unemployment_mode" | "pmi_active" | "smi_enabled",
     checked: boolean,
   ) {
+    setImportError(null);
     setInputs((prev) => ({ ...prev, [key]: checked ? "true" : "false" }));
   }
 
-  function loadReference() {
-    const ref = referenceScenarioForLocale(locale);
-    setInputs(loanFormFromScenario(ref) as Record<keyof LoanInput, string>);
-    setScenarioView("BASE");
-    setStagedPrepays([]);
+  function applyLoanState(next: {
+    inputs: Record<keyof LoanInput, string>;
+    scenarioView: ScenarioView;
+    prepaySource: PrepaySource;
+    stagedPrepays: StagedPrepayEntry[];
+  }) {
+    skipPersistRef.current = true;
+    setInputs(next.inputs);
+    setScenarioView(next.scenarioView);
+    setPrepaySource(next.prepaySource);
+    setStagedPrepays(next.stagedPrepays);
+    writeLoanFormState({
+      version: LOAN_FORM_STORAGE_VERSION,
+      locale,
+      inputs: next.inputs,
+      scenarioView: next.scenarioView,
+      prepaySource: next.prepaySource,
+      stagedPrepays: next.stagedPrepays,
+    });
   }
 
-  const prevLocaleRef = useRef<Locale | null>(null);
+  function loadReference() {
+    setImportError(null);
+    applyLoanState({
+      inputs: loanFormFromScenario(referenceScenarioForLocale(locale)) as Record<
+        keyof LoanInput,
+        string
+      >,
+      scenarioView: "BASE",
+      prepaySource: "cash",
+      stagedPrepays: [],
+    });
+    trackLoanLoadReference(locale);
+  }
+
+  const prevLocaleRef = useRef<typeof locale | null>(null);
   useEffect(() => {
     if (prevLocaleRef.current === null) {
       prevLocaleRef.current = locale;
@@ -745,20 +303,26 @@ export function useLoanModels() {
     }
     if (prevLocaleRef.current === locale) return;
     prevLocaleRef.current = locale;
-    setInputs(loanFormFromScenario(referenceScenarioForLocale(locale)) as Record<
-      keyof LoanInput,
-      string
-    >);
-    setScenarioView("BASE");
-    setStagedPrepays([]);
+    setImportError(null);
+    applyLoanState({
+      inputs: loanFormFromScenario(referenceScenarioForLocale(locale)) as Record<
+        keyof LoanInput,
+        string
+      >,
+      scenarioView: "BASE",
+      prepaySource: "cash",
+      stagedPrepays: [],
+    });
   }, [locale]);
 
   function addStagedPrepay() {
     setStagedPrepays((prev) => [...prev, newStagedPrepayEntry()]);
+    trackLoanStagedPrepayAdd();
   }
 
   function removeStagedPrepay(id: string) {
     setStagedPrepays((prev) => prev.filter((e) => e.id !== id));
+    trackLoanStagedPrepayRemove();
   }
 
   function updateStagedPrepay(
@@ -771,6 +335,42 @@ export function useLoanModels() {
     );
   }
 
+  function readImportFile(file: File): Promise<string> {
+    if (typeof file.text === "function") {
+      return file.text();
+    }
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error ?? new Error("Failed to read file."));
+      reader.readAsText(file);
+    });
+  }
+
+  function importScenarioJson(file: File) {
+    void readImportFile(file)
+      .then((text) => {
+        const outcome = parseScenarioImportJson(text, locale);
+        if (!outcome.success) {
+          setImportError(outcome.message);
+          trackLoanImportScenarioJson(scenarioView, locale, false);
+          return;
+        }
+        setImportError(null);
+        applyLoanState({
+          inputs: outcome.inputs,
+          scenarioView: outcome.scenarioView,
+          prepaySource: outcome.prepaySource,
+          stagedPrepays: outcome.stagedPrepays,
+        });
+        trackLoanImportScenarioJson(outcome.scenarioView, locale, true);
+      })
+      .catch(() => {
+        setImportError("Failed to read file.");
+        trackLoanImportScenarioJson(scenarioView, locale, false);
+      });
+  }
+
   function exportScheduleCsv() {
     if (!models || !activeBundle) return;
     const csv = scheduleToCsv(activeRows, {
@@ -780,6 +380,7 @@ export function useLoanModels() {
     });
     const slug = SCENARIO_LABELS[scenarioView].toLowerCase();
     downloadTextFile(`loan-schedule-${slug}.csv`, csv, "text/csv;charset=utf-8");
+    trackLoanExportScheduleCsv(scenarioView, locale);
   }
 
   function exportScenarioJson() {
@@ -787,9 +388,17 @@ export function useLoanModels() {
     const comp = comparisonRows.find((r) => r.id === scenarioView);
     const payload: ScenarioExportPayload = {
       exported_at: new Date().toISOString(),
+      locale,
       scenario_id: SCENARIO_LABELS[scenarioView],
       scenario_label: comp?.label ?? SCENARIO_LABELS[scenarioView],
-      inputs: { ...models.v, prepay_source: prepaySource, staged_prepayments: stagedEvents },
+      inputs: {
+        ...models.v,
+        prepay_source: prepaySource,
+        staged_prepayments: stagedEvents,
+        ...(locale === "US"
+          ? { monthly_401k_with_match_inr: models.monthly401kWithMatch }
+          : {}),
+      },
       totals: {
         payoff_month: activeBundle.totals.payoff_month,
         total_interest_inr: activeBundle.totals.total_interest_inr,
@@ -806,6 +415,7 @@ export function useLoanModels() {
       scenarioToJson(payload),
       "application/json;charset=utf-8",
     );
+    trackLoanExportScenarioJson(scenarioView, locale);
   }
 
   return {
@@ -813,6 +423,8 @@ export function useLoanModels() {
     setField,
     setBoolField,
     loadReference,
+    importScenarioJson,
+    importError,
     parsed,
     locale,
     models,

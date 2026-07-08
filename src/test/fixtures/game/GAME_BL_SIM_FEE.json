@@ -37,7 +37,7 @@
         "l_fee": "L_FEE_0"
       },
       "payoffs": {
-        "B": 2702417.23,
+        "B": 2212618.73,
         "L": 0
       },
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
@@ -51,7 +51,7 @@
         "l_fee": "L_FEE_0"
       },
       "payoffs": {
-        "B": 1628597.79,
+        "B": 1123279.95,
         "L": 0
       },
       "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
@@ -65,7 +65,7 @@
         "l_fee": "L_FEE_FLAT"
       },
       "payoffs": {
-        "B": 2677417.23,
+        "B": 2187618.73,
         "L": 25000
       },
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
@@ -79,7 +79,7 @@
         "l_fee": "L_FEE_FLAT"
       },
       "payoffs": {
-        "B": 1603597.79,
+        "B": 1098279.95,
         "L": 25000
       },
       "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
@@ -93,7 +93,7 @@
         "l_fee": "L_FEE_0"
       },
       "payoffs": {
-        "B": 1792928.83,
+        "B": 1361362.21,
         "L": 0
       },
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
@@ -107,7 +107,7 @@
         "l_fee": "L_FEE_0"
       },
       "payoffs": {
-        "B": 814299,
+        "B": 561639.86,
         "L": 0
       },
       "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
@@ -121,7 +121,7 @@
         "l_fee": "L_FEE_FLAT"
       },
       "payoffs": {
-        "B": 1767928.83,
+        "B": 1336362.21,
         "L": 25000
       },
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
@@ -135,7 +135,7 @@
         "l_fee": "L_FEE_FLAT"
       },
       "payoffs": {
-        "B": 789299,
+        "B": 536639.86,
         "L": 25000
       },
       "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
@@ -150,7 +150,7 @@
         "l_fee": "L_FEE_FLAT"
       },
       "payoffs": {
-        "B": 2677417.23,
+        "B": 2187618.73,
         "L": 25000
       },
       "is_pure": true

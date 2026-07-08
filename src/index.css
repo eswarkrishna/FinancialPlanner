@@ -3,6 +3,9 @@
   line-height: 1.5;
   color: #0f172a;
   background: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #64748b;
   --card: #ffffff;
   --border: #cbd5e1;
   --accent: #1d4ed8;
@@ -14,6 +17,32 @@
   --shadow-md: 0 4px 14px rgb(15 23 42 / 8%);
   --radius: 12px;
   --tab-inactive: #64748b;
+  --chart-axis: #cbd5e1;
+  --chart-label: #64748b;
+  --input-bg: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #e2e8f0;
+    background: #0f172a;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-subtle: #64748b;
+    --card: #1e293b;
+    --border: #334155;
+    --accent: #60a5fa;
+    --accent-muted: #1e3a5f;
+    --accent-strong: #93c5fd;
+    --danger: #f87171;
+    --header-bg: #1e293b;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 35%);
+    --shadow-md: 0 4px 14px rgb(0 0 0 / 45%);
+    --tab-inactive: #94a3b8;
+    --chart-axis: #475569;
+    --chart-label: #94a3b8;
+    --input-bg: #0f172a;
+  }
 }
 
 *,
@@ -74,7 +103,7 @@ body {
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .app-brand-row {
@@ -219,7 +248,7 @@ body {
   margin: 0 0 1rem;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
   letter-spacing: -0.01em;
 }
 
@@ -240,7 +269,7 @@ label {
   gap: 0.35rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--text-muted);
 }
 
 input,
@@ -249,7 +278,8 @@ select {
   padding: 0.45rem 0.55rem;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--input-bg);
+  color: var(--text);
 }
 
 input:focus,
@@ -274,6 +304,13 @@ select:focus {
   border-radius: 8px;
   border: 1px solid transparent;
   cursor: pointer;
+}
+
+.btn:focus-visible,
+button:focus-visible,
+.app-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .btn.secondary {
@@ -444,16 +481,25 @@ tbody tr:hover {
 .schedule-chart h3 {
   margin: 0 0 0.35rem;
   font-size: 0.9rem;
-  color: #334155;
+  color: var(--text-muted);
 }
 
 .schedule-chart-svg {
   width: 100%;
+  max-width: 40rem;
   height: auto;
   display: block;
-  background: #f8fafc;
+  background: var(--accent-muted);
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
+}
+
+.chart-axis {
+  stroke: var(--chart-axis);
+}
+
+.chart-label {
+  fill: var(--chart-label);
 }
 
 .chart-end-label {
@@ -510,6 +556,31 @@ tbody tr:hover {
 .footer-lead {
   margin: 0 0 1rem;
   max-width: 52rem;
+}
+
+.footer-feedback {
+  margin: 0 0 1rem;
+  max-width: 52rem;
+}
+
+.footer-feedback-lead {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.footer-feedback-actions {
+  margin: 0;
+}
+
+.footer-feedback-actions a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer-feedback-actions a:hover {
+  text-decoration: underline;
 }
 
 .footer-terms {

@@ -1,0 +1,20 @@
+/** SPEC-UK §4 — 2026/27 UK defaults (single file for annual uprating). */
+
+export const AE_LOWER_GBP = 6_240;
+export const AE_UPPER_GBP = 50_270;
+export const REDUNDANCY_TAX_FREE_GBP = 30_000;
+export const DEFAULT_OVERPAYMENT_ALLOWANCE_PCT = 10;
+export const DEFAULT_ERC_PCT = 0;
+export const DEFAULT_EMPLOYEE_PENSION_PCT = 5;
+export const DEFAULT_EMPLOYER_PENSION_PCT = 3;
+export const DEFAULT_PENSION_ANNUAL_RETURN_PCT = 5;
+export const DEFAULT_JSA_DURATION_MONTHS = 6;
+export const DEFAULT_MONTHLY_JSA_HINT_GBP = 414;
+export const DEFAULT_SMI_WAIT_MONTHS = 3;
+export const DEFAULT_SMI_RATE_PCT = 3.66;
+export const DEFAULT_SMI_CAPITAL_CAP_GBP = 200_000;
+export const DEFAULT_CGT_RATE_PCT = 24;
+export const DEFAULT_CGT_ANNUAL_EXEMPT_GBP = 3_000;
+export const DEFAULT_ISA_ANNUAL_ALLOWANCE_GBP = 20_000;
+export const DEFAULT_STATE_PENSION_WEEKLY_GBP = 241.3;
+export const DEFAULT_MARGINAL_TAX_RATE_PCT = 20;

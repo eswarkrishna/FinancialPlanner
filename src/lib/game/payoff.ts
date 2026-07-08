@@ -6,11 +6,23 @@ import {
   scheduleTimedPrepaysKeepEmi,
   type ScheduleTotals,
 } from "../loan/amortisation";
+import {
+  simulateCashflowSchedule,
+  simulateUeDelayPrepayCashflow,
+  simulateUePfBridgeCashflow,
+  simulateUePfToLoanCashflow,
+  type CashflowSimInput,
+} from "../loan/cashflow";
+import { computeEmi } from "../loan/emi";
 import { roundInr } from "../money";
-import { computePfUnemploymentWithdrawalPlan } from "../pf/unemployment";
 import { simulateStrategy } from "../strategy/simulate";
 import type { StrategyId } from "../strategy/types";
-import { DEFAULT_PREPAYMENT_FEE_PCT, EXTRA_HIGH_INR, EXTRA_LOW_INR, REFERENCE_PREPAY_25_INR } from "./constants";
+import {
+  DEFAULT_PREPAYMENT_FEE_PCT,
+  EXTRA_HIGH_INR,
+  EXTRA_LOW_INR,
+  REFERENCE_PREPAY_25_INR,
+} from "./constants";
 import type { GameInput } from "./gameInput";
 import type {
   BLumpAction,
@@ -24,8 +36,33 @@ import type {
   LenderObjective,
 } from "./types";
 
-export function resolveLumpInr(lump: BLumpAction, cashInr: number): number {
-  const deployable = Math.max(0, cashInr);
+/** Deployable cash after emergency buffer (§4.12.1 / §4.13.3). */
+export function deployableCashInr(
+  input: Pick<
+    GameInput,
+    | "cash_inr"
+    | "emergency_months_buffer"
+    | "monthly_living_expense_inr"
+    | "principal_inr"
+    | "annual_interest_rate"
+    | "tenure_months"
+  >,
+): number {
+  const emi0 = computeEmi(
+    input.principal_inr,
+    input.annual_interest_rate,
+    input.tenure_months,
+  );
+  const buffer = roundInr(
+    Math.max(0, input.emergency_months_buffer) *
+      (Math.max(0, input.monthly_living_expense_inr) + emi0),
+  );
+  if (input.cash_inr < buffer) return 0;
+  return roundInr(Math.max(0, input.cash_inr - buffer));
+}
+
+export function resolveLumpInr(lump: BLumpAction, input: GameInput): number {
+  const deployable = deployableCashInr(input);
   switch (lump) {
     case "B_PREPAY_0":
       return 0;
@@ -58,6 +95,59 @@ export function prepaymentFeeInr(
   return roundInr((pct / 100) * lumpInr);
 }
 
+function cashflowInputFromGame(
+  input: GameInput,
+  unemploymentStartMonth: number,
+  extraInr: number,
+  lumpInr: number,
+): Omit<
+  CashflowSimInput,
+  | "unemployment_enabled"
+  | "pf_tranche1_destination"
+  | "pf_tranche2_destination"
+  | "pf_tranche1_loan_fraction"
+  | "pf_tranche2_loan_fraction"
+> {
+  return {
+    principal_inr: input.principal_inr,
+    annual_interest_rate: input.annual_interest_rate,
+    tenure_months: input.tenure_months,
+    cash_inr: input.cash_inr,
+    monthly_income_inr:
+      input.monthly_take_home_inr ?? input.monthly_income_inr ?? 0,
+    monthly_living_expense_inr: input.monthly_living_expense_inr,
+    monthly_extra_to_loan_inr: extraInr,
+    unemployment_start_month: unemploymentStartMonth,
+    pf_corpus_inr: input.pf_corpus_inr,
+    pf_annual_interest_rate_pct: input.pf_annual_interest_rate_pct,
+    monthly_pf_addition_inr: input.monthly_pf_addition_inr,
+    extra_prepayments:
+      lumpInr > 0 ? [{ month: 1, amount_inr: lumpInr }] : undefined,
+  };
+}
+
+function payoffFromScheduleTotals(
+  metric: PayoffMetric,
+  baseInterest: number,
+  totals: ScheduleTotals,
+  feeInr: number,
+  minCash?: number,
+): number {
+  const interestSaved = roundInr(baseInterest - totals.total_interest_inr);
+  switch (metric) {
+    case "MINUS_TOTAL_INTEREST":
+      return roundInr(-totals.total_interest_inr);
+    case "MINUS_TOTAL_OUTFLOW":
+      return roundInr(-(totals.total_paid_inr + feeInr));
+    case "MIN_CASH_RUNWAY":
+      return minCash ?? 0;
+    case "INTEREST_SAVED_MINUS_FEES":
+      return roundInr(interestSaved - feeInr);
+    default:
+      return roundInr(interestSaved - feeInr);
+  }
+}
+
 export function runBlSchedule(
   input: GameInput,
   lumpInr: number,
@@ -81,13 +171,6 @@ export function runBlSchedule(
     return { totals: run.totals, scenarioId: "PREPAY_CASH_LUMP_EMI" };
   }
   if (lumpInr > 0) {
-    const run = schedulePrepayKeepEmi(
-      principal_inr,
-      annual_interest_rate,
-      tenure_months,
-      1,
-      lumpInr,
-    );
     if (extraInr > 0) {
       const withExtra = scheduleFixedEmiWithMonthlyExtra(
         principal_inr,
@@ -98,6 +181,13 @@ export function runBlSchedule(
       );
       return { totals: withExtra.totals, scenarioId: "PREPAY_CASH_LUMP_TENURE_EXTRA" };
     }
+    const run = schedulePrepayKeepEmi(
+      principal_inr,
+      annual_interest_rate,
+      tenure_months,
+      1,
+      lumpInr,
+    );
     return { totals: run.totals, scenarioId: "PREPAY_CASH_25L_TENURE" };
   }
   const run = scheduleFixedEmiWithMonthlyExtra(
@@ -127,18 +217,16 @@ export function borrowerPayoffBl(
 ): number {
   const baseInterest = baselineInterest(input);
   const { totals } = runBlSchedule(input, lumpInr, policy, extraInr);
-  const interestSaved = roundInr(baseInterest - totals.total_interest_inr);
 
-  switch (metric) {
-    case "MINUS_TOTAL_INTEREST":
-      return roundInr(-totals.total_interest_inr);
-    case "MINUS_TOTAL_OUTFLOW":
-      return roundInr(-(totals.total_paid_inr + feeInr));
-    case "INTEREST_SAVED_MINUS_FEES":
-      return roundInr(interestSaved - feeInr);
-    default:
-      return roundInr(interestSaved - feeInr);
+  if (metric === "MIN_CASH_RUNWAY") {
+    const cashflow = simulateCashflowSchedule({
+      ...cashflowInputFromGame(input, 1, extraInr, lumpInr),
+      unemployment_enabled: false,
+    });
+    return cashflow.min_cash_balance_inr;
   }
+
+  return payoffFromScheduleTotals(metric, baseInterest, totals, feeInr);
 }
 
 export function lenderPayoffBl(
@@ -205,8 +293,6 @@ export function borrowerPayoffBh(
   const loanFraction =
     split === "H_CUSTOM_70_30" ? 0.7 : split === "H_CUSTOM_30_70" ? 0.3 : 0.4;
   const prepayFraction = loanFraction;
-  const equityFraction = roundInr(1 - prepayFraction);
-  void equityFraction;
   const blended = simulateStrategy("STRATEGY_EQUITY_BLEND", {
     ...strategyInput,
     cash_inr: roundInr(strategyInput.cash_inr * (prepayFraction / 0.4)),
@@ -231,47 +317,6 @@ function unemploymentStartMonth(employment: NEmploymentAction): number | null {
   }
 }
 
-function buildUePrepayEvents(
-  input: GameInput,
-  employment: NEmploymentAction,
-  route: NPfRouteAction,
-  lumpInr: number,
-): { month: number; amount_inr: number }[] {
-  const events: { month: number; amount_inr: number }[] = [];
-  if (lumpInr > 0) {
-    events.push({ month: 1, amount_inr: lumpInr });
-  }
-  if (employment === "N_EMPLOYED") {
-    return events;
-  }
-
-  const u = unemploymentStartMonth(employment);
-  if (u == null) return events;
-
-  const plan = computePfUnemploymentWithdrawalPlan(
-    input.pf_corpus_inr,
-    input.pf_annual_interest_rate_pct,
-    input.monthly_pf_addition_inr,
-  );
-
-  const t2Month = u + 11;
-
-  if (route === "N_PF_DELAY") {
-    events.push({ month: t2Month, amount_inr: plan.tranche2_inr });
-    return events;
-  }
-
-  if (route === "N_PF_BRIDGE") {
-    events.push({ month: u, amount_inr: roundInr(plan.tranche1_inr * 0.5) });
-    events.push({ month: t2Month, amount_inr: plan.tranche2_inr });
-    return events;
-  }
-
-  events.push({ month: u, amount_inr: plan.tranche1_inr });
-  events.push({ month: t2Month, amount_inr: plan.tranche2_inr });
-  return events;
-}
-
 export function borrowerPayoffBn(
   input: GameInput,
   metric: PayoffMetric,
@@ -280,45 +325,79 @@ export function borrowerPayoffBn(
   lump: BLumpAction,
   extra: BExtraAction,
 ): { payoff: number; scenarioId: string } {
-  const lumpInr = resolveLumpInr(lump, input.cash_inr);
+  const lumpInr = resolveLumpInr(lump, input);
   const extraInr = resolveExtraInr(extra);
   const baseInterest = baselineInterest(input);
 
-  if (employment === "N_EMPLOYED" && lumpInr <= 0 && extraInr <= 0) {
+  if (employment === "N_EMPLOYED") {
+    if (lumpInr <= 0 && extraInr <= 0) {
+      if (metric === "MIN_CASH_RUNWAY") {
+        const cashflow = simulateCashflowSchedule({
+          ...cashflowInputFromGame(input, 1, 0, 0),
+          unemployment_enabled: false,
+        });
+        return { payoff: cashflow.min_cash_balance_inr, scenarioId: "BASE" };
+      }
+      return {
+        payoff:
+          metric === "MINUS_TOTAL_INTEREST"
+            ? roundInr(-baseInterest)
+            : 0,
+        scenarioId: "BASE",
+      };
+    }
+    if (metric === "MIN_CASH_RUNWAY") {
+      const cashflow = simulateCashflowSchedule({
+        ...cashflowInputFromGame(input, 1, extraInr, lumpInr),
+        unemployment_enabled: false,
+      });
+      const scenarioId =
+        lumpInr > 0
+          ? "PREPAY_CASH_25L_TENURE"
+          : "BASE_PLUS_MONTHLY_INFLOW";
+      return { payoff: cashflow.min_cash_balance_inr, scenarioId };
+    }
+    const run = scheduleTimedPrepaysKeepEmi(
+      input.principal_inr,
+      input.annual_interest_rate,
+      input.tenure_months,
+      lumpInr > 0 ? [{ month: 1, amount_inr: lumpInr }] : [],
+      extraInr,
+    );
+    const scenarioId =
+      lumpInr > 0 ? "PREPAY_CASH_25L_TENURE" : "BASE_PLUS_MONTHLY_INFLOW";
     return {
-      payoff:
-        metric === "MINUS_TOTAL_INTEREST"
-          ? roundInr(-baseInterest)
-          : 0,
-      scenarioId: "BASE",
+      payoff: payoffFromScheduleTotals(metric, baseInterest, run.totals, 0),
+      scenarioId,
     };
   }
 
-  const events = buildUePrepayEvents(input, employment, route, lumpInr);
-  const run = scheduleTimedPrepaysKeepEmi(
-    input.principal_inr,
-    input.annual_interest_rate,
-    input.tenure_months,
-    events,
-    extraInr,
-  );
+  const uStart = unemploymentStartMonth(employment)!;
+  const base = cashflowInputFromGame(input, uStart, extraInr, lumpInr);
 
-  const interestSaved = roundInr(baseInterest - run.totals.total_interest_inr);
-  const payoff =
-    metric === "MINUS_TOTAL_INTEREST"
-      ? roundInr(-run.totals.total_interest_inr)
-      : interestSaved;
+  let result;
+  let scenarioId: string;
+  if (route === "N_PF_BRIDGE") {
+    result = simulateUePfBridgeCashflow(base);
+    scenarioId = "UE_PF_BRIDGE";
+  } else if (route === "N_PF_DELAY") {
+    result = simulateUeDelayPrepayCashflow(base);
+    scenarioId = "UE_DELAY_PREPAY";
+  } else {
+    result = simulateUePfToLoanCashflow(base);
+    scenarioId = "UE_PF_TO_LOAN";
+  }
 
-  const scenarioId =
-    employment === "N_EMPLOYED"
-      ? "BASE"
-      : route === "N_PF_LOAN"
-        ? "UE_PF_TO_LOAN"
-        : route === "N_PF_BRIDGE"
-          ? "UE_PF_BRIDGE"
-          : "UE_DELAY_PREPAY";
-
-  return { payoff, scenarioId };
+  return {
+    payoff: payoffFromScheduleTotals(
+      metric,
+      baseInterest,
+      result.totals,
+      0,
+      result.min_cash_balance_inr,
+    ),
+    scenarioId,
+  };
 }
 
 export function cellKey(profile: {

@@ -1,7 +1,8 @@
 import { computeEmi, monthlyRateFromAnnualPercent } from "./emi";
 import type { ScheduleRow, ScheduleTotals, TimedPrepaymentEvent } from "./amortisation";
 import { roundInr } from "../money";
-import { BALANCE_EPSILON_INR } from "../shared/constants";
+import { BALANCE_EPSILON_INR, MAX_CASHFLOW_SIM_MONTHS, MAX_CONSECUTIVE_PAYMENT_SHORTFALLS } from "../shared/constants";
+import { trancheMonthsFromStart } from "../shared/trancheMonths";
 import { computePfUnemploymentWithdrawalPlan } from "../pf/unemployment";
 
 export type PfTrancheDestination = "loan_prepay" | "cash_buffer" | "split";
@@ -89,13 +90,15 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
   const rows: CashflowScheduleRow[] = [];
   let balance = roundInr(input.principal_inr);
   let cashBalance = roundInr(input.cash_inr);
-  let totalInterest = 0;
+  let totalInterestIfPaidOff = 0;
+  let totalInterestWithinTenure = 0;
   let totalPaid = 0;
   let totalPrepay = 0;
   let minCash = cashBalance;
   const warnings: string[] = [];
   let m = 0;
-  const cap = input.tenure_months * 8;
+  let consecutiveShortfall = 0;
+  const cap = Math.min(input.tenure_months * 8, MAX_CASHFLOW_SIM_MONTHS);
   const monthlyExtra = Math.max(0, input.monthly_extra_to_loan_inr);
   const uStart = input.unemployment_enabled
     ? Math.max(1, input.unemployment_start_month)
@@ -106,8 +109,10 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
     input.pf_annual_interest_rate_pct,
     input.monthly_pf_addition_inr,
   );
-  const tranche1Month = uStart;
-  const tranche2Month = uStart !== null ? uStart + 11 : null;
+  const trancheMonths =
+    uStart !== null ? trancheMonthsFromStart(uStart) : null;
+  const tranche1Month = trancheMonths?.tranche1Month ?? null;
+  const tranche2Month = trancheMonths?.tranche2Month ?? null;
   const dest1 = input.pf_tranche1_destination ?? "cash_buffer";
   const dest2 = input.pf_tranche2_destination ?? "loan_prepay";
   const frac1 = loanFractionFromDestination(dest1, input.pf_tranche1_loan_fraction);
@@ -144,22 +149,40 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
 
     const opening = balance;
     const interest = roundInr(opening * r);
-    const principal = roundInr(Math.min(opening, emi0 - interest));
+    const principal = roundInr(
+      Math.max(0, Math.min(opening, emi0 - interest)),
+    );
     const emiDue = roundInr(interest + principal);
 
+    let interestPaid = 0;
+    let principalPaid = 0;
+
+    const applyEmiPayment = (amount: number) => {
+      if (amount <= 0) return;
+      const interestRemaining = roundInr(Math.max(0, interest - interestPaid));
+      const toInterest = roundInr(Math.min(amount, interestRemaining));
+      const remainder = roundInr(amount - toInterest);
+      const principalRemaining = roundInr(Math.max(0, principal - principalPaid));
+      const toPrincipal = roundInr(Math.min(remainder, principalRemaining));
+      interestPaid = roundInr(interestPaid + toInterest);
+      principalPaid = roundInr(principalPaid + toPrincipal);
+    };
+
     if (cashBalance >= emiDue) {
+      consecutiveShortfall = 0;
       cashBalance = roundInr(cashBalance - emiDue);
+      applyEmiPayment(emiDue);
     } else if (emiDue > 0) {
+      consecutiveShortfall += 1;
       events.push("emi_shortfall");
-      if (cashBalance > 0) {
-        cashBalance = 0;
-      }
+      applyEmiPayment(Math.max(0, cashBalance));
+      cashBalance = 0;
       if (!warnings.includes("CASH_SHORTFALL")) {
         warnings.push("CASH_SHORTFALL");
       }
     }
 
-    balance = roundInr(opening - principal);
+    balance = roundInr(opening + interest - interestPaid - principalPaid);
 
     let prepay = 0;
 
@@ -189,37 +212,65 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
 
     const configuredForMonth = monthlyPrepay.get(m) ?? 0;
     if (configuredForMonth > 0 && balance > BALANCE_EPSILON_INR) {
-      const applied = roundInr(Math.min(configuredForMonth, balance));
-      prepay = roundInr(prepay + applied);
-      balance = roundInr(balance - applied);
-      totalPrepay += applied;
-      events.push(`scheduled_prepay:+${applied}`);
+      const applied = roundInr(
+        Math.min(configuredForMonth, balance, cashBalance),
+      );
+      if (applied > 0) {
+        prepay = roundInr(prepay + applied);
+        balance = roundInr(balance - applied);
+        totalPrepay += applied;
+        cashBalance = roundInr(cashBalance - applied);
+        events.push(`scheduled_prepay:+${applied}`);
+      }
     }
 
-    if (monthlyExtra > 0 && balance > BALANCE_EPSILON_INR) {
-      const extra = roundInr(Math.min(monthlyExtra, balance));
-      prepay = roundInr(prepay + extra);
-      balance = roundInr(balance - extra);
-      totalPrepay += extra;
+    if (monthlyExtra > 0 && balance > BALANCE_EPSILON_INR && cashBalance > 0) {
+      const extra = roundInr(Math.min(monthlyExtra, balance, cashBalance));
+      if (extra > 0) {
+        prepay = roundInr(prepay + extra);
+        balance = roundInr(balance - extra);
+        totalPrepay += extra;
+        cashBalance = roundInr(cashBalance - extra);
+        events.push(`monthly_extra:+${extra}`);
+      }
     }
 
     pushCashflowRow(
       rows,
       m,
       opening,
-      interest,
-      principal,
+      interestPaid,
+      principalPaid,
       prepay,
       balance,
       emi0,
       cashBalance,
       events,
     );
-    totalInterest += interest;
-    totalPaid += roundInr(interest + principal + prepay);
+    const interestCost = roundInr(interestPaid + Math.max(0, interest - interestPaid));
+    totalInterestIfPaidOff += interestCost;
+    if (m <= input.tenure_months) {
+      totalInterestWithinTenure += interestCost;
+    }
+    totalPaid += roundInr(interestPaid + principalPaid + prepay);
     minCash = Math.min(minCash, cashBalance);
     if (balance <= BALANCE_EPSILON_INR) break;
+    if (
+      consecutiveShortfall >= MAX_CONSECUTIVE_PAYMENT_SHORTFALLS &&
+      balance > BALANCE_EPSILON_INR
+    ) {
+      if (!warnings.includes("LOAN_NOT_PAID_OFF")) {
+        warnings.push("LOAN_NOT_PAID_OFF");
+      }
+      break;
+    }
   }
+
+  const loanPaidOff = balance <= BALANCE_EPSILON_INR;
+  if (!loanPaidOff && rows.length >= cap && !warnings.includes("LOAN_NOT_PAID_OFF")) {
+    warnings.push("LOAN_NOT_PAID_OFF");
+  }
+  const totalInterest = loanPaidOff ? totalInterestIfPaidOff : totalInterestWithinTenure;
 
   return {
     emi_inr: emi0,
@@ -228,7 +279,7 @@ export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimRe
       total_paid_inr: roundInr(totalPaid),
       total_interest_inr: roundInr(totalInterest),
       total_prepayments_inr: roundInr(totalPrepay),
-      payoff_month: rows.length,
+      payoff_month: loanPaidOff ? rows.length : 0,
     },
     min_cash_balance_inr: roundInr(minCash),
     warnings,

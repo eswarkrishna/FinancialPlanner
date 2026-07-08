@@ -1,8 +1,25 @@
-import { type ChangeEvent, useMemo, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   buildRetirementScenarios,
+  DEFAULT_SAFE_WITHDRAWAL_RATE_PCT,
+  REFERENCE_RETIREMENT_FORM_IN,
+  REFERENCE_RETIREMENT_FORM_US,
   type RetirementInput,
 } from "../../../lib/retirement/index";
+import {
+  downloadTextFile,
+  retirementResultToJson,
+  retirementTimelineToCsv,
+} from "../../../lib/export";
+import {
+  trackRetirementExportJson,
+  trackRetirementExportTimelineCsv,
+} from "../../../lib/analytics";
+import {
+  readStoredLocale,
+  referenceRetirementFormForLocale,
+  useLocale,
+} from "../../locale/LocaleContext";
 
 type RetirementFormState = {
   current_corpus_inr: string;
@@ -25,20 +42,35 @@ function formatPercent(value: number): string {
 }
 
 export function useRetirementPlanner() {
-  const [retirementInputs, setRetirementInputs] = useState<RetirementFormState>({
-    current_corpus_inr: "",
-    monthly_contribution_inr: "",
-    annual_return_pct: "",
-    inflation_pct: "",
-    years_to_retirement: "",
-    annual_expense_today_inr: "",
-    safe_withdrawal_rate_pct: "",
-    expected_social_security_monthly_inr: "",
-  });
+  const { locale, localeEpoch } = useLocale();
+  const [retirementInputs, setRetirementInputs] = useState<RetirementFormState>(
+    () => referenceRetirementFormForLocale(readStoredLocale()),
+  );
   const [selectedRetirementScenario, setSelectedRetirementScenario] =
     useState("base");
 
-  const retirementBaseInput = useMemo((): RetirementInput => {
+  const prevLocaleEpochRef = useRef(localeEpoch);
+  useEffect(() => {
+    if (prevLocaleEpochRef.current === localeEpoch) return;
+    prevLocaleEpochRef.current = localeEpoch;
+    setRetirementInputs(referenceRetirementFormForLocale(locale));
+    setSelectedRetirementScenario("base");
+  }, [locale, localeEpoch]);
+
+  const yearsInvalid = useMemo(() => {
+    const raw = retirementInputs.years_to_retirement.trim();
+    if (raw === "") return true;
+    const years = Math.floor(parseNumber(raw));
+    return years < 1;
+  }, [retirementInputs.years_to_retirement]);
+
+  const retirementBaseInput = useMemo((): RetirementInput | null => {
+    if (yearsInvalid) return null;
+    const swrRaw = retirementInputs.safe_withdrawal_rate_pct.trim();
+    const swr =
+      swrRaw === ""
+        ? DEFAULT_SAFE_WITHDRAWAL_RATE_PCT
+        : Math.max(0.1, parseNumber(swrRaw));
     return {
       current_corpus_inr: Math.max(
         0,
@@ -53,31 +85,33 @@ export function useRetirementPlanner() {
         parseNumber(retirementInputs.annual_return_pct),
       ),
       inflation_pct: Math.max(0, parseNumber(retirementInputs.inflation_pct)),
-      years_to_retirement:
-        retirementInputs.years_to_retirement.trim() === ""
-          ? 0
-          : Math.max(
-              1,
-              Math.floor(parseNumber(retirementInputs.years_to_retirement)),
-            ),
+      years_to_retirement: Math.max(
+        1,
+        Math.floor(parseNumber(retirementInputs.years_to_retirement)),
+      ),
       annual_expense_today_inr: Math.max(
         0,
         parseNumber(retirementInputs.annual_expense_today_inr),
       ),
-      safe_withdrawal_rate_pct:
-        retirementInputs.safe_withdrawal_rate_pct.trim() === ""
-          ? 0
-          : Math.max(0.1, parseNumber(retirementInputs.safe_withdrawal_rate_pct)),
+      safe_withdrawal_rate_pct: swr,
       expected_social_security_monthly_inr: Math.max(
         0,
         parseNumber(retirementInputs.expected_social_security_monthly_inr),
       ),
     };
-  }, [retirementInputs]);
+  }, [retirementInputs, yearsInvalid]);
 
   const retirementScenarios = useMemo(() => {
+    if (!retirementBaseInput) return [];
     return buildRetirementScenarios(retirementBaseInput);
   }, [retirementBaseInput]);
+
+  useEffect(() => {
+    if (retirementScenarios.length === 0) return;
+    if (!retirementScenarios.some((s) => s.id === selectedRetirementScenario)) {
+      setSelectedRetirementScenario(retirementScenarios[0]!.id);
+    }
+  }, [retirementScenarios, selectedRetirementScenario]);
 
   const activeRetirementScenario =
     retirementScenarios.find(
@@ -92,6 +126,33 @@ export function useRetirementPlanner() {
     setRetirementInputs((prev) => ({ ...prev, [key]: value }));
   }
 
+  function exportRetirementTimelineCsv(): void {
+    if (!activeRetirementScenario) return;
+    const csv = retirementTimelineToCsv(activeRetirementScenario.projection.yearly);
+    downloadTextFile(
+      `retirement-timeline-${selectedRetirementScenario}.csv`,
+      csv,
+      "text/csv;charset=utf-8",
+    );
+    trackRetirementExportTimelineCsv(selectedRetirementScenario, locale);
+  }
+
+  function exportRetirementJson(): void {
+    if (!retirementBaseInput) return;
+    const json = retirementResultToJson({
+      exported_at: new Date().toISOString(),
+      inputs: { ...retirementBaseInput },
+      scenarios: retirementScenarios,
+      selected_scenario_id: selectedRetirementScenario,
+    });
+    downloadTextFile(
+      `retirement-planner-${selectedRetirementScenario}.json`,
+      json,
+      "application/json;charset=utf-8",
+    );
+    trackRetirementExportJson(selectedRetirementScenario, locale);
+  }
+
   return {
     retirementInputs,
     selectedRetirementScenario,
@@ -101,5 +162,13 @@ export function useRetirementPlanner() {
     retirementBaseInput,
     setRetirementField,
     formatPercent,
+    yearsInvalid,
+    exportRetirementTimelineCsv,
+    exportRetirementJson,
   };
 }
+
+export {
+  REFERENCE_RETIREMENT_FORM_IN,
+  REFERENCE_RETIREMENT_FORM_US,
+};

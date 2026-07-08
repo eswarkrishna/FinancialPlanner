@@ -1,0 +1,60 @@
+{
+  "game_profile_id": "GAME_BH_COOP_PARETO",
+  "matrix_size": 3,
+  "payoff_matrix": [
+    {
+      "cell_key": "||||H_CUSTOM_70_30||",
+      "action_profile": {
+        "h_split": "H_CUSTOM_70_30"
+      },
+      "payoffs": {
+        "B": 99128.62,
+        "H": 99128.62
+      },
+      "underlying_scenario_id": "H_CUSTOM_70_30"
+    },
+    {
+      "cell_key": "||||H_CUSTOM_30_70||",
+      "action_profile": {
+        "h_split": "H_CUSTOM_30_70"
+      },
+      "payoffs": {
+        "B": -0.01,
+        "H": -0.01
+      },
+      "underlying_scenario_id": "H_CUSTOM_30_70"
+    },
+    {
+      "cell_key": "||||H_BLEND||",
+      "action_profile": {
+        "h_split": "H_BLEND"
+      },
+      "payoffs": {
+        "B": 24939.14,
+        "H": 24939.14
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "h_split": "H_CUSTOM_70_30"
+      },
+      "payoffs": {
+        "B": 99128.62,
+        "H": 99128.62
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "h_split": "H_CUSTOM_70_30"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "H_CUSTOM_70_30",
+    "H_CUSTOM_30_70",
+    "STRATEGY_EQUITY_BLEND"
+  ]
+}

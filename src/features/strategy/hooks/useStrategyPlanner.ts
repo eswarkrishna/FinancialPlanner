@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { simulateAllStrategies } from "../../../lib/strategy/simulate";
 import {
   LTCG_EXEMPTION_INR,
@@ -10,11 +10,23 @@ import {
 import {
   STRATEGY_TIER_PRESETS,
   STRATEGY_TIER_PRESETS_US,
+  STRATEGY_TIER_PRESETS_UK,
   type StrategyInputs,
   type StrategyResult,
   type StrategyTierPreset,
 } from "../../../lib/strategy/types";
+import type { Locale } from "../../../lib/locale/types";
 import { useLocale } from "../../locale/LocaleContext";
+import {
+  trackStrategyExportComparisonCsv,
+  trackStrategyExportJson,
+  trackStrategyTierPreset,
+} from "../../../lib/analytics";
+import {
+  downloadTextFile,
+  strategyComparisonToCsv,
+  strategyResultToJson,
+} from "../../../lib/export";
 
 type StrategyFormState = {
   principal_inr: string;
@@ -33,7 +45,6 @@ type StrategyFormState = {
   repayment_pct_of_take_home: string;
   extra_income_post_tax: boolean | null;
   marginal_tax_rate_pct: string;
-  tax_regime: "" | "old" | "new";
 };
 
 const EMPTY_FORM: StrategyFormState = {
@@ -53,7 +64,6 @@ const EMPTY_FORM: StrategyFormState = {
   repayment_pct_of_take_home: "",
   extra_income_post_tax: null,
   marginal_tax_rate_pct: "",
-  tax_regime: "",
 };
 
 function parseNumber(value: string): number {
@@ -76,7 +86,7 @@ export function strategyFormReady(form: StrategyFormState): boolean {
   return principal > 0 && tenure > 0 && horizon > 0;
 }
 
-function buildInputs(form: StrategyFormState, locale: "IN" | "US"): StrategyInputs {
+function buildInputs(form: StrategyFormState, locale: Locale): StrategyInputs {
   const postTax = form.extra_income_post_tax ?? false;
   return {
     principal_inr: Math.max(0, parseNumber(form.principal_inr)),
@@ -114,15 +124,28 @@ function buildInputs(form: StrategyFormState, locale: "IN" | "US"): StrategyInpu
       parseNumber(form.repayment_pct_of_take_home),
     ),
     subsistence_floor_inr:
-      locale === "US" ? SUBSISTENCE_FLOOR_USD : SUBSISTENCE_FLOOR_INR,
-    ltcg_rate_pct: locale === "US" ? LTCG_RATE_PCT_US : LTCG_RATE_PCT,
-    ltcg_exemption_inr: locale === "US" ? 0 : LTCG_EXEMPTION_INR,
+      locale === "US"
+        ? SUBSISTENCE_FLOOR_USD
+        : locale === "UK"
+          ? 1_500
+          : SUBSISTENCE_FLOOR_INR,
+    ltcg_rate_pct:
+      locale === "US" ? LTCG_RATE_PCT_US : locale === "UK" ? 24 : LTCG_RATE_PCT,
+    ltcg_exemption_inr:
+      locale === "US" ? 0 : locale === "UK" ? 3_000 : LTCG_EXEMPTION_INR,
   };
 }
 
 export function useStrategyPlanner() {
-  const { locale } = useLocale();
+  const { locale, localeEpoch } = useLocale();
   const [form, setForm] = useState<StrategyFormState>(EMPTY_FORM);
+
+  const prevLocaleEpochRef = useRef(localeEpoch);
+  useEffect(() => {
+    if (prevLocaleEpochRef.current === localeEpoch) return;
+    prevLocaleEpochRef.current = localeEpoch;
+    setForm(EMPTY_FORM);
+  }, [localeEpoch]);
 
   const ready = strategyFormReady(form);
   const inputs = useMemo(() => buildInputs(form, locale), [form, locale]);
@@ -143,6 +166,33 @@ export function useStrategyPlanner() {
       ...prev,
       monthly_take_home_inr: String(preset.monthly_take_home_inr),
     }));
+    trackStrategyTierPreset(preset.id, locale);
+  }
+
+  function exportStrategyComparisonCsv(): void {
+    if (!ready || results.length === 0) return;
+    const csv = strategyComparisonToCsv(results);
+    downloadTextFile(
+      "strategy-comparison.csv",
+      csv,
+      "text/csv;charset=utf-8",
+    );
+    trackStrategyExportComparisonCsv(locale);
+  }
+
+  function exportStrategyJson(): void {
+    if (!ready || results.length === 0) return;
+    const json = strategyResultToJson({
+      exported_at: new Date().toISOString(),
+      inputs,
+      results,
+    });
+    downloadTextFile(
+      "strategy-planner.json",
+      json,
+      "application/json;charset=utf-8",
+    );
+    trackStrategyExportJson(locale);
   }
 
   return {
@@ -152,7 +202,14 @@ export function useStrategyPlanner() {
     results,
     strategyFormReady: ready,
     locale,
-    tierPresets: locale === "US" ? STRATEGY_TIER_PRESETS_US : STRATEGY_TIER_PRESETS,
+    tierPresets:
+      locale === "US"
+        ? STRATEGY_TIER_PRESETS_US
+        : locale === "UK"
+          ? STRATEGY_TIER_PRESETS_UK
+          : STRATEGY_TIER_PRESETS,
     applyTierPreset,
+    exportStrategyComparisonCsv,
+    exportStrategyJson,
   };
 }

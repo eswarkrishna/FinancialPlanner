@@ -3,11 +3,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeUsGoldenScenarios } from "../src/test/fixtures/goldens-us/buildGoldensUs";
 import { computeStrategyGoldensUs } from "../src/test/fixtures/strategy-us/buildStrategyGoldensUs";
+import { computeGameGoldensUs } from "../src/test/fixtures/game-us/buildGameGoldensUs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const goldensUsDir = path.resolve(__dirname, "../src/test/fixtures/goldens-us");
 const strategyUsDir = path.resolve(__dirname, "../src/test/fixtures/strategy-us");
+const gameUsDir = path.resolve(__dirname, "../src/test/fixtures/game-us");
 
 async function writeJsonFiles(
   dir: string,
@@ -29,8 +31,9 @@ async function main() {
     strategyUsDir,
     computeStrategyGoldensUs(),
   );
+  const gameCount = await writeJsonFiles(gameUsDir, computeGameGoldensUs());
   process.stdout.write(
-    `Updated ${loanCount} US loan + ${strategyCount} US strategy golden fixtures.\n`,
+    `Updated ${loanCount} US loan + ${strategyCount} US strategy + ${gameCount} US game golden fixtures.\n`,
   );
 }
 

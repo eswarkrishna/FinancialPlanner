@@ -92,6 +92,8 @@
 
 ### 3.1 United Kingdom
 
+> **Update 2026-07-07:** the "defer" call below is superseded — the UK locale is now specced in [`docs/SPEC-UK.md`](../SPEC-UK.md) per [`2026-07-uk-employee-benefits-mapping.md`](2026-07-uk-employee-benefits-mapping.md), following the Option A + B shape recommended here (no pension tranche fiction; ISA bridge + SMI).
+
 **Real world:**
 
 | IN / US analogue | UK behaviour | Planner implication |

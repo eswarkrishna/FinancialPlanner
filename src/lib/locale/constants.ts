@@ -6,6 +6,21 @@ import {
   DEFAULT_EMPLOYER_MATCH_RATE_PCT,
   DEFAULT_K401_ANNUAL_RETURN_PCT,
 } from "../k401/constants";
+import {
+  DEFAULT_CGT_ANNUAL_EXEMPT_GBP,
+  DEFAULT_CGT_RATE_PCT,
+  DEFAULT_EMPLOYEE_PENSION_PCT,
+  DEFAULT_EMPLOYER_PENSION_PCT,
+  DEFAULT_ERC_PCT,
+  DEFAULT_JSA_DURATION_MONTHS,
+  DEFAULT_MONTHLY_JSA_HINT_GBP,
+  DEFAULT_OVERPAYMENT_ALLOWANCE_PCT,
+  DEFAULT_PENSION_ANNUAL_RETURN_PCT,
+  DEFAULT_SMI_CAPITAL_CAP_GBP,
+  DEFAULT_SMI_RATE_PCT,
+  DEFAULT_SMI_WAIT_MONTHS,
+} from "../uk/constants";
+import { LOAN_UK_FIELD_DEFAULTS } from "./ukFieldDefaults";
 
 /** Spec §15 reference (IN) */
 export const REFERENCE_SCENARIO_IN: LoanInput = {
@@ -37,6 +52,7 @@ export const REFERENCE_SCENARIO_IN: LoanInput = {
   pmi_active: true,
   hsa_balance_inr: 0,
   monthly_health_premium_inr: 0,
+  ...LOAN_UK_FIELD_DEFAULTS,
 };
 
 /** Spec-US §15 reference — amounts stored in locale-neutral numeric fields */
@@ -60,6 +76,55 @@ export const REFERENCE_SCENARIO_US: LoanInput = {
   monthly_living_expense_inr: 0,
   monthly_income_inr: 0,
   monthly_uib_inr: 0,
+  vested_fraction_pct: 100,
+  early_withdrawal_tax_withholding_pct: DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT,
+  employer_match_rate_pct: DEFAULT_EMPLOYER_MATCH_RATE_PCT,
+  employer_match_cap_pct_of_salary: DEFAULT_EMPLOYER_MATCH_CAP_PCT,
+  employment_type: "w2",
+  pmi_monthly_inr: 0,
+  pmi_active: true,
+  hsa_balance_inr: 0,
+  monthly_health_premium_inr: 0,
+  ...LOAN_UK_FIELD_DEFAULTS,
+};
+
+/** Spec-UK §15 reference — amounts stored in locale-neutral numeric fields */
+export const REFERENCE_SCENARIO_UK: LoanInput = {
+  principal_inr: 250_000,
+  annual_interest_rate: 4.5,
+  tenure_months: 300,
+  start_date: undefined,
+  cash_inr: 30_000,
+  monthly_salary_inr: 5_000,
+  annual_salary_inr: 60_000,
+  pf_corpus_inr: 60_000,
+  pf_annual_interest_rate_pct: DEFAULT_PENSION_ANNUAL_RETURN_PCT,
+  monthly_pf_addition_inr: 183.46,
+  gold_liquid_inr: 0,
+  gold_haircut_enabled: false,
+  gold_haircut_pct: 0,
+  isa_balance_inr: 40_000,
+  gia_balance_inr: 20_000,
+  gia_cost_basis_inr: 16_000,
+  overpayment_allowance_pct: DEFAULT_OVERPAYMENT_ALLOWANCE_PCT,
+  erc_pct: DEFAULT_ERC_PCT,
+  employee_pension_pct: DEFAULT_EMPLOYEE_PENSION_PCT,
+  employer_pension_pct: DEFAULT_EMPLOYER_PENSION_PCT,
+  monthly_cash_to_loan_inr: 0,
+  unemployment_mode: false,
+  unemployment_start_month: 1,
+  monthly_living_expense_inr: 0,
+  monthly_income_inr: 0,
+  monthly_uib_inr: DEFAULT_MONTHLY_JSA_HINT_GBP,
+  jsa_duration_months: DEFAULT_JSA_DURATION_MONTHS,
+  redundancy_payment_inr: 40_000,
+  marginal_tax_rate_pct: 40,
+  smi_enabled: false,
+  smi_wait_months: DEFAULT_SMI_WAIT_MONTHS,
+  smi_rate_pct: DEFAULT_SMI_RATE_PCT,
+  smi_capital_cap_inr: DEFAULT_SMI_CAPITAL_CAP_GBP,
+  cgt_rate_pct: DEFAULT_CGT_RATE_PCT,
+  cgt_annual_exempt_inr: DEFAULT_CGT_ANNUAL_EXEMPT_GBP,
   vested_fraction_pct: 100,
   early_withdrawal_tax_withholding_pct: DEFAULT_EARLY_WITHDRAWAL_TAX_WITHHOLDING_PCT,
   employer_match_rate_pct: DEFAULT_EMPLOYER_MATCH_RATE_PCT,

@@ -8,6 +8,8 @@ import {
   updatePageSeo,
 } from "./lib/seo";
 import { AppFooter } from "./components/AppFooter";
+import { NewVersionBanner } from "./components/NewVersionBanner";
+import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
 import { DebtSection } from "./features/debt/DebtSection";
 import { GameSection } from "./features/game/GameSection";
 import { useLocale } from "./features/locale/LocaleContext";
@@ -15,6 +17,7 @@ import { LoanSection } from "./features/loan/LoanSection";
 import { RetirementSection } from "./features/retirement/RetirementSection";
 import { StrategySection } from "./features/strategy/StrategySection";
 import type { Locale } from "./lib/locale/types";
+import { useReleaseNotifications } from "./lib/notifications/useReleaseNotifications";
 
 function focusTab(tabId: TabId) {
   document.getElementById(`tab-${tabId}`)?.focus();
@@ -55,6 +58,15 @@ function handleTabKeyDown(
 export function App() {
   const [activeTab, setActiveTab] = useState<TabId>(() => getTabFromLocation(window.location));
   const { locale, switchLocale } = useLocale();
+  const {
+    showConsent,
+    showNewVersion,
+    newVersionShort,
+    acceptNotifications,
+    rejectNotifications,
+    dismissNewVersion,
+    reloadForUpdate,
+  } = useReleaseNotifications();
 
   useEffect(() => {
     const onPopState = () => {
@@ -165,6 +177,23 @@ export function App() {
           </div>
         ))}
       </main>
+
+      {showConsent ? (
+        <ReleaseNotificationConsent
+          onAccept={() => {
+            void acceptNotifications();
+          }}
+          onReject={rejectNotifications}
+        />
+      ) : null}
+
+      {showNewVersion && newVersionShort ? (
+        <NewVersionBanner
+          shortCommit={newVersionShort}
+          onReload={reloadForUpdate}
+          onDismiss={dismissNewVersion}
+        />
+      ) : null}
 
       <AppFooter />
     </div>

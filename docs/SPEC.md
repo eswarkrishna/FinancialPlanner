@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.9  
+**Version:** 2.0  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -570,6 +570,34 @@ All §4.1–§4.2 loan and asset fields apply to the oracle.
 3. **Recommendation card** — equilibrium or max-min action with link to underlying amortisation scenario.  
 4. **Disclaimer** — §14 plus: “Opponent behaviour is assumed, not predicted.”
 
+### 4.15 Release notifications (web)
+
+Notify visitors when a **new deployed version** of the site is available (git commit baked at build time per §8).
+
+**Consent (first visit until choice)**
+
+- Show a compact non-modal strip above the footer on every visit until the user chooses. Copy: offer to **notify when a new version is released**. Buttons: **“Enable notifications”** / **“No thanks”**.
+- Persist choice in `localStorage` key `financial-planner-release-notification-consent` (`accept` \| `reject`).
+- On **accept**, call the browser `Notification.requestPermission()` API; register a service worker when supported. On **reject**, skip permission and polling.
+- Strip must not block calculator inputs.
+
+**Version detection**
+
+- At build time emit `version.json` in the site root: `{ "sha", "short", "date" }` (same git metadata as §8 footer).
+- Persist `financial-planner-last-seen-commit-sha` in `localStorage` after the user’s first accepted session baseline.
+- A **new version** is when live `version.json` `sha` ≠ stored `lastSeenSha` (and `lastSeenSha` is non-empty).
+- Poll `version.json` with `cache: 'no-store'` on load, when the tab becomes visible, and every **60 minutes** while the tab is open (consent `accept` only).
+
+**Notification delivery**
+
+- If consent is `accept` and permission is `granted`, show a browser notification: title **“FinancialPlanner update”**; body includes short commit id and “open to refresh”. No loan or user financial data.
+- Also show an in-app non-modal strip when a new version is detected on visit: **“A new version is available”** with **Reload** and dismiss (×). Reload performs `location.reload()`.
+- Service worker (`sw.js`) mirrors remote checks when registered; notification click focuses an open tab or opens the site scope.
+
+**Privacy**
+
+- Store only consent choice and last-seen commit SHA. No server-side push subscription or FCM in v1.
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -890,6 +918,7 @@ Engineers must add unit tests for off-by-one with an example: `U=1` → tranche2
 
 - **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
 - **Consent banner (Tier 2)** — when GA is enabled, show above the footer on first visit until accept/reject. Buttons: “Accept analytics” / “No thanks”. Dismiss persists per §5.1.2. Must not block calculator inputs (non-modal strip).  
+- **Release notification consent (§4.15)** — separate strip offering browser notifications for new deploys; persists per §4.15.  
 - **Helpful? (Tier 2, optional)** — thumbs up/down near tab content heading; one vote per tab per session (disable after click).
 
 ### Comparison table columns
@@ -965,6 +994,13 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 26. **Scenario JSON round-trip:** export scenario JSON, parse via import helper, and verify principal/rate/tenure match exported `inputs` within coercion rules.  
 27. **Import error handling:** malformed JSON or missing required numeric fields returns a user-visible error without mutating form state.
 
+### Release notifications (§4.15)
+
+28. **Consent storage:** `accept` / `reject` persisted; banner hidden after choice.
+29. **New version detection:** when `lastSeenSha` differs from current build sha, `isNewVersionAvailable` is true; first baseline records sha without alerting.
+30. **Notification copy:** granted permission + new version triggers title/body containing short commit id.
+31. **In-app strip:** new version shows reload control; dismiss hides until next version change.
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -976,6 +1012,7 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 - **Machine-learned** or historical lender models; opponents use user-selected discrete actions only.  
 - Legal settlement / IBC negotiation outcomes.  
 - **Analytics:** third-party ad pixels (Meta, LinkedIn, etc.), fingerprinting, storing full `document.referrer` URLs with query strings, or encoding user financial inputs in share/UTM links (§5.1).
+- **Server-side push:** FCM/APNs campaigns or per-user push backends (§4.15 uses browser notifications + `version.json` polling only).
 
 **In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 

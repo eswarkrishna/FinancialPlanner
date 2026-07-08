@@ -38,6 +38,8 @@ export function StrategySection() {
     locale,
     exportStrategyComparisonCsv,
     exportStrategyJson,
+    importStrategyJson,
+    importError,
   } = useStrategyPlanner();
   const money = (value: number) => formatMoney(value, locale);
   const isUs = locale === "US";
@@ -244,6 +246,19 @@ export function StrategySection() {
           <h2>Strategy comparison</h2>
           {strategyFormReady && (
             <div className="actions inline-actions">
+              <label className="btn secondary btn-sm">
+                Import JSON
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) importStrategyJson(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
               <button
                 type="button"
                 className="btn secondary btn-sm"
@@ -261,6 +276,7 @@ export function StrategySection() {
             </div>
           )}
         </div>
+        {importError ? <p className="error">{importError}</p> : null}
         <p className="hint">
           Net worth at horizon = equity corpus + cash buffer + PF − loan balance.
           Projections use the same rounding rules as the rest of the dashboard.

@@ -20,7 +20,7 @@ import {
   DEFAULT_SMI_RATE_PCT,
   DEFAULT_SMI_WAIT_MONTHS,
 } from "../uk/constants";
-import { LOAN_UK_FIELD_DEFAULTS } from "./ukFieldDefaults";
+import { LOAN_UK_FIELD_DEFAULTS, LOAN_US_V11_FIELD_DEFAULTS } from "./ukFieldDefaults";
 
 /** Spec §15 reference (IN) */
 export const REFERENCE_SCENARIO_IN: LoanInput = {
@@ -53,6 +53,7 @@ export const REFERENCE_SCENARIO_IN: LoanInput = {
   hsa_balance_inr: 0,
   monthly_health_premium_inr: 0,
   ...LOAN_UK_FIELD_DEFAULTS,
+  ...LOAN_US_V11_FIELD_DEFAULTS,
 };
 
 /** Spec-US §15 reference — amounts stored in locale-neutral numeric fields */
@@ -86,6 +87,7 @@ export const REFERENCE_SCENARIO_US: LoanInput = {
   hsa_balance_inr: 0,
   monthly_health_premium_inr: 0,
   ...LOAN_UK_FIELD_DEFAULTS,
+  ...LOAN_US_V11_FIELD_DEFAULTS,
 };
 
 /** Spec-UK §15 reference — amounts stored in locale-neutral numeric fields */
@@ -134,4 +136,5 @@ export const REFERENCE_SCENARIO_UK: LoanInput = {
   pmi_active: true,
   hsa_balance_inr: 0,
   monthly_health_premium_inr: 0,
+  ...LOAN_US_V11_FIELD_DEFAULTS,
 };

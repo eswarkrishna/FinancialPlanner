@@ -80,6 +80,36 @@ export const LEGEND_BY_CATEGORY: Record<LegendCategory, LegendEntry[]> = {
       label: "When unemployment hits",
       meaning: "Unemployment start month × PF route × optional lump prepay.",
     },
+    {
+      code: "GAME_BLH_SIM_FULL",
+      label: "Borrower + lender + household",
+      meaning: "Three-player simultaneous game — prepay, fee, and household split.",
+    },
+    {
+      code: "GAME_BLN_SEQ_N_FEE",
+      label: "Nature then lender fee",
+      meaning: "Employment shock revealed first; lender sets fee; borrower prepays.",
+    },
+    {
+      code: "GAME_BHN_STOCH_RUNWAY",
+      label: "Stochastic runway",
+      meaning: "Household split vs min-cash runway under employment uncertainty.",
+    },
+    {
+      code: "GAME_BLHN_EXT_STRESS",
+      label: "Extended stress",
+      meaning: "Four-player stress test — borrower, lender, household, and nature.",
+    },
+    {
+      code: "GAME_BL_SIM_RATE_BUMP",
+      label: "Rate bump vs prepay",
+      meaning: "Lender may hold or bump rate after lump prepay (bps input).",
+    },
+    {
+      code: "GAME_BL_MIXED_FEE",
+      label: "Mixed Nash fees",
+      meaning: "2×2 borrower–lender game with mixed-strategy Nash equilibrium.",
+    },
   ],
   borrower: [
     {
@@ -143,6 +173,16 @@ export const LEGEND_BY_CATEGORY: Record<LegendCategory, LegendEntry[]> = {
       code: "L_FEE_PCT",
       label: "Percent prepay fee",
       meaning: "Fee = percentage of prepay amount (default 1% in model).",
+    },
+    {
+      code: "L_RATE_HOLD",
+      label: "Hold rate",
+      meaning: "Lender keeps the contractual interest rate after prepay.",
+    },
+    {
+      code: "L_RATE_BUMP",
+      label: "Bump rate",
+      meaning: "Lender increases rate by the configured bps after lump prepay.",
     },
   ],
   household: [
@@ -282,6 +322,7 @@ export function formatProfileReadable(profile: GameActionProfile): string {
     "b_policy",
     "b_extra",
     "l_fee",
+    "l_rate",
     "h_split",
     "n_employment",
     "n_pf_route",
@@ -305,6 +346,7 @@ export function formatProfileWithCodes(profile: GameActionProfile): {
     "b_policy",
     "b_extra",
     "l_fee",
+    "l_rate",
     "h_split",
     "n_employment",
     "n_pf_route",

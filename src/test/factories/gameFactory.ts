@@ -25,6 +25,7 @@ export function makeReferenceGameInput(
     repayment_pct_of_take_home: 80,
     w_b: 0.5,
     w_h: 0.5,
+    lender_rate_bump_bps: 50,
     horizon_months: REFERENCE_SCENARIO.tenure_months,
     ...overrides,
   };
@@ -54,6 +55,7 @@ export function makeReferenceGameInputUs(
     repayment_pct_of_take_home: 80,
     w_b: 0.5,
     w_h: 0.5,
+    lender_rate_bump_bps: 50,
     horizon_months: REFERENCE_SCENARIO_US.tenure_months,
     ...overrides,
   };

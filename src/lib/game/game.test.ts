@@ -61,3 +61,37 @@ describe("§4.13 game theory (P0)", () => {
     expect(payA).not.toBe(payB);
   });
 });
+
+describe("§4.13.8 game theory (P1)", () => {
+  const p1Profiles = [
+    "GAME_BLH_SIM_FULL",
+    "GAME_BLN_SEQ_N_FEE",
+    "GAME_BHN_STOCH_RUNWAY",
+    "GAME_BLHN_EXT_STRESS",
+    "GAME_BL_SIM_RATE_BUMP",
+    "GAME_BL_MIXED_FEE",
+  ] as const;
+
+  it.each(p1Profiles)("%s runs and returns a payoff matrix", (profileId) => {
+    const result = runGameByProfileId(profileId, makeReferenceGameInput({ game_profile_id: profileId }));
+    expect(result.payoff_matrix.length).toBeGreaterThan(0);
+    expect(result.underlying_scenario_ids.length).toBeGreaterThan(0);
+  });
+
+  it("GAME_BL_SIM_RATE_BUMP includes rate actions in cells", () => {
+    const result = runGameByProfileId(
+      "GAME_BL_SIM_RATE_BUMP",
+      makeReferenceGameInput({ game_profile_id: "GAME_BL_SIM_RATE_BUMP", lender_rate_bump_bps: 75 }),
+    );
+    const withBump = result.payoff_matrix.filter((c) => c.action_profile.l_rate === "L_RATE_BUMP");
+    expect(withBump.length).toBeGreaterThan(0);
+  });
+
+  it("GAME_BL_MIXED_FEE may surface mixed Nash equilibrium metadata", () => {
+    const result = runGameByProfileId(
+      "GAME_BL_MIXED_FEE",
+      makeReferenceGameInput({ game_profile_id: "GAME_BL_MIXED_FEE" }),
+    );
+    expect(result.payoff_matrix.length).toBe(4);
+  });
+});

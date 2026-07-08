@@ -26,7 +26,12 @@ import {
   downloadTextFile,
   strategyComparisonToCsv,
   strategyResultToJson,
+  parseStrategyImportJson,
 } from "../../../lib/export";
+import {
+  readStrategyFormState,
+  writeStrategyFormState,
+} from "../../../lib/persistence/strategyFormState";
 
 type StrategyFormState = {
   principal_inr: string;
@@ -136,16 +141,49 @@ function buildInputs(form: StrategyFormState, locale: Locale): StrategyInputs {
   };
 }
 
+function formFromPersisted(locale: Locale): StrategyFormState {
+  const stored = readStrategyFormState(locale);
+  if (!stored) return EMPTY_FORM;
+  return {
+    principal_inr: stored.principal_inr,
+    annual_interest_rate: stored.annual_interest_rate,
+    tenure_months: stored.tenure_months,
+    cash_inr: stored.cash_inr,
+    pf_corpus_inr: stored.pf_corpus_inr,
+    pf_annual_interest_rate_pct: stored.pf_annual_interest_rate_pct,
+    monthly_pf_addition_inr: stored.monthly_pf_addition_inr,
+    monthly_take_home_inr: stored.monthly_take_home_inr,
+    monthly_living_expense_inr: stored.monthly_living_expense_inr,
+    extra_monthly_income_inr: stored.extra_monthly_income_inr,
+    emergency_months_buffer: stored.emergency_months_buffer,
+    expected_equity_return_pct: stored.expected_equity_return_pct,
+    horizon_months: stored.horizon_months,
+    repayment_pct_of_take_home: stored.repayment_pct_of_take_home,
+    extra_income_post_tax: stored.extra_income_post_tax,
+    marginal_tax_rate_pct: stored.marginal_tax_rate_pct,
+  };
+}
+
 export function useStrategyPlanner() {
   const { locale, localeEpoch } = useLocale();
-  const [form, setForm] = useState<StrategyFormState>(EMPTY_FORM);
+  const [form, setForm] = useState<StrategyFormState>(() => formFromPersisted(locale));
+  const [importError, setImportError] = useState<string | null>(null);
 
   const prevLocaleEpochRef = useRef(localeEpoch);
   useEffect(() => {
     if (prevLocaleEpochRef.current === localeEpoch) return;
     prevLocaleEpochRef.current = localeEpoch;
-    setForm(EMPTY_FORM);
-  }, [localeEpoch]);
+    setForm(formFromPersisted(locale));
+    setImportError(null);
+  }, [localeEpoch, locale]);
+
+  useEffect(() => {
+    writeStrategyFormState({
+      version: 1,
+      locale,
+      ...form,
+    });
+  }, [locale, form]);
 
   const ready = strategyFormReady(form);
   const inputs = useMemo(() => buildInputs(form, locale), [form, locale]);
@@ -169,6 +207,18 @@ export function useStrategyPlanner() {
     trackStrategyTierPreset(preset.id, locale);
   }
 
+  function importStrategyJson(file: File): void {
+    setImportError(null);
+    void file.text().then((text) => {
+      const outcome = parseStrategyImportJson(text, locale);
+      if (!outcome.success) {
+        setImportError(outcome.message);
+        return;
+      }
+      setForm(outcome.form);
+    });
+  }
+
   function exportStrategyComparisonCsv(): void {
     if (!ready || results.length === 0) return;
     const csv = strategyComparisonToCsv(results);
@@ -184,6 +234,7 @@ export function useStrategyPlanner() {
     if (!ready || results.length === 0) return;
     const json = strategyResultToJson({
       exported_at: new Date().toISOString(),
+      locale,
       inputs,
       results,
     });
@@ -211,5 +262,7 @@ export function useStrategyPlanner() {
     applyTierPreset,
     exportStrategyComparisonCsv,
     exportStrategyJson,
+    importStrategyJson,
+    importError,
   };
 }

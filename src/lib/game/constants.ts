@@ -18,3 +18,14 @@ export const P0_GAME_PROFILES = [
   "GAME_BN_SEQ_N_UE",
   "GAME_BN_SIM_UE_TIMING",
 ] as const;
+
+export const P1_GAME_PROFILES = [
+  "GAME_BLH_SIM_FULL",
+  "GAME_BLN_SEQ_N_FEE",
+  "GAME_BHN_STOCH_RUNWAY",
+  "GAME_BLHN_EXT_STRESS",
+  "GAME_BL_SIM_RATE_BUMP",
+  "GAME_BL_MIXED_FEE",
+] as const;
+
+export const ALL_GAME_PROFILES = [...P0_GAME_PROFILES, ...P1_GAME_PROFILES] as const;

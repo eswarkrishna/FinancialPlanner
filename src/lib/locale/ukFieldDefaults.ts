@@ -17,3 +17,13 @@ export const LOAN_UK_FIELD_DEFAULTS = {
   cgt_rate_pct: 24,
   cgt_annual_exempt_inr: 3_000,
 } as const;
+
+/** US v1.1+ optional fields — spread into all locale reference scenarios. */
+export const LOAN_US_V11_FIELD_DEFAULTS = {
+  rule_of_55_eligible: false,
+  separation_age: 55,
+  secure2_emergency_1k: false,
+  vesting_schedule: "immediate" as const,
+  years_of_service: 0,
+  k401_loan_balance_inr: 0,
+} as const;

@@ -36,7 +36,7 @@ function compact(result: GameResult): GameGoldenSnapshot {
   };
 }
 
-export type GameGoldenMap = Record<GameProfileId, GameGoldenSnapshot>;
+export type GameGoldenMap = Record<(typeof P0_GAME_PROFILES)[number], GameGoldenSnapshot>;
 
 export function computeGameGoldens(): GameGoldenMap {
   const map = {} as GameGoldenMap;

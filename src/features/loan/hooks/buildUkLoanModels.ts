@@ -1,3 +1,5 @@
+import { schedulePrepayKeepTenure } from "../../../lib/loan/amortisation";
+import { computeEmi } from "../../../lib/loan/emi";
 import {
   simulateJlRedundancyBridge,
   simulateJlRedundancyToLoan,
@@ -91,12 +93,25 @@ export function buildUkLoanModels(
     : null;
 
   const prepayEmi = canPrepay
-    ? asBaseShape(
-        simulateUkCashflowSchedule({
-          ...ukBase(),
-          extra_prepayments: [{ month: 1, amount_inr: oneTimePrepayInr }],
-        }),
-      )
+    ? (() => {
+        const run = schedulePrepayKeepTenure(
+          v.principal_inr,
+          v.annual_interest_rate,
+          v.tenure_months,
+          1,
+          oneTimePrepayInr,
+          salaryRecurring,
+        );
+        return {
+          emi_inr:
+            run.rows[0]?.emi_inr ??
+            computeEmi(v.principal_inr, v.annual_interest_rate, v.tenure_months),
+          rows: run.rows,
+          totals: run.totals,
+          min_cash_balance_inr: v.cash_inr,
+          warnings: [] as string[],
+        };
+      })()
     : null;
 
   const baseInflow =

@@ -8,8 +8,12 @@ import {
   updatePageSeo,
 } from "./lib/seo";
 import { AppFooter } from "./components/AppFooter";
+import { AnalyticsConsentBanner } from "./components/AnalyticsConsentBanner";
+import { FeedbackHelpful } from "./components/FeedbackHelpful";
 import { NewVersionBanner } from "./components/NewVersionBanner";
 import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
+import { useAnalyticsConsent } from "./hooks/useAnalyticsConsent";
+import { useAnalyticsLifecycle } from "./hooks/useAnalyticsLifecycle";
 import { DebtSection } from "./features/debt/DebtSection";
 import { GameSection } from "./features/game/GameSection";
 import { useLocale } from "./features/locale/LocaleContext";
@@ -67,6 +71,15 @@ export function App() {
     dismissNewVersion,
     reloadForUpdate,
   } = useReleaseNotifications();
+  const {
+    showBanner: showAnalyticsConsent,
+    accept: acceptAnalytics,
+    reject: rejectAnalytics,
+    consent: analyticsConsent,
+    gaEnabled,
+  } = useAnalyticsConsent(locale);
+  const analyticsActive = gaEnabled && analyticsConsent === "accept";
+  useAnalyticsLifecycle(locale, analyticsActive);
 
   useEffect(() => {
     const onPopState = () => {
@@ -169,14 +182,23 @@ export function App() {
             hidden={activeTab !== tab.id}
             tabIndex={activeTab === tab.id ? 0 : undefined}
           >
-            {tab.id === "loan" && <LoanSection />}
-            {tab.id === "debt" && <DebtSection />}
-            {tab.id === "retirement" && <RetirementSection />}
-            {tab.id === "strategies" && <StrategySection />}
-            {tab.id === "strategic" && <GameSection />}
+            {activeTab === tab.id ? (
+              <>
+                <FeedbackHelpful tabId={tab.id} locale={locale} />
+                {tab.id === "loan" && <LoanSection />}
+                {tab.id === "debt" && <DebtSection />}
+                {tab.id === "retirement" && <RetirementSection />}
+                {tab.id === "strategies" && <StrategySection />}
+                {tab.id === "strategic" && <GameSection />}
+              </>
+            ) : null}
           </div>
         ))}
       </main>
+
+      {showAnalyticsConsent ? (
+        <AnalyticsConsentBanner onAccept={acceptAnalytics} onReject={rejectAnalytics} />
+      ) : null}
 
       {showConsent ? (
         <ReleaseNotificationConsent
@@ -195,7 +217,7 @@ export function App() {
         />
       ) : null}
 
-      <AppFooter />
+      <AppFooter activeTab={activeTab} locale={locale} />
     </div>
   );
 }

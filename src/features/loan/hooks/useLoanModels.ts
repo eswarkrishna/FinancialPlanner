@@ -253,7 +253,13 @@ export function useLoanModels() {
   }
 
   function setBoolField(
-    key: "gold_haircut_enabled" | "unemployment_mode" | "pmi_active" | "smi_enabled",
+    key:
+      | "gold_haircut_enabled"
+      | "unemployment_mode"
+      | "pmi_active"
+      | "smi_enabled"
+      | "rule_of_55_eligible"
+      | "secure2_emergency_1k",
     checked: boolean,
   ) {
     setImportError(null);

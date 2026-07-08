@@ -9,7 +9,7 @@ describe("AppFooter", () => {
     const info = getBuildInfo();
     expect(info).not.toBeNull();
 
-    renderWithLocale(<AppFooter />);
+    renderWithLocale(<AppFooter activeTab="loan" locale="IN" />);
 
     expect(screen.getByText(/Latest push:/)).toBeInTheDocument();
     expect(screen.getByRole("time")).toHaveAttribute("dateTime", info!.commitIsoDate);
@@ -23,7 +23,7 @@ describe("AppFooter", () => {
   });
 
   it("shows the educational disclaimer and terms", () => {
-    renderWithLocale(<AppFooter />);
+    renderWithLocale(<AppFooter activeTab="loan" locale="IN" />);
 
     expect(
       screen.getByText(/Educational planning only\. EPF withdrawal eligibility/),
@@ -33,7 +33,7 @@ describe("AppFooter", () => {
 
   it("shows GitHub issues link for feedback", () => {
     const info = getBuildInfo();
-    renderWithLocale(<AppFooter />);
+    renderWithLocale(<AppFooter activeTab="loan" locale="IN" />);
 
     const link = screen.getByRole("link", {
       name: "Report an issue on GitHub (opens in new tab)",

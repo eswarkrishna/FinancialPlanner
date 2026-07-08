@@ -8,7 +8,13 @@ export type GameProfileId =
   | "GAME_BH_SIM_SPLIT"
   | "GAME_BH_COOP_PARETO"
   | "GAME_BN_SEQ_N_UE"
-  | "GAME_BN_SIM_UE_TIMING";
+  | "GAME_BN_SIM_UE_TIMING"
+  | "GAME_BLH_SIM_FULL"
+  | "GAME_BLN_SEQ_N_FEE"
+  | "GAME_BHN_STOCH_RUNWAY"
+  | "GAME_BLHN_EXT_STRESS"
+  | "GAME_BL_SIM_RATE_BUMP"
+  | "GAME_BL_MIXED_FEE";
 
 export type PayoffMetric =
   | "MINUS_TOTAL_INTEREST"
@@ -26,6 +32,8 @@ export type BPolicyAction = "B_POL_TENURE" | "B_POL_EMI";
 export type BExtraAction = "B_EXTRA_0" | "B_EXTRA_LOW" | "B_EXTRA_HIGH";
 
 export type LFeeAction = "L_FEE_0" | "L_FEE_FLAT" | "L_FEE_PCT";
+
+export type LRateAction = "L_RATE_HOLD" | "L_RATE_BUMP";
 
 export type HSplitAction =
   | "H_BLEND"
@@ -48,6 +56,7 @@ export interface GameActionProfile {
   b_policy?: BPolicyAction;
   b_extra?: BExtraAction;
   l_fee?: LFeeAction;
+  l_rate?: LRateAction;
   h_split?: HSplitAction;
   n_employment?: NEmploymentAction;
   n_pf_route?: NPfRouteAction;

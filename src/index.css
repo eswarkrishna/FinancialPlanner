@@ -567,6 +567,7 @@ tbody tr:hover {
 }
 
 .release-notification-consent,
+.analytics-consent,
 .new-version-banner {
   display: flex;
   flex-wrap: wrap;
@@ -585,6 +586,7 @@ tbody tr:hover {
 }
 
 .release-notification-consent p,
+.analytics-consent p,
 .new-version-banner p {
   margin: 0;
   flex: 1;
@@ -702,6 +704,44 @@ tbody tr:hover {
 
 .footer-feedback-actions a:hover {
   text-decoration: underline;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.btn-link:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.footer-copy-confirm {
+  margin-left: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.feedback-helpful {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.feedback-helpful-label {
+  margin-right: 0.15rem;
 }
 
 .footer-terms {

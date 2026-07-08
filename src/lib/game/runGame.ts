@@ -7,6 +7,14 @@ import {
   runGameBnSeqNUe,
   runGameBnSimUeTiming,
 } from "./profiles";
+import {
+  runGameBhnStochRunway,
+  runGameBlMixedFee,
+  runGameBlSimRateBump,
+  runGameBlhSimFull,
+  runGameBlhnExtStress,
+  runGameBlnSeqNFee,
+} from "./profilesP1";
 import type { GameProfileId, GameResult } from "./types";
 
 export function runGame(input: GameInput): GameResult {
@@ -23,6 +31,18 @@ export function runGame(input: GameInput): GameResult {
       return runGameBnSeqNUe(input);
     case "GAME_BN_SIM_UE_TIMING":
       return runGameBnSimUeTiming(input);
+    case "GAME_BLH_SIM_FULL":
+      return runGameBlhSimFull(input);
+    case "GAME_BLN_SEQ_N_FEE":
+      return runGameBlnSeqNFee(input);
+    case "GAME_BHN_STOCH_RUNWAY":
+      return runGameBhnStochRunway(input);
+    case "GAME_BLHN_EXT_STRESS":
+      return runGameBlhnExtStress(input);
+    case "GAME_BL_SIM_RATE_BUMP":
+      return runGameBlSimRateBump(input);
+    case "GAME_BL_MIXED_FEE":
+      return runGameBlMixedFee(input);
     default: {
       const _exhaustive: never = input.game_profile_id;
       throw new Error(`Unknown game profile: ${String(_exhaustive)}`);

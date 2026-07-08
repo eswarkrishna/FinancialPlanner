@@ -102,6 +102,19 @@ export const loanInputSchema = z.object({
   /** UK §7.5 / §4.12 — GIA CGT on liquidation. */
   cgt_rate_pct: z.coerce.number().min(0).max(100).optional().default(24),
   cgt_annual_exempt_inr: z.coerce.number().min(0).optional().default(3_000),
+  /** US v1.1 — Rule of 55: zero early-withdrawal penalty in job-loss module. */
+  rule_of_55_eligible: z.coerce.boolean().optional().default(false),
+  separation_age: z.coerce.number().int().min(18).max(80).optional().default(55),
+  /** US v1.1 — SECURE 2.0 up to $1k/yr penalty-free emergency (income tax still applies). */
+  secure2_emergency_1k: z.coerce.boolean().optional().default(false),
+  /** US v1.1 — vesting schedule for employer match portion. */
+  vesting_schedule: z
+    .enum(["immediate", "cliff_3", "graded_6"])
+    .optional()
+    .default("immediate"),
+  years_of_service: z.coerce.number().min(0).max(50).optional().default(0),
+  /** US v1.2 — outstanding 401(k) loan balance available for prepay modelling. */
+  k401_loan_balance_inr: z.coerce.number().min(0).optional().default(0),
 });
 
 export type LoanInput = z.infer<typeof loanInputSchema>;

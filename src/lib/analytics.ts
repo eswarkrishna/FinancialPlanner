@@ -3,6 +3,9 @@
  * Named interaction events per docs/SPEC.md §5.1.
  */
 
+import { markSessionExport, recordTabVisit } from "./analytics/sessionState";
+import type { TabId } from "./seo";
+
 declare global {
   interface Window {
     dataLayer?: unknown[];
@@ -26,6 +29,10 @@ export function isAnalyticsEnabled(): boolean {
 
 export function getMeasurementId(): string {
   return measurementId();
+}
+
+export function isAnalyticsInitialized(): boolean {
+  return initialized;
 }
 
 /** Inject gtag.js and configure GA4 once. */
@@ -100,6 +107,7 @@ export function trackEvent(
 }
 
 export function trackTabSelect(tabId: string): void {
+  recordTabVisit(tabId as TabId);
   trackEvent("tab_select", withPagePath({ tab_id: tabId }));
 }
 
@@ -115,6 +123,7 @@ export function trackLoanExportScheduleCsv(
   scenarioView: string,
   locale: string,
 ): void {
+  markSessionExport();
   trackEvent(
     "loan_export_schedule_csv",
     withPagePath({ scenario_view: scenarioView, locale }),
@@ -125,6 +134,7 @@ export function trackLoanExportScenarioJson(
   scenarioView: string,
   locale: string,
 ): void {
+  markSessionExport();
   trackEvent(
     "loan_export_scenario_json",
     withPagePath({ scenario_view: scenarioView, locale }),
@@ -202,6 +212,7 @@ export function trackGameProfileChange(profileId: string): void {
 }
 
 export function trackGameExportJson(profileId: string, locale: string): void {
+  markSessionExport();
   trackEvent(
     "game_export_json",
     withPagePath({ profile_id: profileId, locale }),
@@ -209,6 +220,7 @@ export function trackGameExportJson(profileId: string, locale: string): void {
 }
 
 export function trackDebtExportTimelineCsv(strategy: string, locale: string): void {
+  markSessionExport();
   trackEvent(
     "debt_export_timeline_csv",
     withPagePath({ strategy, locale }),
@@ -216,6 +228,7 @@ export function trackDebtExportTimelineCsv(strategy: string, locale: string): vo
 }
 
 export function trackDebtExportJson(strategy: string, locale: string): void {
+  markSessionExport();
   trackEvent(
     "debt_export_json",
     withPagePath({ strategy, locale }),
@@ -226,6 +239,7 @@ export function trackRetirementExportTimelineCsv(
   scenarioId: string,
   locale: string,
 ): void {
+  markSessionExport();
   trackEvent(
     "retirement_export_timeline_csv",
     withPagePath({ scenario_id: scenarioId, locale }),
@@ -233,6 +247,7 @@ export function trackRetirementExportTimelineCsv(
 }
 
 export function trackRetirementExportJson(scenarioId: string, locale: string): void {
+  markSessionExport();
   trackEvent(
     "retirement_export_json",
     withPagePath({ scenario_id: scenarioId, locale }),
@@ -240,15 +255,74 @@ export function trackRetirementExportJson(scenarioId: string, locale: string): v
 }
 
 export function trackStrategyExportComparisonCsv(locale: string): void {
+  markSessionExport();
   trackEvent("strategy_export_comparison_csv", withPagePath({ locale }));
 }
 
 export function trackStrategyExportJson(locale: string): void {
+  markSessionExport();
   trackEvent("strategy_export_json", withPagePath({ locale }));
 }
 
 export function trackFeedbackGithubClick(): void {
   trackEvent("feedback_github_click", withPagePath());
+}
+
+export function trackSessionStart(
+  params: Record<string, string | number | boolean>,
+): void {
+  trackEvent("session_start", withPagePath(params));
+}
+
+export function trackShareLinkCopy(tabId: string, locale: string): void {
+  trackEvent("share_link_copy", withPagePath({ tab_id: tabId, locale }));
+}
+
+export function trackAnalyticsConsent(decision: "accept" | "reject"): void {
+  trackEvent("analytics_consent", withPagePath({ decision }));
+}
+
+export function trackSessionSummary(params: {
+  tabs_visited_count: number;
+  had_export: boolean;
+  locale: string;
+}): void {
+  trackEvent("session_summary", {
+    ...withPagePath({
+      tabs_visited_count: params.tabs_visited_count,
+      had_export: params.had_export ? "true" : "false",
+      locale: params.locale,
+    }),
+    transport_type: "beacon",
+  });
+}
+
+export function trackWebVitals(params: {
+  metric_name: string;
+  metric_value: number;
+  metric_rating: string;
+}): void {
+  trackEvent("web_vitals", withPagePath(params));
+}
+
+export function trackFeedbackHelpful(
+  helpful: boolean,
+  tabId: string,
+  locale: string,
+): void {
+  trackEvent(
+    "feedback_helpful",
+    withPagePath({
+      helpful: helpful ? "true" : "false",
+      tab_id: tabId,
+      locale,
+    }),
+  );
+}
+
+/** Mark that an export occurred this session (§5.1.2 session_summary). */
+export function notifyExportForSession(): void {
+  markSessionExport();
 }
 
 export function trackFooterCommitLinkClick(): void {

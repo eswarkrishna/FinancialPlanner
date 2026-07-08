@@ -9,7 +9,8 @@ import { useDebtPlanner } from "./hooks/useDebtPlanner";
 export function DebtSection() {
   const { locale } = useLocale();
   const money = (value: number) => formatMoneyFinite(value, locale);
-  const currencyLabel = locale === "US" ? "USD" : "INR";
+  const currencyLabel =
+    locale === "US" ? "USD" : locale === "UK" ? "GBP" : "INR";
   const {
     startDateIso,
     setStartDateIso,
@@ -24,6 +25,8 @@ export function DebtSection() {
     debtModels,
     activeDebtModel,
     debtExportReady,
+    importError,
+    importDebtJson,
     exportDebtTimelineCsv,
     exportDebtJson,
   } = useDebtPlanner();
@@ -180,6 +183,19 @@ export function DebtSection() {
           <h2>Debt payoff timeline ({selectedDebtStrategy})</h2>
           {debtExportReady && (
             <div className="actions inline-actions">
+              <label className="btn secondary btn-sm">
+                Import JSON
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) importDebtJson(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
               <button
                 type="button"
                 className="btn secondary btn-sm"
@@ -197,6 +213,7 @@ export function DebtSection() {
             </div>
           )}
         </div>
+        {importError ? <p className="error">{importError}</p> : null}
         {activeDebtModel.rows.length > 0 && (
           <LineChart
             title="Total debt balance over time"

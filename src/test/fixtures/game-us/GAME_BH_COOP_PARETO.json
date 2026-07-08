@@ -3,7 +3,7 @@
   "matrix_size": 3,
   "payoff_matrix": [
     {
-      "cell_key": "||||H_CUSTOM_70_30||",
+      "cell_key": "|||||H_CUSTOM_70_30||",
       "action_profile": {
         "h_split": "H_CUSTOM_70_30"
       },
@@ -14,7 +14,7 @@
       "underlying_scenario_id": "H_CUSTOM_70_30"
     },
     {
-      "cell_key": "||||H_CUSTOM_30_70||",
+      "cell_key": "|||||H_CUSTOM_30_70||",
       "action_profile": {
         "h_split": "H_CUSTOM_30_70"
       },
@@ -25,7 +25,7 @@
       "underlying_scenario_id": "H_CUSTOM_30_70"
     },
     {
-      "cell_key": "||||H_BLEND||",
+      "cell_key": "|||||H_BLEND||",
       "action_profile": {
         "h_split": "H_BLEND"
       },

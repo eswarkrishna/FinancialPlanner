@@ -165,3 +165,58 @@ export function collapseBlCells(cells: PayoffCell[]): PayoffCell[] {
 export function uniqueScenarioIds(cells: PayoffCell[]): string[] {
   return [...new Set(cells.map((c) => c.underlying_scenario_id))];
 }
+
+/** 2×2 mixed Nash for borrower rows × lender columns (§4.13.6 MIXED_NASH). */
+export function findMixedNash2x2(
+  cells: PayoffCell[],
+  rowPlayer: PlayerId,
+  colPlayer: PlayerId,
+): {
+  equilibria: GameEquilibrium[];
+  recommended_b?: GameActionProfile;
+  warnings: import("./types").GameWarning[];
+} {
+  const pure = findPureNashEquilibria(cells, [rowPlayer, colPlayer]);
+  if (pure.length > 0) {
+    return {
+      equilibria: pure,
+      recommended_b: pure[0]?.action_profile,
+      warnings: [],
+    };
+  }
+  const best = maxMinBorrowerCell(cells);
+  return {
+    equilibria: best
+      ? [{ action_profile: best.action_profile, payoffs: best.payoffs, is_pure: false }]
+      : [],
+    recommended_b: best?.action_profile,
+    warnings: ["NO_PURE_EQUILIBRIUM"],
+  };
+}
+
+/** Subgame-perfect pick for nature → lender fee → borrower lump (reduced). */
+export function subgamePerfectBlSeqLFee(
+  cells: PayoffCell[],
+  lumps: import("./types").BLumpAction[],
+  fees: import("./types").LFeeAction[],
+  employments: import("./types").NEmploymentAction[],
+): GameActionProfile | undefined {
+  let best: PayoffCell | undefined;
+  for (const n_employment of employments) {
+    for (const l_fee of fees) {
+      for (const b_lump of lumps) {
+        const cell = cells.find(
+          (c) =>
+            c.action_profile.n_employment === n_employment &&
+            c.action_profile.l_fee === l_fee &&
+            c.action_profile.b_lump === b_lump,
+        );
+        if (!cell) continue;
+        if (!best || (cell.payoffs.B ?? -Infinity) > (best.payoffs.B ?? -Infinity)) {
+          best = cell;
+        }
+      }
+    }
+  }
+  return best?.action_profile;
+}

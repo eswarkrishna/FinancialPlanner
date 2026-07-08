@@ -292,6 +292,61 @@ export function LoanSection() {
                   {money(models.monthly401kWithMatch)}
                 </p>
               )}
+              <label>
+                Vesting schedule
+                <select
+                  value={inputs.vesting_schedule}
+                  onChange={(e) => setField("vesting_schedule", e.target.value)}
+                >
+                  <option value="immediate">Immediate (100%)</option>
+                  <option value="cliff_3">3-year cliff</option>
+                  <option value="graded_6">6-year graded</option>
+                </select>
+              </label>
+              {inputs.vesting_schedule !== "immediate" && (
+                <label>
+                  Years of service
+                  <input
+                    inputMode="decimal"
+                    value={inputs.years_of_service}
+                    onChange={(e) => setField("years_of_service", e.target.value)}
+                  />
+                </label>
+              )}
+              <label>
+                401(k) loan balance (USD)
+                <input
+                  inputMode="decimal"
+                  value={inputs.k401_loan_balance_inr}
+                  onChange={(e) => setField("k401_loan_balance_inr", e.target.value)}
+                />
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={inputs.rule_of_55_eligible === "true"}
+                  onChange={(e) => setBoolField("rule_of_55_eligible", e.target.checked)}
+                />
+                Rule of 55 eligible (no 10% penalty)
+              </label>
+              {inputs.rule_of_55_eligible === "true" && (
+                <label>
+                  Separation age
+                  <input
+                    inputMode="numeric"
+                    value={inputs.separation_age}
+                    onChange={(e) => setField("separation_age", e.target.value)}
+                  />
+                </label>
+              )}
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={inputs.secure2_emergency_1k === "true"}
+                  onChange={(e) => setBoolField("secure2_emergency_1k", e.target.checked)}
+                />
+                SECURE 2.0 emergency $1k (job-loss start)
+              </label>
             </>
           ) : (
             <>

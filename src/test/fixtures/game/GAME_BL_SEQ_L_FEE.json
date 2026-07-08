@@ -3,7 +3,7 @@
   "matrix_size": 3,
   "payoff_matrix": [
     {
-      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_0|||",
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_0||||",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "b_policy": "B_POL_TENURE",
@@ -17,7 +17,7 @@
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
     },
     {
-      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT|||",
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT||||",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "b_policy": "B_POL_TENURE",
@@ -31,7 +31,7 @@
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
     },
     {
-      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_PCT|||",
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_PCT||||",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "b_policy": "B_POL_TENURE",

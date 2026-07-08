@@ -3,7 +3,7 @@
   "matrix_size": 3,
   "payoff_matrix": [
     {
-      "cell_key": "||||H_BLEND||",
+      "cell_key": "|||||H_BLEND||",
       "action_profile": {
         "h_split": "H_BLEND"
       },
@@ -14,7 +14,7 @@
       "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
     },
     {
-      "cell_key": "||||H_PREPAY||",
+      "cell_key": "|||||H_PREPAY||",
       "action_profile": {
         "h_split": "H_PREPAY"
       },
@@ -25,7 +25,7 @@
       "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
     },
     {
-      "cell_key": "||||H_AGGR||",
+      "cell_key": "|||||H_AGGR||",
       "action_profile": {
         "h_split": "H_AGGR"
       },

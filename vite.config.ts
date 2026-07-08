@@ -3,6 +3,7 @@ import path from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { buildInfoDefine, getGitBuildInfo } from "./scripts/git-build-info";
+import { versionManifestJson } from "./src/lib/notifications/versionManifest";
 import {
   buildIndexHtmlReplacements,
   buildRobotsTxt,
@@ -33,6 +34,10 @@ function seoPlugin(): Plugin {
       const outDir = path.resolve("dist");
       fs.writeFileSync(path.join(outDir, "robots.txt"), buildRobotsTxt(siteUrl));
       fs.writeFileSync(path.join(outDir, "sitemap.xml"), buildSitemapXml(siteUrl));
+      fs.writeFileSync(
+        path.join(outDir, "version.json"),
+        versionManifestJson(gitBuildInfo),
+      );
     },
   };
 }

@@ -3,6 +3,7 @@ import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "../../lib/retirement/constants
 import { trackRetirementScenarioSelect } from "../../lib/analytics";
 import { buildRetirementCorpusCurve } from "../../lib/loan/chartData";
 import { LineChart } from "../../components/LineChart";
+import { TableWrap } from "../../components/TableWrap";
 import { useLocale } from "../locale/LocaleContext";
 import { useRetirementPlanner } from "./hooks/useRetirementPlanner";
 
@@ -155,7 +156,7 @@ export function RetirementSection() {
         {yearsInvalid ? (
           <p className="hint">Enter valid years to retirement to see scenario comparison.</p>
         ) : (
-        <div className="table-wrap comparison">
+        <TableWrap label="Retirement scenario comparison" className="comparison">
           <table>
             <thead>
               <tr>
@@ -210,7 +211,7 @@ export function RetirementSection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
         )}
       </section>
 
@@ -251,7 +252,7 @@ export function RetirementSection() {
           xLabel="Year"
           locale={locale}
         />
-        <div className="table-wrap">
+        <TableWrap label="Retirement yearly corpus timeline">
           <table>
             <thead>
               <tr>
@@ -270,7 +271,7 @@ export function RetirementSection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
         </>
         )}
       </section>

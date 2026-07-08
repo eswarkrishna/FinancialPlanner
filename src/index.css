@@ -16,7 +16,16 @@
   --shadow-sm: 0 1px 2px rgb(15 23 42 / 6%);
   --shadow-md: 0 4px 14px rgb(15 23 42 / 8%);
   --radius: 12px;
-  --tab-inactive: #64748b;
+  --tab-inactive: #475569;
+  --tab-bg: #f1f5f9;
+  --tab-hover-bg: #e2e8f0;
+  --tab-hover-text: #334155;
+  --surface-muted: #f8fafc;
+  --surface-subtle: #f1f5f9;
+  --accent-active-bg: var(--accent);
+  --accent-active-text: #ffffff;
+  --accent-active-hover: var(--accent-strong);
+  --warning-text: #b45309;
   --chart-axis: #cbd5e1;
   --chart-label: #64748b;
   --input-bg: #ffffff;
@@ -38,7 +47,18 @@
     --header-bg: #1e293b;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 35%);
     --shadow-md: 0 4px 14px rgb(0 0 0 / 45%);
-    --tab-inactive: #94a3b8;
+    --tab-inactive: #cbd5e1;
+    --tab-bg: #334155;
+    --tab-hover-bg: #475569;
+    --tab-hover-text: #f1f5f9;
+    --surface-muted: #0f172a;
+    --surface-subtle: #334155;
+    --code-bg: #334155;
+    --code-text: #e2e8f0;
+    --accent-active-bg: #2563eb;
+    --accent-active-text: #ffffff;
+    --accent-active-hover: #1e40af;
+    --warning-text: #fbbf24;
     --chart-axis: #475569;
     --chart-label: #94a3b8;
     --input-bg: #0f172a;
@@ -53,6 +73,19 @@
 
 body {
   margin: 0;
+}
+
+/* Visually hidden but available to screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Skip link: visible on focus for keyboard users */
@@ -117,7 +150,7 @@ body {
 .locale-switch {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 .locale-switch select {
@@ -127,7 +160,7 @@ body {
 .app-brand .lede {
   margin: 0.35rem 0 0;
   font-size: 0.92rem;
-  color: #475569;
+  color: var(--text-muted);
   max-width: 42rem;
   line-height: 1.45;
 }
@@ -148,8 +181,9 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.app-tabs-scroll:focus-within {
-  outline: none;
+.app-tabs-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .app-tab {
@@ -163,7 +197,7 @@ body {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--tab-inactive);
-  background: #f1f5f9;
+  background: var(--tab-bg);
   border: 1px solid transparent;
   border-radius: 999px;
   cursor: pointer;
@@ -175,8 +209,8 @@ body {
 }
 
 .app-tab:hover {
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--tab-hover-bg);
+  color: var(--tab-hover-text);
 }
 
 .app-tab:focus-visible {
@@ -185,15 +219,15 @@ body {
 }
 
 .app-tab--active {
-  color: #fff;
-  background: var(--accent);
+  color: var(--accent-active-text);
+  background: var(--accent-active-bg);
   border-color: #1e40af;
   box-shadow: var(--shadow-sm);
 }
 
 .app-tab--active:hover {
-  background: var(--accent-strong);
-  color: #fff;
+  background: var(--accent-active-hover);
+  color: var(--accent-active-text);
 }
 
 .app-tab-label {
@@ -231,7 +265,7 @@ body {
 
 .lede {
   margin: 0;
-  color: #475569;
+  color: var(--text-muted);
   font-size: 1rem;
 }
 
@@ -333,11 +367,11 @@ button:focus-visible,
 .hint {
   margin: 0 0 0.75rem;
   font-size: 0.88rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .hint.warning {
-  color: #b45309;
+  color: var(--warning-text);
   font-weight: 600;
 }
 
@@ -346,6 +380,11 @@ button:focus-visible,
   max-height: min(28rem, 55vh);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+.table-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .table-wrap.comparison {
@@ -371,7 +410,7 @@ th,
 td {
   text-align: right;
   padding: 0.45rem 0.6rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
 }
 
 th:first-child,
@@ -382,14 +421,14 @@ td:first-child {
 thead th {
   position: sticky;
   top: 0;
-  background: #f1f5f9;
+  background: var(--surface-subtle);
   font-weight: 600;
-  color: #334155;
+  color: var(--text);
   z-index: 1;
 }
 
 tbody tr:hover {
-  background: #f8fafc;
+  background: var(--surface-muted);
 }
 
 .kpi {
@@ -401,9 +440,9 @@ tbody tr:hover {
 
 .kpi > div {
   padding: 0.65rem 0.75rem;
-  background: #f8fafc;
+  background: var(--surface-muted);
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
 }
 
 .kpi dt {
@@ -412,14 +451,14 @@ tbody tr:hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .kpi dd {
   margin: 0.2rem 0 0;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .schedule-head {
@@ -451,7 +490,7 @@ tbody tr:hover {
 .subsection-title {
   margin: 1.25rem 0 0.5rem;
   font-size: 0.95rem;
-  color: #334155;
+  color: var(--text);
 }
 
 .checkbox-label {
@@ -459,7 +498,7 @@ tbody tr:hover {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--text);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -522,16 +561,16 @@ tbody tr:hover {
   gap: 0.4rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--text);
 }
 
 .footer {
   margin-top: auto;
   padding-top: 1.5rem;
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--text-muted);
   line-height: 1.45;
-  border-top: 1px solid #cbd5e1;
+  border-top: 1px solid var(--border);
 }
 
 .footer-meta {
@@ -540,7 +579,7 @@ tbody tr:hover {
 }
 
 .footer-meta a {
-  color: #475569;
+  color: var(--text);
   text-decoration: none;
 }
 
@@ -567,7 +606,7 @@ tbody tr:hover {
   margin: 0 0 0.35rem;
   font-weight: 700;
   font-size: 0.82rem;
-  color: #334155;
+  color: var(--text);
 }
 
 .footer-feedback-actions {
@@ -585,9 +624,9 @@ tbody tr:hover {
 
 .footer-terms {
   max-width: 52rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--surface-muted);
   overflow: hidden;
 }
 
@@ -596,7 +635,7 @@ tbody tr:hover {
   padding: 0.65rem 0.85rem;
   font-weight: 700;
   font-size: 0.82rem;
-  color: #334155;
+  color: var(--text);
   list-style: none;
 }
 
@@ -610,8 +649,8 @@ tbody tr:hover {
   width: 0.35rem;
   height: 0.35rem;
   margin-left: 0.35rem;
-  border-right: 2px solid #64748b;
-  border-bottom: 2px solid #64748b;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
   transform: rotate(45deg);
   vertical-align: 0.15em;
   transition: transform 0.15s ease;
@@ -629,20 +668,20 @@ tbody tr:hover {
 
 .footer-terms-body {
   padding: 0 0.85rem 0.85rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border);
 }
 
 .footer-terms-intro {
   margin: 0.75rem 0 0.5rem;
   font-size: 0.78rem;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 .footer-terms-list {
   margin: 0;
   padding: 0 0 0 1.1rem;
   font-size: 0.76rem;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 .footer-terms-list li {
@@ -654,21 +693,22 @@ tbody tr:hover {
 }
 
 .footer-terms-list strong {
-  color: #334155;
+  color: var(--text);
 }
 
 code {
   font-size: 0.88em;
-  background: #e2e8f0;
+  background: var(--code-bg);
+  color: var(--code-text);
   padding: 0.1em 0.35em;
   border-radius: 4px;
 }
 
 /* Strategic tab — action code legend */
 .game-legend-details {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--surface-muted);
   overflow: hidden;
 }
 
@@ -677,7 +717,7 @@ code {
   padding: 0.75rem 1rem;
   font-weight: 700;
   font-size: 0.95rem;
-  color: #334155;
+  color: var(--text);
   list-style: none;
 }
 
@@ -744,12 +784,12 @@ code {
 
 .game-legend-label {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .game-legend-item dd {
   margin: 0;
-  color: #475569;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -782,7 +822,7 @@ code {
 
 .game-rec-meta {
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 .game-suggested {

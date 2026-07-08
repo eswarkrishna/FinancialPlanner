@@ -1,4 +1,5 @@
 import type { StagedPrepayEntry } from "../../../lib/loan/stagedPrepays";
+import { TableWrap } from "../../../components/TableWrap";
 
 interface StagedPrepayEditorProps {
   entries: StagedPrepayEntry[];
@@ -25,13 +26,15 @@ export function StagedPrepayEditor({
       {entries.length === 0 ? (
         <p className="hint">No staged prepayments yet.</p>
       ) : (
-        <div className="table-wrap comparison staged-prepay-table">
+        <TableWrap label="Staged prepayment rows" className="comparison staged-prepay-table">
           <table>
             <thead>
               <tr>
                 <th>Month</th>
                 <th>Amount ({currencyLabel})</th>
-                <th />
+                <th scope="col">
+                  <span className="visually-hidden">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -57,6 +60,7 @@ export function StagedPrepayEditor({
                     <button
                       type="button"
                       className="btn secondary btn-sm"
+                      aria-label={`Remove prepayment at month ${entry.month || "new row"}`}
                       onClick={() => onRemove(entry.id)}
                     >
                       Remove
@@ -66,7 +70,7 @@ export function StagedPrepayEditor({
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
       )}
       <div className="actions">
         <button type="button" className="btn secondary" onClick={onAdd}>

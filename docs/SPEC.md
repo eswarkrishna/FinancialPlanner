@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 1.9  
+**Version:** 1.10  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -645,7 +645,7 @@ Copied URL must be the canonical tab URL (`tabPageUrl` from SEO helpers) with `u
 
 Ship after Tier 1. Adds session-quality metrics and EU/UK-friendly consent.
 
-**`session_summary`** — fire **once** on `pagehide` / `visibilitychange` (hidden) when analytics initialized; use `navigator.sendBeacon` or `gtag` `transport_type: 'beacon'` when available:
+**`session_summary`** — fire **once** on `pagehide` (or `beforeunload` fallback) when analytics initialized; use `navigator.sendBeacon` or `gtag` `transport_type: 'beacon'` when available:
 
 | Parameter | Value |
 |-----------|-------|
@@ -663,14 +663,14 @@ Ship after Tier 1. Adds session-quality metrics and EU/UK-friendly consent.
 | `metric_rating` | `good` \| `needs-improvement` \| `poor` per web.dev thresholds |
 | `page_path` | Current path |
 
-**`analytics_consent`** — fire when user acts on the consent banner (§8):
+**`analytics_consent`** — fire when user accepts the consent banner (§8) and analytics initializes:
 
 | Parameter | Value |
 |-----------|-------|
-| `decision` | `accept` \| `reject` |
+| `decision` | `accept` |
 | `page_path` | Current path |
 
-**Consent gate (Tier 2):** when `VITE_GA_MEASUREMENT_ID` is set, show a compact footer-region banner on first visit until the user chooses. Persist choice in `localStorage` key `financial-planner-analytics-consent` (`accept` \| `reject`). **Do not** call `initAnalytics()` until `accept`. If `reject`, skip all GA loading for that browser profile. Banner copy references §5.1 privacy rules and links to footer terms.
+**Consent gate (Tier 2):** when `VITE_GA_MEASUREMENT_ID` is set, show a compact footer-region banner on first visit until the user chooses. Persist choice in `localStorage` key `financial-planner-analytics-consent` (`accept` \| `reject`). **Do not** call `initAnalytics()` until `accept`. If `reject`, skip all GA loading for that browser profile and do not emit GA events. Banner copy references §5.1 privacy rules and links to footer terms.
 
 **`feedback_helpful`** (optional Tier 2 UI) — thumbs up/down on active tab:
 
@@ -716,7 +716,7 @@ Explicit `gtag` events — not inferred from generic DOM clicks:
 | `share_link_copy` | “Copy link to this tab” (§5.1.1) | `tab_id`, `locale`, `page_path` |
 | `session_summary` | Tab session end (§5.1.2) | `tabs_visited_count`, `had_export`, `locale`, `page_path` |
 | `web_vitals` | Core Web Vitals sample (§5.1.2) | `metric_name`, `metric_value`, `metric_rating`, `page_path` |
-| `analytics_consent` | Consent banner choice (§5.1.2) | `decision`, `page_path` |
+| `analytics_consent` | Consent banner accepted (§5.1.2) | `decision`, `page_path` |
 | `feedback_helpful` | Thumbs up/down (§5.1.2, optional) | `helpful`, `tab_id`, `locale`, `page_path` |
 | `feedback_github_click` | Footer “Report on GitHub” | `page_path` |
 | `footer_commit_link_click` | Footer commit SHA link | `page_path` |

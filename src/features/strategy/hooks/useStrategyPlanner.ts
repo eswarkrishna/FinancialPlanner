@@ -10,10 +10,12 @@ import {
 import {
   STRATEGY_TIER_PRESETS,
   STRATEGY_TIER_PRESETS_US,
+  STRATEGY_TIER_PRESETS_UK,
   type StrategyInputs,
   type StrategyResult,
   type StrategyTierPreset,
 } from "../../../lib/strategy/types";
+import type { Locale } from "../../../lib/locale/types";
 import { useLocale } from "../../locale/LocaleContext";
 import {
   trackStrategyExportComparisonCsv,
@@ -84,7 +86,7 @@ export function strategyFormReady(form: StrategyFormState): boolean {
   return principal > 0 && tenure > 0 && horizon > 0;
 }
 
-function buildInputs(form: StrategyFormState, locale: "IN" | "US"): StrategyInputs {
+function buildInputs(form: StrategyFormState, locale: Locale): StrategyInputs {
   const postTax = form.extra_income_post_tax ?? false;
   return {
     principal_inr: Math.max(0, parseNumber(form.principal_inr)),
@@ -122,9 +124,15 @@ function buildInputs(form: StrategyFormState, locale: "IN" | "US"): StrategyInpu
       parseNumber(form.repayment_pct_of_take_home),
     ),
     subsistence_floor_inr:
-      locale === "US" ? SUBSISTENCE_FLOOR_USD : SUBSISTENCE_FLOOR_INR,
-    ltcg_rate_pct: locale === "US" ? LTCG_RATE_PCT_US : LTCG_RATE_PCT,
-    ltcg_exemption_inr: locale === "US" ? 0 : LTCG_EXEMPTION_INR,
+      locale === "US"
+        ? SUBSISTENCE_FLOOR_USD
+        : locale === "UK"
+          ? 1_500
+          : SUBSISTENCE_FLOOR_INR,
+    ltcg_rate_pct:
+      locale === "US" ? LTCG_RATE_PCT_US : locale === "UK" ? 24 : LTCG_RATE_PCT,
+    ltcg_exemption_inr:
+      locale === "US" ? 0 : locale === "UK" ? 3_000 : LTCG_EXEMPTION_INR,
   };
 }
 
@@ -194,7 +202,12 @@ export function useStrategyPlanner() {
     results,
     strategyFormReady: ready,
     locale,
-    tierPresets: locale === "US" ? STRATEGY_TIER_PRESETS_US : STRATEGY_TIER_PRESETS,
+    tierPresets:
+      locale === "US"
+        ? STRATEGY_TIER_PRESETS_US
+        : locale === "UK"
+          ? STRATEGY_TIER_PRESETS_UK
+          : STRATEGY_TIER_PRESETS,
     applyTierPreset,
     exportStrategyComparisonCsv,
     exportStrategyJson,

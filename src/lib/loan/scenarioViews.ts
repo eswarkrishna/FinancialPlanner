@@ -12,7 +12,7 @@ export type ScenarioView =
   | "UE_DELAY_PREPAY"
   | "STAGED_PREPAY";
 
-export type PrepaySource = "cash" | "pf" | "gold";
+export type PrepaySource = "cash" | "pf" | "gold" | "isa" | "gia";
 
 export const SCENARIO_LABELS: Record<ScenarioView, string> = {
   BASE: "BASE",
@@ -34,6 +34,8 @@ export const SCENARIO_ID_TO_VIEW: Record<string, ScenarioView> = Object.fromEntr
 ) as Record<string, ScenarioView>;
 
 export function parsePrepaySource(value: unknown): PrepaySource {
-  if (value === "pf" || value === "gold") return value;
+  if (value === "pf" || value === "gold" || value === "isa" || value === "gia") {
+    return value;
+  }
   return "cash";
 }

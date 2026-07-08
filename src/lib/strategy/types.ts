@@ -77,3 +77,9 @@ export const STRATEGY_TIER_PRESETS_US: readonly StrategyTierPreset[] = [
   { id: "tier_b", label: "Tier B — $12k take-home", monthly_take_home_inr: 12_000 },
   { id: "tier_c", label: "Tier C — $8k take-home", monthly_take_home_inr: 8_000 },
 ];
+
+export const STRATEGY_TIER_PRESETS_UK: readonly StrategyTierPreset[] = [
+  { id: "tier_a", label: "Tier A — £9k take-home", monthly_take_home_inr: 9_000 },
+  { id: "tier_b", label: "Tier B — £6k take-home", monthly_take_home_inr: 6_000 },
+  { id: "tier_c", label: "Tier C — £4k take-home", monthly_take_home_inr: 4_000 },
+];

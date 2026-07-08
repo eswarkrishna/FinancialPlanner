@@ -66,6 +66,17 @@ function DisclaimerLead() {
       </p>
     );
   }
+  if (locale === "UK") {
+    return (
+      <p className="footer-lead">
+        Educational planning only. Pension access rules, redundancy entitlements,
+        Jobseeker&apos;s Allowance, Support for Mortgage Interest, ISA limits, tax rates,
+        and mortgage early repayment charges vary. Verify with GOV.UK, your pension
+        provider, your lender, and a qualified financial adviser. Figures use 2026/27
+        defaults.
+      </p>
+    );
+  }
   return (
     <p className="footer-lead">
       Educational planning only. EPF withdrawal eligibility, taxes, lender prepayment

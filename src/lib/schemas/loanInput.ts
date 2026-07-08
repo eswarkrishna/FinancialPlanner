@@ -82,6 +82,26 @@ export const loanInputSchema = z.object({
   /** US §4.2 / §4.8 — HSA premium bridge during job loss. */
   hsa_balance_inr: z.coerce.number().min(0).optional().default(0),
   monthly_health_premium_inr: z.coerce.number().min(0).optional().default(0),
+  /** UK §4.2 — ISA / GIA liquid sleeves. */
+  isa_balance_inr: z.coerce.number().min(0).optional().default(0),
+  gia_balance_inr: z.coerce.number().min(0).optional().default(0),
+  gia_cost_basis_inr: z.coerce.number().min(0).optional().default(0),
+  /** UK §4.1 — ERC on excess overpayment allowance. */
+  overpayment_allowance_pct: z.coerce.number().min(0).max(100).optional().default(10),
+  erc_pct: z.coerce.number().min(0).max(100).optional().default(0),
+  employee_pension_pct: z.coerce.number().min(0).max(100).optional().default(5),
+  employer_pension_pct: z.coerce.number().min(0).max(100).optional().default(3),
+  /** UK §4.7 — redundancy + JSA + SMI job-loss bridge. */
+  redundancy_payment_inr: z.coerce.number().min(0).optional().default(0),
+  marginal_tax_rate_pct: z.coerce.number().min(0).max(100).optional().default(20),
+  jsa_duration_months: z.coerce.number().int().min(0).max(24).optional().default(6),
+  smi_enabled: z.coerce.boolean().optional().default(false),
+  smi_wait_months: z.coerce.number().int().min(0).max(24).optional().default(3),
+  smi_rate_pct: z.coerce.number().min(0).max(20).optional().default(3.66),
+  smi_capital_cap_inr: z.coerce.number().min(0).optional().default(200_000),
+  /** UK §7.5 / §4.12 — GIA CGT on liquidation. */
+  cgt_rate_pct: z.coerce.number().min(0).max(100).optional().default(24),
+  cgt_annual_exempt_inr: z.coerce.number().min(0).optional().default(3_000),
 });
 
 export type LoanInput = z.infer<typeof loanInputSchema>;

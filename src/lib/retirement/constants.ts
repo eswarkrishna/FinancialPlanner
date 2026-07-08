@@ -33,3 +33,14 @@ export const REFERENCE_RETIREMENT_FORM_US: RetirementFormDefaults = {
   safe_withdrawal_rate_pct: String(DEFAULT_SAFE_WITHDRAWAL_RATE_PCT),
   expected_social_security_monthly_inr: "2000",
 };
+
+export const REFERENCE_RETIREMENT_FORM_UK: RetirementFormDefaults = {
+  current_corpus_inr: "60000",
+  monthly_contribution_inr: "294",
+  annual_return_pct: "5",
+  inflation_pct: "3",
+  years_to_retirement: "25",
+  annual_expense_today_inr: "36000",
+  safe_withdrawal_rate_pct: String(DEFAULT_SAFE_WITHDRAWAL_RATE_PCT),
+  expected_social_security_monthly_inr: "241.30",
+};

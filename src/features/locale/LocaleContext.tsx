@@ -10,6 +10,7 @@ import {
   LOCALE_STORAGE_KEY,
   REFERENCE_SCENARIO_IN,
   REFERENCE_SCENARIO_US,
+  REFERENCE_SCENARIO_UK,
   type Locale,
 } from "../../lib/locale";
 import { loanInputToFormFields } from "../../lib/loan/loanFormFields";
@@ -17,6 +18,7 @@ import { trackLocaleChange } from "../../lib/analytics";
 import {
   REFERENCE_RETIREMENT_FORM_IN,
   REFERENCE_RETIREMENT_FORM_US,
+  REFERENCE_RETIREMENT_FORM_UK,
 } from "../../lib/retirement/constants";
 
 interface LocaleContextValue {
@@ -32,13 +34,19 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 export function readStoredLocale(): Locale {
   if (typeof window === "undefined") return "IN";
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  return stored === "US" ? "US" : "IN";
+  if (stored === "US") return "US";
+  if (stored === "UK") return "UK";
+  return "IN";
 }
 
 function localeSwitchMessage(next: Locale): string {
-  return next === "US"
-    ? "Switch to United States (USD)? Form values will reset to the US reference scenario."
-    : "Switch to India (INR)? Form values will reset to the India reference scenario.";
+  if (next === "US") {
+    return "Switch to United States (USD)? Form values will reset to the US reference scenario.";
+  }
+  if (next === "UK") {
+    return "Switch to United Kingdom (GBP)? Form values will reset to the UK reference scenario.";
+  }
+  return "Switch to India (INR)? Form values will reset to the India reference scenario.";
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
@@ -90,13 +98,15 @@ export function useLocale(): LocaleContextValue {
 }
 
 export function referenceScenarioForLocale(locale: Locale) {
-  return locale === "US" ? REFERENCE_SCENARIO_US : REFERENCE_SCENARIO_IN;
+  if (locale === "US") return REFERENCE_SCENARIO_US;
+  if (locale === "UK") return REFERENCE_SCENARIO_UK;
+  return REFERENCE_SCENARIO_IN;
 }
 
 export function referenceRetirementFormForLocale(locale: Locale) {
-  return locale === "US"
-    ? REFERENCE_RETIREMENT_FORM_US
-    : REFERENCE_RETIREMENT_FORM_IN;
+  if (locale === "US") return REFERENCE_RETIREMENT_FORM_US;
+  if (locale === "UK") return REFERENCE_RETIREMENT_FORM_UK;
+  return REFERENCE_RETIREMENT_FORM_IN;
 }
 
 export function loanFormFromScenario(

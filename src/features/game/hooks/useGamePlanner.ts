@@ -15,8 +15,12 @@ import {
 
 const DEFAULT_PROFILE: GameProfileId = "GAME_BL_SIM_FEE";
 
-function defaultPrepaymentFee(locale: "IN" | "US"): string {
-  return locale === "US" ? "250" : "25000";
+import type { Locale } from "../../../lib/locale/types";
+
+function defaultPrepaymentFee(locale: Locale): string {
+  if (locale === "US") return "250";
+  if (locale === "UK") return "0";
+  return "25000";
 }
 
 export function useGamePlanner() {

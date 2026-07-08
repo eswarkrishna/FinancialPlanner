@@ -15,7 +15,9 @@
     "goldens:update:us": "npx tsx scripts/update-goldens-us.ts",
     "goldens:update:uk": "npx tsx scripts/update-goldens-uk.ts",
     "test:a11y": "vitest run src/test/accessibility.test.tsx",
-    "audit:a11y": "npx tsx scripts/a11y-audit.ts"
+    "audit:a11y": "npx tsx scripts/a11y-audit.ts",
+    "verify:release": "vitest run src/lib/notifications src/components/ReleaseNotificationConsent.test.tsx src/components/NewVersionBanner.test.tsx && npm run build && node scripts/verify-release-deploy.mjs",
+    "verify:production": "node scripts/verify-production-release.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

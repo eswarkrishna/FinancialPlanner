@@ -28,6 +28,14 @@ export interface StrategyInputs {
   ltcg_rate_pct?: number;
   /** Annual LTCG exemption (default ₹1.25L IN; 0 US). */
   ltcg_exemption_inr?: number;
+  /** SPEC-UK §4.12 — ISA annual allowance (GBP stored in locale-neutral field). */
+  isa_annual_allowance_inr?: number;
+  /** SPEC-UK §4.1 — ERC overpayment allowance (%/yr). */
+  erc_overpayment_allowance_pct?: number;
+  /** SPEC-UK §4.1 — ERC on excess prepay (%). */
+  erc_pct?: number;
+  /** SPEC-UK §4.12 — pension pot projection return (%). */
+  pension_annual_return_pct?: number;
 }
 
 /** Spec §4.12.4 — per-strategy KPIs surfaced in the comparison row. */
@@ -48,6 +56,8 @@ export interface StrategyResult {
   net_worth_at_horizon_inr: number;
   min_living_budget_inr: number;
   warnings: StrategyWarning[];
+  /** SPEC-UK §4.12.3 — total ERC fees over horizon. */
+  erc_fees_inr?: number;
 }
 
 /** Spec §9 — warning codes produced by the strategy planner. */
@@ -57,7 +67,8 @@ export type StrategyWarning =
   | "BELOW_SUBSISTENCE"
   | "AGGRESSIVE_PCT_INVALID"
   | "HORIZON_TOO_SHORT"
-  | "TAX_SIMPLIFIED";
+  | "TAX_SIMPLIFIED"
+  | "ERC_ALLOWANCE_EXCEEDED";
 
 /** Spec §4.12.6 — three take-home tier presets surfaced in the UI. */
 export interface StrategyTierPreset {

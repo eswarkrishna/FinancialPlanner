@@ -19,11 +19,17 @@ function warningCopy(locale: Locale): Record<StrategyWarning, string> {
     BELOW_SUBSISTENCE:
       locale === "US"
         ? "Living budget under $2,000/month — too tight."
-        : "Living budget under ₹15,000/month — too tight.",
+        : locale === "UK"
+          ? "Living budget under £1,500/month — too tight."
+          : "Living budget under ₹15,000/month — too tight.",
     AGGRESSIVE_PCT_INVALID: "Repayment pct outside 0–100; clamped.",
     HORIZON_TOO_SHORT: "Horizon ends before loan close; redirection skipped.",
     TAX_SIMPLIFIED:
-      "Post-tax brokerage corpus uses a flat LTCG rate; short-term gains are not modeled.",
+      locale === "UK"
+        ? "GIA post-tax uses flat CGT rate and a single annual exemption."
+        : "Post-tax brokerage corpus uses a flat LTCG rate; short-term gains are not modeled.",
+    ERC_ALLOWANCE_EXCEEDED:
+      "Overpayment exceeded the fee-free allowance (no ERC charged in this model).",
   };
 }
 

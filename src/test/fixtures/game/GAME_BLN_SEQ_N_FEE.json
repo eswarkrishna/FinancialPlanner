@@ -1,0 +1,132 @@
+{
+  "game_profile_id": "GAME_BLN_SEQ_N_FEE",
+  "matrix_size": 8,
+  "payoff_matrix": [
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_0|||N_EMPLOYED|",
+      "action_profile": {
+        "n_employment": "N_EMPLOYED",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 0,
+        "L": 0
+      },
+      "underlying_scenario_id": "BASE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_0|||N_EMPLOYED|",
+      "action_profile": {
+        "n_employment": "N_EMPLOYED",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "L": 0
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_FLAT|||N_EMPLOYED|",
+      "action_profile": {
+        "n_employment": "N_EMPLOYED",
+        "l_fee": "L_FEE_FLAT",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 0,
+        "L": 0
+      },
+      "underlying_scenario_id": "BASE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_FLAT|||N_EMPLOYED|",
+      "action_profile": {
+        "n_employment": "N_EMPLOYED",
+        "l_fee": "L_FEE_FLAT",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 2187618.73,
+        "L": 25000
+      },
+      "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_0|||N_UE_M1|",
+      "action_profile": {
+        "n_employment": "N_UE_M1",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2657537.97,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_0|||N_UE_M1|",
+      "action_profile": {
+        "n_employment": "N_UE_M1",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 3155949.23,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_FLAT|||N_UE_M1|",
+      "action_profile": {
+        "n_employment": "N_UE_M1",
+        "l_fee": "L_FEE_FLAT",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2657537.97,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_FLAT|||N_UE_M1|",
+      "action_profile": {
+        "n_employment": "N_UE_M1",
+        "l_fee": "L_FEE_FLAT",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 3130949.23,
+        "L": 25000
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "n_employment": "N_UE_M1",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {},
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "n_employment": "N_UE_M1",
+    "l_fee": "L_FEE_0",
+    "b_lump": "B_PREPAY_25"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "BASE",
+    "PREPAY_CASH_25L_TENURE",
+    "UE_PF_TO_LOAN"
+  ]
+}

@@ -65,6 +65,22 @@ describe("projectRetirementCorpus", () => {
       projection.funded_ratio,
     );
   });
+
+  it("computes sp_adjusted metrics for weekly State Pension (SPEC-UK §4.11)", () => {
+    const projection = projectRetirementCorpus({
+      ...makeReferenceRetirementInput(),
+      expected_social_security_monthly_inr: 241.3,
+      social_security_is_weekly: true,
+      safe_withdrawal_rate_pct: 4,
+      annual_expense_today_inr: 40_000,
+      years_to_retirement: 20,
+      inflation_pct: 3,
+    });
+    expect(projection.ss_adjusted_target_corpus_inr).toBeGreaterThan(0);
+    expect(projection.ss_adjusted_funded_ratio).toBeGreaterThan(
+      projection.funded_ratio,
+    );
+  });
 });
 
 describe("buildRetirementScenarios", () => {

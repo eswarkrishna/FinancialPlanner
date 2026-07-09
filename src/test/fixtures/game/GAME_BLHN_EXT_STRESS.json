@@ -1,0 +1,267 @@
+{
+  "game_profile_id": "GAME_BLHN_EXT_STRESS",
+  "matrix_size": 16,
+  "payoff_matrix": [
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_0||H_BLEND|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_0||H_BLEND|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_BLEND",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 551490.56,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_0||H_PREPAY|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_0||H_PREPAY|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 551490.56,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_FLAT||H_BLEND|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_FLAT||H_BLEND|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_BLEND",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 551490.56,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_FLAT||H_PREPAY|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||L_FEE_FLAT||H_PREPAY|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_0",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 551490.56,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_0||H_BLEND|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_0||H_BLEND|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_BLEND",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 2413744.12,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_0||H_PREPAY|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_0||H_PREPAY|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_0",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 2413744.12,
+        "L": 0
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_FLAT||H_BLEND|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 1113660.46,
+        "L": 25000
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_FLAT||H_BLEND|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_BLEND",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 2388744.12,
+        "L": 25000
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_FLAT||H_PREPAY|N_EMPLOYED|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 2187618.73,
+        "L": 25000
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_25|B_POL_TENURE||L_FEE_FLAT||H_PREPAY|N_UE_M1|",
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_PREPAY",
+        "n_employment": "N_UE_M1"
+      },
+      "payoffs": {
+        "B": 2388744.12,
+        "L": 25000
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "b_lump": "B_PREPAY_25",
+        "b_policy": "B_POL_TENURE",
+        "l_fee": "L_FEE_FLAT",
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED"
+      },
+      "payoffs": {
+        "B": 1113660.46,
+        "L": 25000
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "b_lump": "B_PREPAY_25",
+    "b_policy": "B_POL_TENURE",
+    "l_fee": "L_FEE_FLAT",
+    "h_split": "H_BLEND",
+    "n_employment": "N_EMPLOYED"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "STRATEGY_EQUITY_BLEND",
+    "UE_PF_BRIDGE",
+    "STRATEGY_PREPAY_HEAVY"
+  ]
+}

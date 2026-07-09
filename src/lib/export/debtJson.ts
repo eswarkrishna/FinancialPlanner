@@ -1,6 +1,7 @@
 /** JSON export payload for debt payoff planner (SPEC §4.10). */
 export interface DebtExportPayload {
   exported_at: string;
+  locale?: "IN" | "US" | "UK";
   start_date: string;
   monthly_budget_inr: number;
   debts: {

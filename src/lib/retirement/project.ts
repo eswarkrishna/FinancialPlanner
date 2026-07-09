@@ -10,8 +10,10 @@ export interface RetirementInput {
   years_to_retirement: number;
   annual_expense_today_inr: number;
   safe_withdrawal_rate_pct: number;
-  /** US: expected monthly Social Security benefit (stored in locale-neutral numeric field). */
+  /** US/UK: Social Security or State Pension benefit amount in the stored field. */
   expected_social_security_monthly_inr?: number;
+  /** UK: stored benefit is weekly (×52 for annual); US/IN: monthly (×12). */
+  social_security_is_weekly?: boolean;
 }
 
 export interface RetirementYearRow {
@@ -85,9 +87,10 @@ export function projectRetirementCorpus(input: RetirementInput): RetirementProje
   const realCorpus = roundInr(corpus / inflation);
   const fundedRatio = targetCorpus <= 0 ? 0 : corpus / targetCorpus;
 
+  const ssPeriods = input.social_security_is_weekly ? 52 : 12;
   const annualSsIncome = Math.max(
     0,
-    (input.expected_social_security_monthly_inr ?? 0) * 12,
+    (input.expected_social_security_monthly_inr ?? 0) * ssPeriods,
   );
   let ssAdjustedTarget: number | undefined;
   let ssAdjustedFundedRatio: number | undefined;

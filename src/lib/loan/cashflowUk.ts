@@ -225,6 +225,7 @@ export function simulateUkCashflowSchedule(
   );
   let consecutiveShortfall = 0;
   let m = 0;
+  const keepOriginalPayment = input.keep_original_payment !== false;
 
   while (balance > BALANCE_EPS && m < cap) {
     m += 1;
@@ -298,7 +299,10 @@ export function simulateUkCashflowSchedule(
     }
 
     const interest = roundGbp(opening * r);
-    const paymentDue = emi0;
+    const remainingMonths = Math.max(1, input.tenure_months - m + 1);
+    const paymentDue = keepOriginalPayment
+      ? emi0
+      : computeEmi(opening, input.annual_interest_rate, remainingMonths);
     const isScheduledLast = !input.job_loss_enabled && m === input.tenure_months;
     let principal = isScheduledLast
       ? opening
@@ -459,7 +463,7 @@ export function simulateUkCashflowSchedule(
       principal,
       prepayThisMonth,
       balance,
-      emi0,
+      paymentDue,
       cashBalance,
       ercResult.fee_gbp,
       smiCredit,
@@ -482,7 +486,9 @@ export function simulateUkCashflowSchedule(
   }
 
   return {
-    emi_inr: emi0,
+    emi_inr: keepOriginalPayment
+      ? emi0
+      : (rows[1]?.emi_inr ?? rows[0]?.emi_inr ?? emi0),
     rows,
     totals: {
       total_paid_inr: roundGbp(totalPaid),
@@ -576,6 +582,42 @@ export function simulateUkPrepayKeepTenure(
       monthly_extra_to_loan_inr: recurringExtra,
       erc_config: ercConfig ?? { overpayment_allowance_pct: 10, erc_pct: 0 },
       extra_prepayments: [{ month: prepayMonth, amount_inr: prepayAmount }],
+      keep_original_payment: true,
+      ...funding,
+    }),
+  );
+}
+
+/** SPEC-UK §4.4 policy 2 — recompute payment, keep original term end. */
+export function simulateUkPrepayKeepPayment(
+  principal: number,
+  rate: number,
+  tenure: number,
+  prepayMonth: number,
+  prepayAmount: number,
+  recurringExtra = 0,
+  ercConfig?: ErcConfig,
+  funding?: Partial<
+    Pick<
+      UkCashflowSimInput,
+      | "cash_inr"
+      | "isa_balance_inr"
+      | "gia_balance_inr"
+      | "gia_cost_basis_inr"
+      | "cgt_rate_pct"
+      | "cgt_annual_exempt_inr"
+    >
+  >,
+): UkCashflowSimResult {
+  return simulateUkCashflowSchedule(
+    ukBaseInput({
+      principal_inr: principal,
+      annual_interest_rate: rate,
+      tenure_months: tenure,
+      monthly_extra_to_loan_inr: recurringExtra,
+      erc_config: ercConfig ?? { overpayment_allowance_pct: 10, erc_pct: 0 },
+      extra_prepayments: [{ month: prepayMonth, amount_inr: prepayAmount }],
+      keep_original_payment: false,
       ...funding,
     }),
   );

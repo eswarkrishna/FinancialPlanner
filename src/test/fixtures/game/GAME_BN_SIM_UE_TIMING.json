@@ -3,7 +3,7 @@
   "matrix_size": 12,
   "payoff_matrix": [
     {
-      "cell_key": "B_PREPAY_0|||||N_UE_M1|N_PF_LOAN",
+      "cell_key": "B_PREPAY_0||||||N_UE_M1|N_PF_LOAN",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "n_employment": "N_UE_M1",
@@ -15,7 +15,7 @@
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
     {
-      "cell_key": "B_PREPAY_0|||||N_UE_M1|N_PF_BRIDGE",
+      "cell_key": "B_PREPAY_0||||||N_UE_M1|N_PF_BRIDGE",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "n_employment": "N_UE_M1",
@@ -27,7 +27,7 @@
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
     {
-      "cell_key": "B_PREPAY_0|||||N_UE_M12|N_PF_LOAN",
+      "cell_key": "B_PREPAY_0||||||N_UE_M12|N_PF_LOAN",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "n_employment": "N_UE_M12",
@@ -39,7 +39,7 @@
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
     {
-      "cell_key": "B_PREPAY_0|||||N_UE_M12|N_PF_BRIDGE",
+      "cell_key": "B_PREPAY_0||||||N_UE_M12|N_PF_BRIDGE",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "n_employment": "N_UE_M12",
@@ -51,7 +51,7 @@
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
     {
-      "cell_key": "B_PREPAY_0|||||N_UE_M24|N_PF_LOAN",
+      "cell_key": "B_PREPAY_0||||||N_UE_M24|N_PF_LOAN",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "n_employment": "N_UE_M24",
@@ -63,7 +63,7 @@
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
     {
-      "cell_key": "B_PREPAY_0|||||N_UE_M24|N_PF_BRIDGE",
+      "cell_key": "B_PREPAY_0||||||N_UE_M24|N_PF_BRIDGE",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "n_employment": "N_UE_M24",
@@ -75,7 +75,7 @@
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
     {
-      "cell_key": "B_PREPAY_25|||||N_UE_M1|N_PF_LOAN",
+      "cell_key": "B_PREPAY_25||||||N_UE_M1|N_PF_LOAN",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "n_employment": "N_UE_M1",
@@ -87,7 +87,7 @@
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
     {
-      "cell_key": "B_PREPAY_25|||||N_UE_M1|N_PF_BRIDGE",
+      "cell_key": "B_PREPAY_25||||||N_UE_M1|N_PF_BRIDGE",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "n_employment": "N_UE_M1",
@@ -99,7 +99,7 @@
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
     {
-      "cell_key": "B_PREPAY_25|||||N_UE_M12|N_PF_LOAN",
+      "cell_key": "B_PREPAY_25||||||N_UE_M12|N_PF_LOAN",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "n_employment": "N_UE_M12",
@@ -111,7 +111,7 @@
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
     {
-      "cell_key": "B_PREPAY_25|||||N_UE_M12|N_PF_BRIDGE",
+      "cell_key": "B_PREPAY_25||||||N_UE_M12|N_PF_BRIDGE",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "n_employment": "N_UE_M12",
@@ -123,7 +123,7 @@
       "underlying_scenario_id": "UE_PF_BRIDGE"
     },
     {
-      "cell_key": "B_PREPAY_25|||||N_UE_M24|N_PF_LOAN",
+      "cell_key": "B_PREPAY_25||||||N_UE_M24|N_PF_LOAN",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "n_employment": "N_UE_M24",
@@ -135,7 +135,7 @@
       "underlying_scenario_id": "UE_PF_TO_LOAN"
     },
     {
-      "cell_key": "B_PREPAY_25|||||N_UE_M24|N_PF_BRIDGE",
+      "cell_key": "B_PREPAY_25||||||N_UE_M24|N_PF_BRIDGE",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "n_employment": "N_UE_M24",

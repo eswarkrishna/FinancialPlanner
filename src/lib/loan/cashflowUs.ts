@@ -11,6 +11,7 @@ import {
   computeEarlyWithdrawalCost,
   computeK401JobLossWithdrawalPlan,
 } from "../k401/jobLoss";
+import { DEFAULT_EARLY_WITHDRAWAL_PENALTY_PCT } from "../k401/constants";
 
 export type K401TrancheDestination = "loan_prepay" | "cash_buffer" | "split";
 
@@ -44,6 +45,10 @@ export interface UsCashflowSimInput {
   pmi_active?: boolean;
   hsa_balance_inr?: number;
   monthly_health_premium_inr?: number;
+  rule_of_55_eligible?: boolean;
+  secure2_emergency_1k?: boolean;
+  early_withdrawal_penalty_pct?: number;
+  k401_loan_balance_inr?: number;
   k401_tranche1_destination?: K401TrancheDestination;
   k401_tranche2_destination?: K401TrancheDestination;
   k401_tranche1_loan_fraction?: number;
@@ -146,6 +151,11 @@ export function simulateUsCashflowSchedule(
   const frac2 = loanFractionFromDestination(dest2, input.k401_tranche2_loan_fraction);
   const bridgeLiquidityFirst = input.k401_tranche1_bridge_liquidity_first === true;
   const withholdingPct = input.early_withdrawal_tax_withholding_pct;
+  const penaltyPct =
+    input.early_withdrawal_penalty_pct ?? DEFAULT_EARLY_WITHDRAWAL_PENALTY_PCT;
+  const secure2Emergency =
+    input.secure2_emergency_1k === true && input.job_loss_enabled;
+  let secure2Used = false;
   const pmiMonthly =
     input.pmi_active !== false ? Math.max(0, input.pmi_monthly_inr ?? 0) : 0;
   let hsaBalance = roundUsd(Math.max(0, input.hsa_balance_inr ?? 0));
@@ -165,6 +175,9 @@ export function simulateUsCashflowSchedule(
     employed401kByMonth.set(event.month, roundUsd(existing + event.gross_usd));
   }
 
+  const k401LoanPrepay = roundUsd(Math.max(0, input.k401_loan_balance_inr ?? 0));
+  let k401LoanApplied = false;
+
   if (
     input.job_loss_enabled &&
     input.cash_inr <= 0 &&
@@ -180,6 +193,14 @@ export function simulateUsCashflowSchedule(
     const events: string[] = [];
     const inJobLoss = uStart !== null && input.job_loss_enabled && m >= uStart;
 
+    if (inJobLoss && uStart !== null && m === uStart) {
+      if (secure2Emergency && !secure2Used) {
+        const emergency = roundUsd(1000);
+        cashBalance = roundUsd(cashBalance + emergency);
+        secure2Used = true;
+        events.push(`secure2_emergency:+${emergency}`);
+      }
+    }
     if (input.monthly_income_inr > 0) {
       cashBalance = roundUsd(cashBalance + input.monthly_income_inr);
       events.push(`income:+${input.monthly_income_inr}`);
@@ -263,7 +284,7 @@ export function simulateUsCashflowSchedule(
       if (gross <= 0) return;
 
       if (options?.bridgeLiquidityFirst) {
-        const cost = computeEarlyWithdrawalCost(gross, withholdingPct);
+        const cost = computeEarlyWithdrawalCost(gross, withholdingPct, penaltyPct);
         totalPenalty = roundUsd(totalPenalty + cost.penalty_usd);
         let net = cost.net_to_cash_usd;
 
@@ -314,7 +335,7 @@ export function simulateUsCashflowSchedule(
       const toCashGross = roundUsd(gross - toLoanGross);
 
       if (toCashGross > 0) {
-        const cost = computeEarlyWithdrawalCost(toCashGross, withholdingPct);
+        const cost = computeEarlyWithdrawalCost(toCashGross, withholdingPct, penaltyPct);
         totalPenalty = roundUsd(totalPenalty + cost.penalty_usd);
         cashBalance = roundUsd(cashBalance + cost.net_to_cash_usd);
         events.push(
@@ -323,7 +344,7 @@ export function simulateUsCashflowSchedule(
       }
       if (toLoanGross > 0 && balance > BALANCE_EPS) {
         const applied = roundUsd(Math.min(toLoanGross, balance));
-        const cost = computeEarlyWithdrawalCost(applied, withholdingPct);
+        const cost = computeEarlyWithdrawalCost(applied, withholdingPct, penaltyPct);
         totalPenalty = roundUsd(totalPenalty + cost.penalty_usd);
         prepay = roundUsd(prepay + applied);
         balance = roundUsd(balance - applied);
@@ -346,6 +367,17 @@ export function simulateUsCashflowSchedule(
     const employedGross = employed401kByMonth.get(m) ?? 0;
     if (employedGross > 0) {
       applyK401Tranche(employedGross, 1, "employed_401k_prepay");
+    }
+
+    if (!k401LoanApplied && k401LoanPrepay > 0 && m === 1 && balance > BALANCE_EPS) {
+      const applied = roundUsd(Math.min(k401LoanPrepay, balance));
+      if (applied > 0) {
+        prepay = roundUsd(prepay + applied);
+        balance = roundUsd(balance - applied);
+        totalPrepay += applied;
+        k401LoanApplied = true;
+        events.push(`k401_loan_prepay:+${applied}`);
+      }
     }
 
     const configuredForMonth = monthlyPrepay.get(m) ?? 0;

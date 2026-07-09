@@ -199,6 +199,47 @@ export function runBlSchedule(
   return { totals: run.totals, scenarioId: "BASE_PLUS_MONTHLY_INFLOW" };
 }
 
+/** After month-1 prepay, lender bumps rate by `bumpBps` for remaining schedule. */
+export function runBlScheduleWithRateBump(
+  input: GameInput,
+  lumpInr: number,
+  policy: BPolicyAction,
+  extraInr: number,
+  bumpBps: number,
+): { totals: ScheduleTotals; scenarioId: string } {
+  const bumpedRate = input.annual_interest_rate + bumpBps / 100;
+  if (lumpInr <= 0) {
+    return runBlSchedule(input, 0, policy, extraInr);
+  }
+  const first = schedulePrepayKeepEmi(
+    input.principal_inr,
+    input.annual_interest_rate,
+    input.tenure_months,
+    1,
+    lumpInr,
+  );
+  const closing = first.rows[0]?.closing_inr ?? input.principal_inr;
+  const remaining = Math.max(1, input.tenure_months - 1);
+  const tail =
+    extraInr > 0
+      ? scheduleFixedEmiWithMonthlyExtra(closing, bumpedRate, remaining, extraInr)
+      : baselineSchedule(closing, bumpedRate, remaining);
+  const totalInterest = roundInr(
+    first.totals.total_interest_inr + tail.totals.total_interest_inr,
+  );
+  const totalPaid = roundInr(first.totals.total_paid_inr + tail.totals.total_paid_inr);
+  const payoffMonth = roundInr(first.totals.payoff_month + tail.totals.payoff_month - 1);
+  return {
+    totals: {
+      total_interest_inr: totalInterest,
+      total_paid_inr: totalPaid,
+      total_prepayments_inr: first.totals.total_prepayments_inr,
+      payoff_month: payoffMonth,
+    },
+    scenarioId: "PREPAY_RATE_BUMP",
+  };
+}
+
 export function baselineInterest(input: GameInput): number {
   return baselineSchedule(
     input.principal_inr,
@@ -405,6 +446,7 @@ export function cellKey(profile: {
   b_policy?: BPolicyAction;
   b_extra?: BExtraAction;
   l_fee?: LFeeAction;
+  l_rate?: import("./types").LRateAction;
   h_split?: HSplitAction;
   n_employment?: NEmploymentAction;
   n_pf_route?: NPfRouteAction;
@@ -417,6 +459,7 @@ export function cellKey(profile: {
     policy,
     profile.b_extra ?? "",
     profile.l_fee ?? "",
+    profile.l_rate ?? "",
     profile.h_split ?? "",
     profile.n_employment ?? "",
     profile.n_pf_route ?? "",

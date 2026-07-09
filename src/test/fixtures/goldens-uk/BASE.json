@@ -1,0 +1,56 @@
+{
+  "emi_inr": 1389.58,
+  "totals": {
+    "total_paid_inr": 416874.69,
+    "total_interest_inr": 166874.69,
+    "total_prepayments_inr": 0,
+    "total_erc_fees_inr": 0,
+    "payoff_month": 300
+  },
+  "first_row": {
+    "month": 1,
+    "opening_inr": 250000,
+    "interest_inr": 937.5,
+    "principal_inr": 452.08,
+    "prepayment_inr": 0,
+    "closing_inr": 249547.92,
+    "payment_inr": 1389.58,
+    "emi_inr": 1389.58,
+    "cash_balance_inr": -1389.58,
+    "erc_fee_inr": 0,
+    "smi_credit_inr": 0,
+    "smi_loan_balance_inr": 0,
+    "events": []
+  },
+  "row_12": {
+    "month": 12,
+    "opening_inr": 244932.81,
+    "interest_inr": 918.5,
+    "principal_inr": 471.08,
+    "prepayment_inr": 0,
+    "closing_inr": 244461.73,
+    "payment_inr": 1389.58,
+    "emi_inr": 1389.58,
+    "cash_balance_inr": -16674.96,
+    "erc_fee_inr": 0,
+    "smi_credit_inr": 0,
+    "smi_loan_balance_inr": 0,
+    "events": []
+  },
+  "last_row": {
+    "month": 300,
+    "opening_inr": 1385.08,
+    "interest_inr": 5.19,
+    "principal_inr": 1385.08,
+    "prepayment_inr": 0,
+    "closing_inr": 0,
+    "payment_inr": 1390.27,
+    "emi_inr": 1389.58,
+    "cash_balance_inr": -416874.69,
+    "erc_fee_inr": 0,
+    "smi_credit_inr": 0,
+    "smi_loan_balance_inr": 0,
+    "events": []
+  },
+  "row_count": 300
+}

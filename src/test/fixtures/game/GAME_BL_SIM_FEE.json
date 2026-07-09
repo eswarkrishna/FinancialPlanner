@@ -3,7 +3,7 @@
   "matrix_size": 10,
   "payoff_matrix": [
     {
-      "cell_key": "B_PREPAY_0||B_EXTRA_0|L_FEE_0|||",
+      "cell_key": "B_PREPAY_0||B_EXTRA_0|L_FEE_0||||",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "b_extra": "B_EXTRA_0",
@@ -16,7 +16,7 @@
       "underlying_scenario_id": "BASE"
     },
     {
-      "cell_key": "B_PREPAY_0||B_EXTRA_0|L_FEE_FLAT|||",
+      "cell_key": "B_PREPAY_0||B_EXTRA_0|L_FEE_FLAT||||",
       "action_profile": {
         "b_lump": "B_PREPAY_0",
         "b_extra": "B_EXTRA_0",
@@ -29,7 +29,7 @@
       "underlying_scenario_id": "BASE"
     },
     {
-      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_0|||",
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_0||||",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "b_policy": "B_POL_TENURE",
@@ -43,7 +43,7 @@
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
     },
     {
-      "cell_key": "B_PREPAY_25|B_POL_EMI|B_EXTRA_0|L_FEE_0|||",
+      "cell_key": "B_PREPAY_25|B_POL_EMI|B_EXTRA_0|L_FEE_0||||",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "b_policy": "B_POL_EMI",
@@ -57,7 +57,7 @@
       "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
     },
     {
-      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT|||",
+      "cell_key": "B_PREPAY_25|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT||||",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "b_policy": "B_POL_TENURE",
@@ -71,7 +71,7 @@
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
     },
     {
-      "cell_key": "B_PREPAY_25|B_POL_EMI|B_EXTRA_0|L_FEE_FLAT|||",
+      "cell_key": "B_PREPAY_25|B_POL_EMI|B_EXTRA_0|L_FEE_FLAT||||",
       "action_profile": {
         "b_lump": "B_PREPAY_25",
         "b_policy": "B_POL_EMI",
@@ -85,7 +85,7 @@
       "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
     },
     {
-      "cell_key": "B_PREPAY_50|B_POL_TENURE|B_EXTRA_0|L_FEE_0|||",
+      "cell_key": "B_PREPAY_50|B_POL_TENURE|B_EXTRA_0|L_FEE_0||||",
       "action_profile": {
         "b_lump": "B_PREPAY_50",
         "b_policy": "B_POL_TENURE",
@@ -99,7 +99,7 @@
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
     },
     {
-      "cell_key": "B_PREPAY_50|B_POL_EMI|B_EXTRA_0|L_FEE_0|||",
+      "cell_key": "B_PREPAY_50|B_POL_EMI|B_EXTRA_0|L_FEE_0||||",
       "action_profile": {
         "b_lump": "B_PREPAY_50",
         "b_policy": "B_POL_EMI",
@@ -113,7 +113,7 @@
       "underlying_scenario_id": "PREPAY_CASH_LUMP_EMI"
     },
     {
-      "cell_key": "B_PREPAY_50|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT|||",
+      "cell_key": "B_PREPAY_50|B_POL_TENURE|B_EXTRA_0|L_FEE_FLAT||||",
       "action_profile": {
         "b_lump": "B_PREPAY_50",
         "b_policy": "B_POL_TENURE",
@@ -127,7 +127,7 @@
       "underlying_scenario_id": "PREPAY_CASH_25L_TENURE"
     },
     {
-      "cell_key": "B_PREPAY_50|B_POL_EMI|B_EXTRA_0|L_FEE_FLAT|||",
+      "cell_key": "B_PREPAY_50|B_POL_EMI|B_EXTRA_0|L_FEE_FLAT||||",
       "action_profile": {
         "b_lump": "B_PREPAY_50",
         "b_policy": "B_POL_EMI",

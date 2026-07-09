@@ -185,4 +185,18 @@ describe("simulateUsCashflowSchedule (SPEC-US §4.8)", () => {
       result.warnings.filter((w) => w === "LOAN_NOT_PAID_OFF").length,
     ).toBe(1);
   });
+
+  it("applies 401(k) loan prepay without early-withdrawal penalties", () => {
+    const result = simulateUsCashflowSchedule({
+      ...baseJobLossInput,
+      job_loss_enabled: false,
+      cash_inr: 0,
+      k401_loan_balance_inr: 25_000,
+    });
+    expect(result.total_early_withdrawal_penalty_inr).toBe(0);
+    expect(result.warnings).not.toContain("EARLY_401K_WITHDRAWAL");
+    expect(result.rows[0]?.events.some((e) => e.startsWith("k401_loan_prepay:"))).toBe(
+      true,
+    );
+  });
 });

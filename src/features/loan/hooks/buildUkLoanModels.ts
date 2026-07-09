@@ -4,6 +4,7 @@ import {
   simulateJlSmiSafetyNet,
   simulateUkBaseline,
   simulateUkCashflowSchedule,
+  simulateUkPrepayKeepPayment,
   simulateUkPrepayKeepTenure,
   type UkCashflowSimResult,
 } from "../../../lib/loan/cashflowUk";
@@ -92,10 +93,23 @@ export function buildUkLoanModels(
 
   const prepayEmi = canPrepay
     ? asBaseShape(
-        simulateUkCashflowSchedule({
-          ...ukBase(),
-          extra_prepayments: [{ month: 1, amount_inr: oneTimePrepayInr }],
-        }),
+        simulateUkPrepayKeepPayment(
+          v.principal_inr,
+          v.annual_interest_rate,
+          v.tenure_months,
+          1,
+          oneTimePrepayInr,
+          salaryRecurring,
+          ercConfig,
+          {
+            cash_inr: v.cash_inr,
+            isa_balance_inr: v.isa_balance_inr,
+            gia_balance_inr: v.gia_balance_inr,
+            gia_cost_basis_inr: v.gia_cost_basis_inr || v.gia_balance_inr,
+            cgt_rate_pct: v.cgt_rate_pct,
+            cgt_annual_exempt_inr: v.cgt_annual_exempt_inr,
+          },
+        ),
       )
     : null;
 

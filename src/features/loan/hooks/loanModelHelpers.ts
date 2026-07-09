@@ -7,7 +7,7 @@ import type {
 import type { Locale } from "../../../lib/locale/types";
 import type { LoanInput } from "../../../lib/schemas/index";
 import type { PrepaySource } from "../../../lib/loan/scenarioViews";
-import { computeMonthlyEmployerMatchUsd } from "../../../lib/k401/index";
+import { computeMonthlyEmployerMatchUsd, computeVestedFractionPct } from "../../../lib/k401/index";
 import { trancheMonthsFromStart } from "../../../lib/shared/trancheMonths";
 import type { ScenarioView } from "./loanModelTypes";
 
@@ -113,6 +113,11 @@ export function monthly401kWithEmployerMatch(v: LoanInput): number {
 }
 
 export function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
+  const vestedFromSchedule =
+    v.vesting_schedule !== "immediate"
+      ? computeVestedFractionPct(v.vesting_schedule, v.years_of_service)
+      : v.vested_fraction_pct;
+
   return {
     principal_inr: v.principal_inr,
     annual_interest_rate: v.annual_interest_rate,
@@ -124,12 +129,15 @@ export function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
     monthly_uib_inr: v.monthly_uib_inr,
     job_loss_start_month: v.unemployment_start_month,
     k401_balance_inr: v.pf_corpus_inr,
-    vested_fraction_pct: v.vested_fraction_pct,
+    vested_fraction_pct: vestedFromSchedule,
     early_withdrawal_tax_withholding_pct: v.early_withdrawal_tax_withholding_pct,
+    early_withdrawal_penalty_pct: v.rule_of_55_eligible ? 0 : undefined,
     pmi_monthly_inr: v.pmi_monthly_inr,
     pmi_active: v.pmi_active,
     hsa_balance_inr: v.hsa_balance_inr,
     monthly_health_premium_inr: v.monthly_health_premium_inr,
+    secure2_emergency_1k: v.secure2_emergency_1k,
+    k401_loan_balance_inr: v.k401_loan_balance_inr,
   };
 }
 

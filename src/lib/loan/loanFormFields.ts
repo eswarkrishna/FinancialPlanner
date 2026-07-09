@@ -45,6 +45,12 @@ export const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
   smi_capital_cap_inr: "200000",
   cgt_rate_pct: "24",
   cgt_annual_exempt_inr: "3000",
+  rule_of_55_eligible: "false",
+  separation_age: "55",
+  secure2_emergency_1k: "false",
+  vesting_schedule: "immediate",
+  years_of_service: "0",
+  k401_loan_balance_inr: "",
 };
 
 function stringField(value: unknown, fallback = ""): string {
@@ -114,5 +120,14 @@ export function loanInputToFormFields(
     smi_capital_cap_inr: stringField(input.smi_capital_cap_inr, "200000"),
     cgt_rate_pct: stringField(input.cgt_rate_pct, "24"),
     cgt_annual_exempt_inr: stringField(input.cgt_annual_exempt_inr, "3000"),
+    rule_of_55_eligible: boolField(input.rule_of_55_eligible, false),
+    separation_age: stringField(input.separation_age, "55"),
+    secure2_emergency_1k: boolField(input.secure2_emergency_1k, false),
+    vesting_schedule:
+      input.vesting_schedule === "cliff_3" || input.vesting_schedule === "graded_6"
+        ? input.vesting_schedule
+        : "immediate",
+    years_of_service: stringField(input.years_of_service, "0"),
+    k401_loan_balance_inr: stringField(input.k401_loan_balance_inr),
   };
 }

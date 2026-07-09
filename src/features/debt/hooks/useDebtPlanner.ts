@@ -8,7 +8,13 @@ import {
   downloadTextFile,
   debtResultToJson,
   debtTimelineToCsv,
+  parseDebtImportJson,
 } from "../../../lib/export";
+import {
+  readDebtFormState,
+  writeDebtFormState,
+  type DebtFormPersistedState,
+} from "../../../lib/persistence/debtFormState";
 import {
   trackDebtAdd,
   trackDebtExportJson,
@@ -41,24 +47,61 @@ function parseNumber(value: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function initialDebtState(locale: import("../../../lib/locale/types").Locale) {
+  const stored = readDebtFormState(locale);
+  if (stored) {
+    return {
+      startDateIso: stored.start_date,
+      monthlyBudgetInr: stored.monthly_budget_inr,
+      selectedDebtStrategy: stored.selected_strategy,
+      debtRows: stored.debts.length > 0 ? stored.debts : INITIAL_DEBT_ROWS,
+    };
+  }
+  return {
+    startDateIso: "",
+    monthlyBudgetInr: "",
+    selectedDebtStrategy: "avalanche" as DebtStrategy,
+    debtRows: INITIAL_DEBT_ROWS,
+  };
+}
+
 export function useDebtPlanner() {
   const { locale, localeEpoch } = useLocale();
-  const [startDateIso, setStartDateIso] = useState("");
-  const [monthlyBudgetInr, setMonthlyBudgetInr] = useState("");
-  const [selectedDebtStrategy, setSelectedDebtStrategy] = useState<DebtStrategy>(
-    "avalanche",
+  const [startDateIso, setStartDateIso] = useState(() => initialDebtState(locale).startDateIso);
+  const [monthlyBudgetInr, setMonthlyBudgetInr] = useState(
+    () => initialDebtState(locale).monthlyBudgetInr,
   );
-  const [debtRows, setDebtRows] = useState<DebtFormRow[]>(INITIAL_DEBT_ROWS);
+  const [selectedDebtStrategy, setSelectedDebtStrategy] = useState<DebtStrategy>(
+    () => initialDebtState(locale).selectedDebtStrategy,
+  );
+  const [debtRows, setDebtRows] = useState<DebtFormRow[]>(
+    () => initialDebtState(locale).debtRows,
+  );
+  const [importError, setImportError] = useState<string | null>(null);
 
   const prevLocaleEpochRef = useRef(localeEpoch);
   useEffect(() => {
     if (prevLocaleEpochRef.current === localeEpoch) return;
     prevLocaleEpochRef.current = localeEpoch;
-    setStartDateIso("");
-    setMonthlyBudgetInr("");
-    setSelectedDebtStrategy("avalanche");
-    setDebtRows(INITIAL_DEBT_ROWS.map((row) => ({ ...row, id: `debt-${Date.now()}` })));
-  }, [localeEpoch]);
+    const next = initialDebtState(locale);
+    setStartDateIso(next.startDateIso);
+    setMonthlyBudgetInr(next.monthlyBudgetInr);
+    setSelectedDebtStrategy(next.selectedDebtStrategy);
+    setDebtRows(next.debtRows);
+    setImportError(null);
+  }, [locale, localeEpoch]);
+
+  useEffect(() => {
+    const state: DebtFormPersistedState = {
+      version: 1,
+      locale,
+      start_date: startDateIso,
+      monthly_budget_inr: monthlyBudgetInr,
+      selected_strategy: selectedDebtStrategy,
+      debts: debtRows,
+    };
+    writeDebtFormState(state);
+  }, [locale, startDateIso, monthlyBudgetInr, selectedDebtStrategy, debtRows]);
 
   const debtInputs = useMemo((): DebtInput[] => {
     return debtRows.map((row) => ({
@@ -124,6 +167,26 @@ export function useDebtPlanner() {
     trackDebtStrategyChange(strategy);
   }
 
+  function importDebtJson(file: File): void {
+    setImportError(null);
+    void file
+      .text()
+      .then((text) => {
+        const outcome = parseDebtImportJson(text, locale);
+        if (!outcome.success) {
+          setImportError(outcome.message);
+          return;
+        }
+        setStartDateIso(outcome.startDateIso);
+        setMonthlyBudgetInr(outcome.monthlyBudgetInr);
+        setSelectedDebtStrategy(outcome.selectedDebtStrategy);
+        setDebtRows(outcome.debtRows);
+      })
+      .catch(() => {
+        setImportError("Could not read the selected file.");
+      });
+  }
+
   function exportDebtTimelineCsv(): void {
     if (!debtExportReady) return;
     const csv = debtTimelineToCsv(activeDebtModel.rows, {
@@ -142,6 +205,7 @@ export function useDebtPlanner() {
     const budget = Math.max(0, parseNumber(monthlyBudgetInr));
     const json = debtResultToJson({
       exported_at: new Date().toISOString(),
+      locale,
       start_date: startDateIso,
       monthly_budget_inr: budget,
       debts: debtInputs.map((d) => ({
@@ -185,6 +249,8 @@ export function useDebtPlanner() {
     debtModels,
     activeDebtModel,
     debtExportReady,
+    importError,
+    importDebtJson,
     exportDebtTimelineCsv,
     exportDebtJson,
   };

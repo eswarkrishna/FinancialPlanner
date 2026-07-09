@@ -3,10 +3,16 @@ import {
   initAnalytics,
   isAnalyticsEnabled,
   resetAnalyticsForTests,
+  trackAnalyticsConsent,
+  trackFeedbackHelpful,
   trackHomePageView,
   trackLoanExportScheduleCsv,
   trackPageView,
+  trackSessionStart,
+  trackSessionSummary,
+  trackShareLinkCopy,
   trackTabSelect,
+  trackWebVitals,
 } from "./analytics";
 
 describe("analytics", () => {
@@ -82,6 +88,83 @@ describe("analytics", () => {
 
       expect(gtagSpy).toHaveBeenCalledWith("event", "loan_export_schedule_csv", {
         scenario_view: "BASE",
+        locale: "IN",
+        page_path: expect.any(String),
+      });
+    });
+
+    it("tracks session_start with landing_tab and locale (§5.1.2)", () => {
+      trackSessionStart({ landing_tab: "loan", locale: "IN", utm_source: "test" });
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "session_start", {
+        landing_tab: "loan",
+        locale: "IN",
+        utm_source: "test",
+        page_path: expect.any(String),
+      });
+    });
+
+    it("tracks share_link_copy with tab_id and locale (§5.1.1)", () => {
+      trackShareLinkCopy("debt", "US");
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "share_link_copy", {
+        tab_id: "debt",
+        locale: "US",
+        page_path: expect.any(String),
+      });
+    });
+
+    it("tracks analytics_consent decision (§5.1.2)", () => {
+      trackAnalyticsConsent("accept");
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "analytics_consent", {
+        decision: "accept",
+        page_path: expect.any(String),
+      });
+    });
+
+    it("tracks analytics_consent after init on accept path", () => {
+      resetAnalyticsForTests();
+      initAnalytics();
+      gtagSpy = vi.fn();
+      window.gtag = gtagSpy;
+      trackAnalyticsConsent("accept");
+      expect(gtagSpy).toHaveBeenCalled();
+    });
+
+    it("tracks session_summary on unload (§5.1.2)", () => {
+      trackSessionSummary({
+        locale: "UK",
+        tabs_visited_count: 2,
+        had_export: true,
+      });
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "session_summary", {
+        locale: "UK",
+        tabs_visited_count: 2,
+        had_export: "true",
+        page_path: expect.any(String),
+        transport_type: "beacon",
+      });
+    });
+
+    it("tracks web_vitals sample (§5.1.2)", () => {
+      trackWebVitals({ metric_name: "LCP", metric_value: 1.2, metric_rating: "good" });
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "web_vitals", {
+        metric_name: "LCP",
+        metric_value: 1.2,
+        metric_rating: "good",
+        page_path: expect.any(String),
+      });
+    });
+
+    it("tracks feedback_helpful (§5.1.2)", () => {
+      trackFeedbackHelpful(true, "loan", "IN");
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "feedback_helpful", {
+        tab_id: "loan",
+        helpful: "true",
         locale: "IN",
         page_path: expect.any(String),
       });

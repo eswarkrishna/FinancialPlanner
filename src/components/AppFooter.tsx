@@ -11,7 +11,9 @@ import {
   trackFooterGaOptoutClick,
   trackFooterTermsToggle,
 } from "../lib/analytics";
+import { CopyTabLink } from "./CopyTabLink";
 import { useLocale } from "../features/locale/LocaleContext";
+import type { TabId } from "../lib/seo";
 
 function BuildMetaLine() {
   const info = getBuildInfo();
@@ -41,13 +43,15 @@ function BuildMetaLine() {
   );
 }
 
-function FooterFeedback() {
+function FooterFeedback({ activeTab, locale }: { activeTab: TabId; locale: string }) {
   const issuesUrl = githubIssuesUrl();
 
   return (
     <section className="footer-feedback" aria-label="Feedback">
       <p className="footer-feedback-lead">Help us improve</p>
       <p className="footer-feedback-actions">
+        <CopyTabLink tabId={activeTab} locale={locale} />
+        {" · "}
         <a
           href={issuesUrl}
           target="_blank"
@@ -93,12 +97,18 @@ function DisclaimerLead() {
   );
 }
 
-export function AppFooter() {
+export function AppFooter({
+  activeTab,
+  locale,
+}: {
+  activeTab: TabId;
+  locale: string;
+}) {
   return (
     <footer className="footer">
       <BuildMetaLine />
       <DisclaimerLead />
-      <FooterFeedback />
+      <FooterFeedback activeTab={activeTab} locale={locale} />
 
       <details
         className="footer-terms"

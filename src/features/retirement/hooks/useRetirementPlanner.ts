@@ -10,7 +10,12 @@ import {
   downloadTextFile,
   retirementResultToJson,
   retirementTimelineToCsv,
+  parseRetirementImportJson,
 } from "../../../lib/export";
+import {
+  readRetirementFormState,
+  writeRetirementFormState,
+} from "../../../lib/persistence/retirementFormState";
 import {
   trackRetirementExportJson,
   trackRetirementExportTimelineCsv,
@@ -41,21 +46,54 @@ function formatPercent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+function formFromPersisted(
+  locale: import("../../../lib/locale/types").Locale,
+): RetirementFormState {
+  const stored = readRetirementFormState(locale);
+  if (stored) {
+    return {
+      current_corpus_inr: stored.current_corpus_inr,
+      monthly_contribution_inr: stored.monthly_contribution_inr,
+      annual_return_pct: stored.annual_return_pct,
+      inflation_pct: stored.inflation_pct,
+      years_to_retirement: stored.years_to_retirement,
+      annual_expense_today_inr: stored.annual_expense_today_inr,
+      safe_withdrawal_rate_pct: stored.safe_withdrawal_rate_pct,
+      expected_social_security_monthly_inr: stored.expected_social_security_monthly_inr,
+    };
+  }
+  return referenceRetirementFormForLocale(locale);
+}
+
 export function useRetirementPlanner() {
   const { locale, localeEpoch } = useLocale();
   const [retirementInputs, setRetirementInputs] = useState<RetirementFormState>(
-    () => referenceRetirementFormForLocale(readStoredLocale()),
+    () => formFromPersisted(readStoredLocale()),
   );
-  const [selectedRetirementScenario, setSelectedRetirementScenario] =
-    useState("base");
+  const [selectedRetirementScenario, setSelectedRetirementScenario] = useState(
+    () => readRetirementFormState(readStoredLocale())?.selected_scenario_id ?? "base",
+  );
+  const [importError, setImportError] = useState<string | null>(null);
 
   const prevLocaleEpochRef = useRef(localeEpoch);
   useEffect(() => {
     if (prevLocaleEpochRef.current === localeEpoch) return;
     prevLocaleEpochRef.current = localeEpoch;
-    setRetirementInputs(referenceRetirementFormForLocale(locale));
-    setSelectedRetirementScenario("base");
+    setRetirementInputs(formFromPersisted(locale));
+    setSelectedRetirementScenario(
+      readRetirementFormState(locale)?.selected_scenario_id ?? "base",
+    );
+    setImportError(null);
   }, [locale, localeEpoch]);
+
+  useEffect(() => {
+    writeRetirementFormState({
+      version: 1,
+      locale,
+      ...retirementInputs,
+      selected_scenario_id: selectedRetirementScenario,
+    });
+  }, [locale, retirementInputs, selectedRetirementScenario]);
 
   const yearsInvalid = useMemo(() => {
     const raw = retirementInputs.years_to_retirement.trim();
@@ -98,8 +136,9 @@ export function useRetirementPlanner() {
         0,
         parseNumber(retirementInputs.expected_social_security_monthly_inr),
       ),
+      social_security_is_weekly: locale === "UK",
     };
-  }, [retirementInputs, yearsInvalid]);
+  }, [retirementInputs, yearsInvalid, locale]);
 
   const retirementScenarios = useMemo(() => {
     if (!retirementBaseInput) return [];
@@ -126,6 +165,25 @@ export function useRetirementPlanner() {
     setRetirementInputs((prev) => ({ ...prev, [key]: value }));
   }
 
+  function importRetirementJson(file: File): void {
+    setImportError(null);
+    void file
+      .text()
+      .then((text) => {
+        const outcome = parseRetirementImportJson(text, locale);
+        if (!outcome.success) {
+          setImportError(outcome.message);
+          return;
+        }
+        const { selectedRetirementScenario: scenario, ...form } = outcome;
+        setRetirementInputs(form);
+        setSelectedRetirementScenario(scenario);
+      })
+      .catch(() => {
+        setImportError("Could not read the selected file.");
+      });
+  }
+
   function exportRetirementTimelineCsv(): void {
     if (!activeRetirementScenario) return;
     const csv = retirementTimelineToCsv(activeRetirementScenario.projection.yearly);
@@ -141,6 +199,7 @@ export function useRetirementPlanner() {
     if (!retirementBaseInput) return;
     const json = retirementResultToJson({
       exported_at: new Date().toISOString(),
+      locale,
       inputs: { ...retirementBaseInput },
       scenarios: retirementScenarios,
       selected_scenario_id: selectedRetirementScenario,
@@ -165,6 +224,8 @@ export function useRetirementPlanner() {
     yearsInvalid,
     exportRetirementTimelineCsv,
     exportRetirementJson,
+    importRetirementJson,
+    importError,
   };
 }
 

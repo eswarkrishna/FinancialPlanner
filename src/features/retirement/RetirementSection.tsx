@@ -25,6 +25,8 @@ export function RetirementSection() {
     yearsInvalid,
     exportRetirementTimelineCsv,
     exportRetirementJson,
+    importRetirementJson,
+    importError,
   } = useRetirementPlanner();
 
   const annualSsIncome = isUk
@@ -223,6 +225,19 @@ export function RetirementSection() {
           </h2>
           {!yearsInvalid && activeRetirementScenario && (
             <div className="actions inline-actions">
+              <label className="btn secondary btn-sm">
+                Import JSON
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) importRetirementJson(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
               <button
                 type="button"
                 className="btn secondary btn-sm"
@@ -240,6 +255,7 @@ export function RetirementSection() {
             </div>
           )}
         </div>
+        {importError ? <p className="error">{importError}</p> : null}
         {yearsInvalid || !activeRetirementScenario ? (
           <p className="hint">Enter valid years to retirement to see the yearly timeline.</p>
         ) : (

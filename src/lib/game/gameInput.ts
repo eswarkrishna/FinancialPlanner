@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { loanInputSchema } from "../loanInputSchema";
-import { P0_GAME_PROFILES } from "./constants";
+import { ALL_GAME_PROFILES } from "./constants";
 import type { GameProfileId, LenderObjective, PayoffMetric } from "./types";
 
-export const gameProfileIdSchema = z.enum(P0_GAME_PROFILES);
+export const gameProfileIdSchema = z.enum(ALL_GAME_PROFILES);
 
 export const payoffMetricSchema = z.enum([
   "MINUS_TOTAL_INTEREST",
@@ -23,6 +23,7 @@ export const gameInputSchema = loanInputSchema.extend({
   cooperative: z.boolean().optional().default(false),
   prepayment_fee_inr: z.coerce.number().min(0).optional().default(25_000),
   prepayment_fee_pct: z.coerce.number().min(0).max(100).optional().default(1),
+  lender_rate_bump_bps: z.coerce.number().min(0).max(500).optional().default(50),
   horizon_months: z.coerce.number().int().positive().max(600).optional(),
   monthly_take_home_inr: z.coerce.number().min(0).optional().default(200_000),
   monthly_living_expense_inr: z.coerce.number().min(0).optional().default(80_000),

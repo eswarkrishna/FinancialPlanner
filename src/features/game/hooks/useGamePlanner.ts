@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  P0_GAME_PROFILES,
+  ALL_GAME_PROFILES,
   gameInputSchema,
   runGame,
   type GameProfileId,
@@ -81,7 +81,7 @@ export function useGamePlanner() {
     setPrepaymentFeeInr,
     parsed,
     result,
-    profiles: P0_GAME_PROFILES,
+    profiles: ALL_GAME_PROFILES,
     exportGameJson,
     locale,
   };

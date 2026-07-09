@@ -169,17 +169,22 @@ export function useDebtPlanner() {
 
   function importDebtJson(file: File): void {
     setImportError(null);
-    void file.text().then((text) => {
-      const outcome = parseDebtImportJson(text, locale);
-      if (!outcome.success) {
-        setImportError(outcome.message);
-        return;
-      }
-      setStartDateIso(outcome.startDateIso);
-      setMonthlyBudgetInr(outcome.monthlyBudgetInr);
-      setSelectedDebtStrategy(outcome.selectedDebtStrategy);
-      setDebtRows(outcome.debtRows);
-    });
+    void file
+      .text()
+      .then((text) => {
+        const outcome = parseDebtImportJson(text, locale);
+        if (!outcome.success) {
+          setImportError(outcome.message);
+          return;
+        }
+        setStartDateIso(outcome.startDateIso);
+        setMonthlyBudgetInr(outcome.monthlyBudgetInr);
+        setSelectedDebtStrategy(outcome.selectedDebtStrategy);
+        setDebtRows(outcome.debtRows);
+      })
+      .catch(() => {
+        setImportError("Could not read the selected file.");
+      });
   }
 
   function exportDebtTimelineCsv(): void {

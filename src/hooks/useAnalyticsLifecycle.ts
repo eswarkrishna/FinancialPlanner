@@ -3,7 +3,7 @@ import {
   isAnalyticsInitialized,
   trackSessionSummary,
 } from "../lib/analytics";
-import { hadSessionExport, tabsVisitedCount } from "../lib/analytics/sessionState";
+import { hadSessionExport, hasSessionSummarySent, markSessionSummarySent, tabsVisitedCount } from "../lib/analytics/sessionState";
 import { initWebVitalsSampling } from "../lib/analytics/webVitals";
 
 /** Fire session_summary on tab hide and sample web vitals after GA init (§5.1.2). */
@@ -17,12 +17,13 @@ export function useAnalyticsLifecycle(locale: string, analyticsActive: boolean):
     if (!analyticsActive) return;
 
     function onHide() {
-      if (!isAnalyticsInitialized()) return;
+      if (!isAnalyticsInitialized() || hasSessionSummarySent()) return;
       trackSessionSummary({
         tabs_visited_count: tabsVisitedCount(),
         had_export: hadSessionExport(),
         locale,
       });
+      markSessionSummarySent();
     }
 
     const onVisibility = () => {

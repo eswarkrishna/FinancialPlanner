@@ -167,16 +167,21 @@ export function useRetirementPlanner() {
 
   function importRetirementJson(file: File): void {
     setImportError(null);
-    void file.text().then((text) => {
-      const outcome = parseRetirementImportJson(text, locale);
-      if (!outcome.success) {
-        setImportError(outcome.message);
-        return;
-      }
-      const { selectedRetirementScenario: scenario, ...form } = outcome;
-      setRetirementInputs(form);
-      setSelectedRetirementScenario(scenario);
-    });
+    void file
+      .text()
+      .then((text) => {
+        const outcome = parseRetirementImportJson(text, locale);
+        if (!outcome.success) {
+          setImportError(outcome.message);
+          return;
+        }
+        const { selectedRetirementScenario: scenario, ...form } = outcome;
+        setRetirementInputs(form);
+        setSelectedRetirementScenario(scenario);
+      })
+      .catch(() => {
+        setImportError("Could not read the selected file.");
+      });
   }
 
   function exportRetirementTimelineCsv(): void {

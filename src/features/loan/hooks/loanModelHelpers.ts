@@ -117,10 +117,6 @@ export function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
     v.vesting_schedule !== "immediate"
       ? computeVestedFractionPct(v.vesting_schedule, v.years_of_service)
       : v.vested_fraction_pct;
-  const employed401kPrepayments =
-    v.k401_loan_balance_inr > 0
-      ? [{ month: 1, gross_usd: v.k401_loan_balance_inr }]
-      : undefined;
 
   return {
     principal_inr: v.principal_inr,
@@ -141,7 +137,7 @@ export function usCashflowBaseInput(v: LoanInput, recurringToLoan: number) {
     hsa_balance_inr: v.hsa_balance_inr,
     monthly_health_premium_inr: v.monthly_health_premium_inr,
     secure2_emergency_1k: v.secure2_emergency_1k,
-    employed_401k_prepayments: employed401kPrepayments,
+    k401_loan_balance_inr: v.k401_loan_balance_inr,
   };
 }
 

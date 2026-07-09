@@ -67,8 +67,8 @@ export function useAnalyticsConsent(locale: string) {
   const accept = useCallback(() => {
     saveAnalyticsConsent("accept");
     setConsent("accept");
-    trackAnalyticsConsent("accept");
     bootstrapAnalytics(locale);
+    trackAnalyticsConsent("accept");
   }, [locale]);
 
   const reject = useCallback(() => {

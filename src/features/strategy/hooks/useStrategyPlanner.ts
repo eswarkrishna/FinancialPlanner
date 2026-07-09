@@ -209,14 +209,19 @@ export function useStrategyPlanner() {
 
   function importStrategyJson(file: File): void {
     setImportError(null);
-    void file.text().then((text) => {
-      const outcome = parseStrategyImportJson(text, locale);
-      if (!outcome.success) {
-        setImportError(outcome.message);
-        return;
-      }
-      setForm(outcome.form);
-    });
+    void file
+      .text()
+      .then((text) => {
+        const outcome = parseStrategyImportJson(text, locale);
+        if (!outcome.success) {
+          setImportError(outcome.message);
+          return;
+        }
+        setForm(outcome.form);
+      })
+      .catch(() => {
+        setImportError("Could not read the selected file.");
+      });
   }
 
   function exportStrategyComparisonCsv(): void {

@@ -3,6 +3,7 @@
 import type { TabId } from "../seo";
 
 const SESSION_STARTED_KEY = "financial-planner-analytics-session-started";
+const SESSION_SUMMARY_KEY = "financial-planner-session-summary-sent";
 const ACQUISITION_KEY = "financial-planner-acquisition";
 const TABS_KEY = "financial-planner-tabs-visited";
 const HAD_EXPORT_KEY = "financial-planner-had-export";
@@ -84,6 +85,24 @@ export function markSessionStarted(): void {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.setItem(SESSION_STARTED_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
+
+export function hasSessionSummarySent(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return sessionStorage.getItem(SESSION_SUMMARY_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markSessionSummarySent(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(SESSION_SUMMARY_KEY, "1");
   } catch {
     // ignore
   }

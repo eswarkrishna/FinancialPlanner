@@ -175,6 +175,9 @@ export function simulateUsCashflowSchedule(
     employed401kByMonth.set(event.month, roundUsd(existing + event.gross_usd));
   }
 
+  const k401LoanPrepay = roundUsd(Math.max(0, input.k401_loan_balance_inr ?? 0));
+  let k401LoanApplied = false;
+
   if (
     input.job_loss_enabled &&
     input.cash_inr <= 0 &&
@@ -364,6 +367,17 @@ export function simulateUsCashflowSchedule(
     const employedGross = employed401kByMonth.get(m) ?? 0;
     if (employedGross > 0) {
       applyK401Tranche(employedGross, 1, "employed_401k_prepay");
+    }
+
+    if (!k401LoanApplied && k401LoanPrepay > 0 && m === 1 && balance > BALANCE_EPS) {
+      const applied = roundUsd(Math.min(k401LoanPrepay, balance));
+      if (applied > 0) {
+        prepay = roundUsd(prepay + applied);
+        balance = roundUsd(balance - applied);
+        totalPrepay += applied;
+        k401LoanApplied = true;
+        events.push(`k401_loan_prepay:+${applied}`);
+      }
     }
 
     const configuredForMonth = monthlyPrepay.get(m) ?? 0;

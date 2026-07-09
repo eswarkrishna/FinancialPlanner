@@ -1,11 +1,10 @@
-import { schedulePrepayKeepTenure } from "../../../lib/loan/amortisation";
-import { computeEmi } from "../../../lib/loan/emi";
 import {
   simulateJlRedundancyBridge,
   simulateJlRedundancyToLoan,
   simulateJlSmiSafetyNet,
   simulateUkBaseline,
   simulateUkCashflowSchedule,
+  simulateUkPrepayKeepPayment,
   simulateUkPrepayKeepTenure,
   type UkCashflowSimResult,
 } from "../../../lib/loan/cashflowUk";
@@ -93,25 +92,25 @@ export function buildUkLoanModels(
     : null;
 
   const prepayEmi = canPrepay
-    ? (() => {
-        const run = schedulePrepayKeepTenure(
+    ? asBaseShape(
+        simulateUkPrepayKeepPayment(
           v.principal_inr,
           v.annual_interest_rate,
           v.tenure_months,
           1,
           oneTimePrepayInr,
           salaryRecurring,
-        );
-        return {
-          emi_inr:
-            run.rows[0]?.emi_inr ??
-            computeEmi(v.principal_inr, v.annual_interest_rate, v.tenure_months),
-          rows: run.rows,
-          totals: run.totals,
-          min_cash_balance_inr: v.cash_inr,
-          warnings: [] as string[],
-        };
-      })()
+          ercConfig,
+          {
+            cash_inr: v.cash_inr,
+            isa_balance_inr: v.isa_balance_inr,
+            gia_balance_inr: v.gia_balance_inr,
+            gia_cost_basis_inr: v.gia_cost_basis_inr || v.gia_balance_inr,
+            cgt_rate_pct: v.cgt_rate_pct,
+            cgt_annual_exempt_inr: v.cgt_annual_exempt_inr,
+          },
+        ),
+      )
     : null;
 
   const baseInflow =

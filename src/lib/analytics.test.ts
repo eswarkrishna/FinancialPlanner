@@ -123,6 +123,15 @@ describe("analytics", () => {
       });
     });
 
+    it("tracks analytics_consent after init on accept path", () => {
+      resetAnalyticsForTests();
+      initAnalytics();
+      gtagSpy = vi.fn();
+      window.gtag = gtagSpy;
+      trackAnalyticsConsent("accept");
+      expect(gtagSpy).toHaveBeenCalled();
+    });
+
     it("tracks session_summary on unload (§5.1.2)", () => {
       trackSessionSummary({
         locale: "UK",

@@ -1,0 +1,109 @@
+{
+  "game_profile_id": "GAME_BLH_SIM_FULL",
+  "matrix_size": 6,
+  "payoff_matrix": [
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_0||H_BLEND||",
+      "action_profile": {
+        "h_split": "H_BLEND",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_FLAT||H_BLEND||",
+      "action_profile": {
+        "h_split": "H_BLEND",
+        "l_fee": "L_FEE_FLAT",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 1113660.46,
+        "L": 25000
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_0||H_PREPAY||",
+      "action_profile": {
+        "h_split": "H_PREPAY",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_FLAT||H_PREPAY||",
+      "action_profile": {
+        "h_split": "H_PREPAY",
+        "l_fee": "L_FEE_FLAT",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 2187618.73,
+        "L": 25000
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_0||H_AGGR||",
+      "action_profile": {
+        "h_split": "H_AGGR",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 3011901.3,
+        "L": 0
+      },
+      "underlying_scenario_id": "STRATEGY_AGGRESSIVE_PREPAY"
+    },
+    {
+      "cell_key": "B_PREPAY_25|||L_FEE_FLAT||H_AGGR||",
+      "action_profile": {
+        "h_split": "H_AGGR",
+        "l_fee": "L_FEE_FLAT",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 2986901.3,
+        "L": 25000
+      },
+      "underlying_scenario_id": "STRATEGY_AGGRESSIVE_PREPAY"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "h_split": "H_AGGR",
+        "l_fee": "L_FEE_0",
+        "b_lump": "B_PREPAY_25"
+      },
+      "payoffs": {
+        "B": 3011901.3,
+        "L": 0
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "h_split": "H_AGGR",
+    "l_fee": "L_FEE_0",
+    "b_lump": "B_PREPAY_25"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "STRATEGY_EQUITY_BLEND",
+    "STRATEGY_PREPAY_HEAVY",
+    "STRATEGY_AGGRESSIVE_PREPAY"
+  ]
+}

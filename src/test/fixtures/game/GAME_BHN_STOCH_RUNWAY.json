@@ -1,0 +1,140 @@
+{
+  "game_profile_id": "GAME_BHN_STOCH_RUNWAY",
+  "matrix_size": 8,
+  "payoff_matrix": [
+    {
+      "cell_key": "B_PREPAY_0|||||H_BLEND|N_EMPLOYED|",
+      "action_profile": {
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "H": 1138660.46
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||H_BLEND|N_EMPLOYED|",
+      "action_profile": {
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "H": 1138660.46
+      },
+      "underlying_scenario_id": "STRATEGY_EQUITY_BLEND"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||H_BLEND|N_UE_M1|N_PF_BRIDGE",
+      "action_profile": {
+        "h_split": "H_BLEND",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_BRIDGE",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2500000,
+        "H": 2500000
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||H_BLEND|N_UE_M1|N_PF_LOAN",
+      "action_profile": {
+        "h_split": "H_BLEND",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_LOAN",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2500000,
+        "H": 2500000
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||H_PREPAY|N_EMPLOYED|",
+      "action_profile": {
+        "h_split": "H_PREPAY",
+        "n_employment": "N_EMPLOYED",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "H": 2212618.73
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||H_PREPAY|N_EMPLOYED|",
+      "action_profile": {
+        "h_split": "H_PREPAY",
+        "n_employment": "N_EMPLOYED",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2212618.73,
+        "H": 2212618.73
+      },
+      "underlying_scenario_id": "STRATEGY_PREPAY_HEAVY"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||H_PREPAY|N_UE_M1|N_PF_BRIDGE",
+      "action_profile": {
+        "h_split": "H_PREPAY",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_BRIDGE",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2500000,
+        "H": 2500000
+      },
+      "underlying_scenario_id": "UE_PF_BRIDGE"
+    },
+    {
+      "cell_key": "B_PREPAY_0|||||H_PREPAY|N_UE_M1|N_PF_LOAN",
+      "action_profile": {
+        "h_split": "H_PREPAY",
+        "n_employment": "N_UE_M1",
+        "n_pf_route": "N_PF_LOAN",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 2500000,
+        "H": 2500000
+      },
+      "underlying_scenario_id": "UE_PF_TO_LOAN"
+    }
+  ],
+  "equilibria": [
+    {
+      "action_profile": {
+        "h_split": "H_BLEND",
+        "n_employment": "N_EMPLOYED",
+        "b_lump": "B_PREPAY_0"
+      },
+      "payoffs": {
+        "B": 1138660.46,
+        "H": 1138660.46
+      },
+      "is_pure": true
+    }
+  ],
+  "recommended_b_action": {
+    "h_split": "H_BLEND",
+    "n_employment": "N_EMPLOYED",
+    "b_lump": "B_PREPAY_0"
+  },
+  "warnings": [],
+  "underlying_scenario_ids": [
+    "STRATEGY_EQUITY_BLEND",
+    "UE_PF_BRIDGE",
+    "UE_PF_TO_LOAN",
+    "STRATEGY_PREPAY_HEAVY"
+  ]
+}

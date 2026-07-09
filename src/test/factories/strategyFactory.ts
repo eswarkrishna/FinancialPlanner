@@ -125,3 +125,67 @@ export function makeStrategyInputForTierUs(
     ...overrides,
   };
 }
+
+/** SPEC-UK §15.1 — UK reference loan + assets for strategy goldens. */
+const REFERENCE_LOAN_BASE_UK = {
+  principal_inr: 250_000,
+  annual_interest_rate: 4.5,
+  tenure_months: 300,
+  cash_inr: 30_000,
+  pf_corpus_inr: 60_000,
+  pf_annual_interest_rate_pct: 5,
+  monthly_pf_addition_inr: 293.54,
+  extra_monthly_income_inr: 0,
+  extra_income_post_tax: true,
+  marginal_tax_rate_pct: 0,
+  expected_equity_return_pct: 9,
+  horizon_months: 120,
+  isa_annual_allowance_inr: 20_000,
+  erc_overpayment_allowance_pct: 10,
+  erc_pct: 0,
+  pension_annual_return_pct: 5,
+  ltcg_rate_pct: 24,
+  ltcg_exemption_inr: 3_000,
+  subsistence_floor_inr: 1_500,
+} as const;
+
+const TIER_OVERRIDES_UK: Record<
+  ReferenceTier,
+  Pick<
+    StrategyInputs,
+    | "monthly_take_home_inr"
+    | "monthly_living_expense_inr"
+    | "emergency_months_buffer"
+    | "repayment_pct_of_take_home"
+  >
+> = {
+  tier_a: {
+    monthly_take_home_inr: 9_000,
+    monthly_living_expense_inr: 2_250,
+    emergency_months_buffer: 6,
+    repayment_pct_of_take_home: 90,
+  },
+  tier_b: {
+    monthly_take_home_inr: 6_000,
+    monthly_living_expense_inr: 2_000,
+    emergency_months_buffer: 8,
+    repayment_pct_of_take_home: 80,
+  },
+  tier_c: {
+    monthly_take_home_inr: 4_000,
+    monthly_living_expense_inr: 1_500,
+    emergency_months_buffer: 12,
+    repayment_pct_of_take_home: 75,
+  },
+};
+
+export function makeStrategyInputForTierUk(
+  tier: ReferenceTier,
+  overrides: Partial<StrategyInputs> = {},
+): StrategyInputs {
+  return {
+    ...REFERENCE_LOAN_BASE_UK,
+    ...TIER_OVERRIDES_UK[tier],
+    ...overrides,
+  };
+}

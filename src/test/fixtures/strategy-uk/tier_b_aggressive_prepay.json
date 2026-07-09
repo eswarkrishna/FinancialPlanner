@@ -1,0 +1,23 @@
+{
+  "strategy_id": "STRATEGY_AGGRESSIVE_PREPAY",
+  "loan_close_month": 257,
+  "total_interest_inr": 127813.24,
+  "interest_saved_vs_base_inr": 39061.45,
+  "one_time_prepay_inr": 2883.36,
+  "monthly_extra_principal_inr": 3410.42,
+  "monthly_sip_inr": 0,
+  "equity_lump_inr": 0,
+  "equity_corpus_at_horizon_inr": 0,
+  "equity_corpus_at_horizon_post_tax_inr": 0,
+  "pf_corpus_at_horizon_inr": 144254.3,
+  "cash_buffer_remaining_inr": 27116.64,
+  "loan_balance_at_horizon_inr": 148076.29,
+  "net_worth_at_horizon_inr": 23294.65,
+  "min_living_budget_inr": 1200,
+  "erc_fees_inr": 0,
+  "warnings": [
+    "HORIZON_TOO_SHORT",
+    "TAX_SIMPLIFIED",
+    "BELOW_SUBSISTENCE"
+  ]
+}

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { simulateAllStrategies } from "../../../lib/strategy/simulate";
+import { simulateAllStrategiesUk } from "../../../lib/strategy/simulateUk";
 import {
   LTCG_EXEMPTION_INR,
   LTCG_RATE_PCT,
   LTCG_RATE_PCT_US,
   SUBSISTENCE_FLOOR_INR,
   SUBSISTENCE_FLOOR_USD,
+  SUBSISTENCE_FLOOR_GBP,
 } from "../../../lib/strategy/constants";
 import {
   STRATEGY_TIER_PRESETS,
@@ -132,12 +134,16 @@ function buildInputs(form: StrategyFormState, locale: Locale): StrategyInputs {
       locale === "US"
         ? SUBSISTENCE_FLOOR_USD
         : locale === "UK"
-          ? 1_500
+          ? SUBSISTENCE_FLOOR_GBP
           : SUBSISTENCE_FLOOR_INR,
     ltcg_rate_pct:
       locale === "US" ? LTCG_RATE_PCT_US : locale === "UK" ? 24 : LTCG_RATE_PCT,
     ltcg_exemption_inr:
       locale === "US" ? 0 : locale === "UK" ? 3_000 : LTCG_EXEMPTION_INR,
+    isa_annual_allowance_inr: locale === "UK" ? 20_000 : undefined,
+    erc_overpayment_allowance_pct: locale === "UK" ? 10 : undefined,
+    erc_pct: locale === "UK" ? 0 : undefined,
+    pension_annual_return_pct: locale === "UK" ? 5 : undefined,
   };
 }
 
@@ -189,8 +195,10 @@ export function useStrategyPlanner() {
   const inputs = useMemo(() => buildInputs(form, locale), [form, locale]);
   const results = useMemo((): StrategyResult[] => {
     if (!ready) return [];
-    return simulateAllStrategies(inputs);
-  }, [inputs, ready]);
+    return locale === "UK"
+      ? simulateAllStrategiesUk(inputs)
+      : simulateAllStrategies(inputs);
+  }, [inputs, ready, locale]);
 
   function setField<K extends keyof StrategyFormState>(
     key: K,

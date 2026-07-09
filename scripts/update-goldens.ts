@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeGoldenScenarios } from "../src/test/fixtures/goldens/buildGoldens";
-import { computeGameGoldens } from "../src/test/fixtures/goldens/buildGameGoldens";
+import { computeGameGoldens, computeGameGoldensP1 } from "../src/test/fixtures/goldens/buildGameGoldens";
 import { computeStrategyGoldens } from "../src/test/fixtures/goldens/buildStrategyGoldens";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,7 +28,10 @@ async function writeJsonFiles(
 async function main() {
   const loanCount = await writeJsonFiles(goldensDir, computeGoldenScenarios());
   const strategyCount = await writeJsonFiles(strategyDir, computeStrategyGoldens());
-  const gameCount = await writeJsonFiles(gameDir, computeGameGoldens());
+  const gameCount = await writeJsonFiles(gameDir, {
+    ...computeGameGoldens(),
+    ...computeGameGoldensP1(),
+  });
   process.stdout.write(
     `Updated ${loanCount} loan + ${strategyCount} strategy + ${gameCount} game golden fixtures.\n`,
   );

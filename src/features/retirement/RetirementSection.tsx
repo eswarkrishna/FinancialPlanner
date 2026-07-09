@@ -169,11 +169,11 @@ export function RetirementSection() {
                 <th>Expense at retirement</th>
                 <th>Target corpus</th>
                 <th>Funded ratio</th>
-                {isUs && annualSsIncome > 0 && (
+                {(isUs || isUk) && annualSsIncome > 0 && (
                   <>
-                    <th>Annual SS income</th>
-                    <th>SS-adjusted target</th>
-                    <th>SS-adjusted funded</th>
+                    <th>{isUk ? "Annual State Pension" : "Annual SS income"}</th>
+                    <th>{isUk ? "SP-adjusted target" : "SS-adjusted target"}</th>
+                    <th>{isUk ? "SP-adjusted funded" : "SS-adjusted funded"}</th>
                   </>
                 )}
               </tr>
@@ -194,7 +194,7 @@ export function RetirementSection() {
                   </td>
                   <td>{money(scenario.projection.target_corpus_inr)}</td>
                   <td>{formatPercent(scenario.projection.funded_ratio)}</td>
-                  {isUs && annualSsIncome > 0 && (
+                  {(isUs || isUk) && annualSsIncome > 0 && (
                     <>
                       <td>{money(annualSsIncome)}</td>
                       <td>

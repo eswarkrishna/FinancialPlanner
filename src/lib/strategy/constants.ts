@@ -10,6 +10,9 @@ export const SUBSISTENCE_FLOOR_INR = 15_000;
 /** SPEC-US §9 — US subsistence floor in USD (stored in locale-neutral numeric fields). */
 export const SUBSISTENCE_FLOOR_USD = 2_000;
 
+/** SPEC-UK §9 — UK subsistence floor in GBP. */
+export const SUBSISTENCE_FLOOR_GBP = 1_500;
+
 /** Spec §9 FRAGILE_CASH_FLOW — EMI/THM ratio above this fires a warning on every strategy. */
 export const FRAGILE_CASH_FLOW_RATIO = 0.5;
 

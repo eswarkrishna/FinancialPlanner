@@ -1,4 +1,4 @@
-import { P0_GAME_PROFILES } from "../../../lib/game/constants";
+import { P0_GAME_PROFILES, P1_GAME_PROFILES } from "../../../lib/game/constants";
 import { runGame } from "../../../lib/game/runGame";
 import type { GameProfileId, GameResult } from "../../../lib/game/types";
 import { makeReferenceGameInput } from "../../factories/gameFactory";
@@ -38,9 +38,22 @@ function compact(result: GameResult): GameGoldenSnapshot {
 
 export type GameGoldenMap = Record<(typeof P0_GAME_PROFILES)[number], GameGoldenSnapshot>;
 
+export type GameP1GoldenMap = Record<(typeof P1_GAME_PROFILES)[number], GameGoldenSnapshot>;
+
 export function computeGameGoldens(): GameGoldenMap {
   const map = {} as GameGoldenMap;
   for (const profileId of P0_GAME_PROFILES) {
+    const result = runGame(
+      makeReferenceGameInput({ game_profile_id: profileId }),
+    );
+    map[profileId] = compact(result);
+  }
+  return map;
+}
+
+export function computeGameGoldensP1(): GameP1GoldenMap {
+  const map = {} as GameP1GoldenMap;
+  for (const profileId of P1_GAME_PROFILES) {
     const result = runGame(
       makeReferenceGameInput({ game_profile_id: profileId }),
     );

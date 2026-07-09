@@ -45,7 +45,7 @@ describe("LoanSection", () => {
 
     expect(screen.getByText("Prepay from PF + keep EMI")).toBeInTheDocument();
     expect(
-      screen.getByRole("option", { name: /One-time prepay \(PF\) \+ keep EMI/ }),
+      screen.getByRole("radio", { name: /Prepay \+ EMI: One-time prepay \(PF\) \+ keep EMI/i }),
     ).toBeInTheDocument();
   });
 
@@ -61,7 +61,7 @@ describe("LoanSection", () => {
 
     expect(screen.getByText("Prepay from gold + keep EMI")).toBeInTheDocument();
     expect(
-      screen.getByRole("option", { name: /One-time prepay \(Gold\) \+ keep EMI/ }),
+      screen.getByRole("radio", { name: /Prepay \+ EMI: One-time prepay \(Gold\) \+ keep EMI/i }),
     ).toBeInTheDocument();
   });
 
@@ -70,12 +70,11 @@ describe("LoanSection", () => {
     renderWithLocale(<LoanSection />);
     await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
 
-    const comboBoxes = screen.getAllByRole("combobox");
-    expect(comboBoxes.length).toBeGreaterThanOrEqual(2);
-    const scheduleSelect = comboBoxes[1]!;
-
-    fireEvent.change(scheduleSelect, { target: { value: "PREPAY_TENURE" } });
-    expect(scheduleSelect).toHaveValue("PREPAY_TENURE");
+    const prepayTenureCard = screen.getByRole("radio", {
+      name: /Prepay \+ tenure: One-time prepay/i,
+    });
+    await user.click(prepayTenureCard);
+    expect(prepayTenureCard).toHaveAttribute("aria-checked", "true");
 
     fireEvent.change(screen.getByLabelText("One-time prepay source"), {
       target: { value: "gold" },
@@ -85,8 +84,10 @@ describe("LoanSection", () => {
     });
 
     await waitFor(() => {
-      const updated = screen.getAllByRole("combobox")[1];
-      expect(updated).toHaveValue("BASE");
+      const baselineCard = screen.getByRole("radio", {
+        name: /Baseline: No one-time prepay/i,
+      });
+      expect(baselineCard).toHaveAttribute("aria-checked", "true");
     });
   });
 
@@ -104,7 +105,9 @@ describe("LoanSection", () => {
     const baseRow = comparisonTable.querySelector("tr")!;
     expect(baseRow).toHaveTextContent("168");
     expect(screen.getByText(/BASE \+ .*salary sweep/i)).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /Baseline \+ monthly salary sweep/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("radio", { name: /Salary sweep: Baseline \+ monthly salary sweep/i }),
+    ).toBeInTheDocument();
   });
 
   it("persists edited inputs across remount (§10 #19)", async () => {

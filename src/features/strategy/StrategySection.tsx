@@ -2,6 +2,7 @@ import { formatMoney } from "../../lib/locale/formatMoney";
 import type { StrategyResult, StrategyWarning } from "../../lib/strategy/types";
 import type { Locale } from "../../lib/locale/types";
 import { BarChart } from "../../components/BarChart";
+import { KpiStrip, type KpiItem } from "../../components/KpiStrip";
 import { TableWrap } from "../../components/TableWrap";
 import { useStrategyPlanner } from "./hooks/useStrategyPlanner";
 
@@ -52,8 +53,44 @@ export function StrategySection() {
   const currencyLabel = isUs ? "USD" : "INR";
   const warnings = warningCopy(locale);
 
+  const kpiItems: KpiItem[] =
+    strategyFormReady && results.length > 0
+      ? [
+          {
+            id: "horizon",
+            label: "Horizon",
+            value: `${form.horizon_months} mo`,
+          },
+          {
+            id: "best-nw",
+            label: "Best net worth",
+            value: money(
+              Math.max(...results.map((row) => row.net_worth_at_horizon_inr)),
+            ),
+            tone: "positive",
+          },
+          {
+            id: "interest-saved",
+            label: "Max interest saved",
+            value: money(
+              Math.max(...results.map((row) => row.interest_saved_vs_base_inr)),
+            ),
+          },
+          {
+            id: "warnings",
+            label: "Warnings",
+            value: String(results.reduce((sum, row) => sum + row.warnings.length, 0)),
+            tone: results.some((row) => row.warnings.length > 0) ? "warning" : "default",
+          },
+        ]
+      : [];
+
   return (
     <>
+      {kpiItems.length > 0 ? (
+        <KpiStrip items={kpiItems} ariaLabel="Strategy comparison summary" />
+      ) : null}
+
       <section className="card">
         <h2>Repayment strategies</h2>
         <p className="hint">
@@ -293,7 +330,29 @@ export function StrategySection() {
           </p>
         )}
         {strategyFormReady && results.length > 0 && (
-          <BarChart
+          <>
+            <div className="strategy-cards" aria-label="Strategy comparison cards">
+              {results.map((row) => (
+                <article key={row.strategy_id} className="strategy-card">
+                  <h3>{STRATEGY_LABELS[row.strategy_id]}</h3>
+                  <dl>
+                    <div>
+                      <dt>Net worth at horizon</dt>
+                      <dd>{money(row.net_worth_at_horizon_inr)}</dd>
+                    </div>
+                    <div>
+                      <dt>Interest saved</dt>
+                      <dd>{money(row.interest_saved_vs_base_inr)}</dd>
+                    </div>
+                    <div>
+                      <dt>Loan close</dt>
+                      <dd>{row.loan_close_month} mo</dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+            <BarChart
             title="Net worth at horizon by strategy"
             yLabel="Net worth"
             locale={locale}
@@ -301,9 +360,10 @@ export function StrategySection() {
               id: row.strategy_id,
               label: STRATEGY_LABELS[row.strategy_id],
               value_inr: row.net_worth_at_horizon_inr,
-              color: ["#1d4ed8", "#0d9488", "#b45309"][index % 3]!,
+              color: ["#0d9488", "#0f766e", "#b45309"][index % 3]!,
             }))}
           />
+          </>
         )}
         <TableWrap label="Strategy comparison results" className="comparison">
           <table>

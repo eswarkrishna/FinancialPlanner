@@ -10,6 +10,7 @@ import {
 import { AppFooter } from "./components/AppFooter";
 import { AnalyticsConsentBanner } from "./components/AnalyticsConsentBanner";
 import { FeedbackHelpful } from "./components/FeedbackHelpful";
+import { LocaleSegment } from "./components/LocaleSegment";
 import { NewVersionBanner } from "./components/NewVersionBanner";
 import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
 import { useAnalyticsConsent } from "./hooks/useAnalyticsConsent";
@@ -121,80 +122,94 @@ export function App() {
         Skip to content
       </a>
 
-      <header className="app-header">
-        <div className="app-header-inner app-brand">
-          <div className="app-brand-row">
-            <h1>FinancialPlanner</h1>
-            <label className="locale-switch inline">
-              Locale{" "}
-              <select
-                value={locale}
-                onChange={(e) => onLocaleChange(e.target.value as Locale)}
-                aria-label="Country locale"
-              >
-                <option value="IN">India (INR)</option>
-                <option value="US">United States (USD)</option>
-                <option value="UK">United Kingdom (GBP)</option>
-              </select>
-            </label>
+      <div className="app-body">
+        <aside className="app-sidebar" aria-label="Planner sections">
+          <div className="app-sidebar-brand">
+            <span className="app-sidebar-title">FinancialPlanner</span>
           </div>
-          <p className="lede">
-            Plan your home loan, compare prepayment options, model debt and retirement
-            savings, and explore what-if strategies—all in one place. Numbers are for
-            learning only, not financial advice.
-          </p>
-        </div>
-        <nav className="app-tabs" aria-label="Planner sections">
-          <div
-            className="app-tabs-scroll"
-            role="tablist"
-            aria-orientation="horizontal"
-            tabIndex={0}
-            aria-label="Planner section tabs"
-          >
+          <nav className="app-sidebar-nav">
             {PLANNER_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
-                role="tab"
-                id={`tab-${tab.id}`}
-                aria-selected={activeTab === tab.id}
-                aria-controls={`panel-${tab.id}`}
-                tabIndex={activeTab === tab.id ? 0 : -1}
-                className={`app-tab${activeTab === tab.id ? " app-tab--active" : ""}`}
+                className={`app-sidebar-link${
+                  activeTab === tab.id ? " app-sidebar-link--active" : ""
+                }`}
+                aria-current={activeTab === tab.id ? "page" : undefined}
                 onClick={() => selectTab(tab.id)}
-                onKeyDown={(event) => handleTabKeyDown(event, tab.id, selectTab)}
               >
-                <span className="app-tab-label">{tab.label}</span>
+                {tab.label}
               </button>
             ))}
-          </div>
-        </nav>
-      </header>
+          </nav>
+        </aside>
 
-      <main id="main-content" className="layout">
-        {PLANNER_TABS.map((tab) => (
-          <div
-            key={tab.id}
-            id={`panel-${tab.id}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${tab.id}`}
-            hidden={activeTab !== tab.id}
-            tabIndex={activeTab === tab.id ? 0 : undefined}
-          >
-            {activeTab === tab.id ? (
-              <>
-                <FeedbackHelpful tabId={tab.id} locale={locale} />
-                {tab.id === "loan" && <LoanSection />}
-                {tab.id === "debt" && <DebtSection />}
-                {tab.id === "retirement" && <RetirementSection />}
-                {tab.id === "strategies" && <StrategySection />}
-                {tab.id === "strategic" && <GameSection />}
-              </>
-            ) : null}
-          </div>
-        ))}
-      </main>
+        <div className="app-main-column">
+          <header className="app-header">
+            <div className="app-header-inner app-brand">
+              <div className="app-brand-row">
+                <h1>FinancialPlanner</h1>
+                <LocaleSegment value={locale} onChange={onLocaleChange} />
+              </div>
+              <p className="lede">
+                Plan your home loan, compare prepayment options, model debt and retirement
+                savings, and explore what-if strategies—all in one place. Numbers are for
+                learning only, not financial advice.
+              </p>
+            </div>
+            <nav className="app-tabs" aria-label="Planner sections">
+              <div
+                className="app-tabs-scroll"
+                role="tablist"
+                aria-orientation="horizontal"
+                tabIndex={0}
+                aria-label="Planner section tabs"
+              >
+                {PLANNER_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    id={`tab-${tab.id}`}
+                    aria-selected={activeTab === tab.id}
+                    aria-controls={`panel-${tab.id}`}
+                    tabIndex={activeTab === tab.id ? 0 : -1}
+                    className={`app-tab${activeTab === tab.id ? " app-tab--active" : ""}`}
+                    onClick={() => selectTab(tab.id)}
+                    onKeyDown={(event) => handleTabKeyDown(event, tab.id, selectTab)}
+                  >
+                    <span className="app-tab-label">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </nav>
+          </header>
+
+          <main id="main-content" className="layout">
+            {PLANNER_TABS.map((tab) => (
+              <div
+                key={tab.id}
+                id={`panel-${tab.id}`}
+                role="tabpanel"
+                aria-labelledby={`tab-${tab.id}`}
+                hidden={activeTab !== tab.id}
+                tabIndex={activeTab === tab.id ? 0 : undefined}
+              >
+                {activeTab === tab.id ? (
+                  <>
+                    <FeedbackHelpful tabId={tab.id} locale={locale} />
+                    {tab.id === "loan" && <LoanSection />}
+                    {tab.id === "debt" && <DebtSection />}
+                    {tab.id === "retirement" && <RetirementSection />}
+                    {tab.id === "strategies" && <StrategySection />}
+                    {tab.id === "strategic" && <GameSection />}
+                  </>
+                ) : null}
+              </div>
+            ))}
+          </main>
+        </div>
+      </div>
 
       {showAnalyticsConsent ? (
         <AnalyticsConsentBanner onAccept={acceptAnalytics} onReject={rejectAnalytics} />

@@ -925,6 +925,18 @@ Engineers must add unit tests for off-by-one with an example: `U=1` → tranche2
 
 Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows; Min cash balance (if simulated); Notes/warnings.
 
+### Visual design (Calm planner)
+
+Design tokens and layout follow [`docs/research/2026-07-ui-redesign-figma-direction.md`](research/2026-07-ui-redesign-figma-direction.md) (PR #14 Figma direction).
+
+- **Shell:** Sticky header with brand + locale segmented control; **sidebar navigation on desktop** (≥1024px), horizontal tab scroll on smaller viewports.  
+- **KPI strip:** Loan and Strategies tabs show a summary row (payoff, total interest, Δ vs baseline, min cash, warning count) when results are available — visible without horizontal scroll on mobile.  
+- **Grouped inputs:** Loan tab uses collapsible sections (loan terms, assets, cashflow/stress, advanced).  
+- **Scenario selection:** Schedule drill-down uses **scenario cards** (radiogroup), not an exclusive long `<select>`. Comparison table remains for audit numbers.  
+- **Strategic tab:** Payoff matrix includes a **heatmap** visualization alongside the table (§4.13.9 export unchanged).  
+- **Typography:** `font-variant-numeric: tabular-nums` on currency columns.  
+- **Tokens:** Teal accent (`#0d9488`), slate-100 page background, 12px card radius — mirrored in `src/index.css` CSS variables.
+
 ---
 
 ## 9. Edge Cases & Warnings (must surface in UI)

@@ -1,6 +1,7 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
 import type { GameProfileId } from "../../lib/game";
 import { GameLegendPanel } from "./GameLegendPanel";
+import { PayoffHeatmap } from "./components/PayoffHeatmap";
 import { TableWrap } from "../../components/TableWrap";
 import {
   describeGameProfile,
@@ -110,6 +111,7 @@ export function GameSection() {
               {result.payoff_matrix.length} cells · underlying scenarios:{" "}
               {result.underlying_scenario_ids.join(", ")}
             </p>
+            <PayoffHeatmap cells={result.payoff_matrix} locale={locale} />
             <TableWrap label="Strategic payoff matrix" className="comparison">
               <table>
                 <thead>

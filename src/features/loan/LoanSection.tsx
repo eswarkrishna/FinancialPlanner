@@ -1,17 +1,19 @@
 import { useRef } from "react";
+import { AlertCallout } from "../../components/AlertCallout";
+import { FormSection } from "../../components/FormSection";
 import { formatMoney } from "../../lib/locale/formatMoney";
 import { trackLoanPrepaySourceChange, trackLoanScenarioViewChange } from "../../lib/analytics";
 import { useLocale } from "../locale/LocaleContext";
 import { TableWrap } from "../../components/TableWrap";
+import { LoanKpiStrip } from "./components/LoanKpiStrip";
+import { ScenarioCardPicker } from "./components/ScenarioCardPicker";
 import { ScheduleChart } from "./components/ScheduleChart";
 import { ScenarioTable } from "./components/ScenarioTable";
 import { StagedPrepayEditor } from "./components/StagedPrepayEditor";
+import { buildScenarioViewOptions } from "./hooks/buildScenarioViewOptions";
 import {
   type PrepaySource,
-  type ScenarioView,
-  pfTrancheToLoanLabel,
   prepaySourceHintLabel,
-  prepaySourceScheduleLabel,
   useLoanModels,
 } from "./hooks/useLoanModels";
 
@@ -84,10 +86,34 @@ export function LoanSection() {
         ? withdrawalPlan.tranche2_inr
         : 0;
 
+  const scenarioViewOptions =
+    models &&
+    buildScenarioViewOptions(
+      models,
+      prepaySource,
+      locale,
+      unemploymentOn,
+      Number(inputs.unemployment_start_month) || 1,
+    );
+
+  const emiLabel = isUk || isUs ? "Mortgage payment" : "EMI";
+
   return (
     <>
+      {models && (
+        <LoanKpiStrip
+          locale={locale}
+          scenarioView={scenarioView}
+          comparisonRows={comparisonRows}
+          activeWarnings={activeWarnings}
+          emiLabel={emiLabel}
+          emiValue={models.base.emi_inr}
+        />
+      )}
+
       <section className="card">
         <h2>Loan &amp; assets</h2>
+        <FormSection title="Loan terms">
         <div className="form-grid">
           <label>
             Principal ({currencyLabel})
@@ -129,6 +155,11 @@ export function LoanSection() {
               onChange={(e) => setField("monthly_cash_to_loan_inr", e.target.value)}
             />
           </label>
+        </div>
+        </FormSection>
+
+        <FormSection title="Assets &amp; income">
+        <div className="form-grid">
           <label>
             Cash ({currencyLabel})
             <input
@@ -403,10 +434,12 @@ export function LoanSection() {
           </>
           )}
         </div>
+        </FormSection>
 
-        <h3 className="subsection-title">
-          {isUk ? "Job loss & cashflow" : isUs ? "Job loss & cashflow" : "Unemployment & cashflow"}
-        </h3>
+        <FormSection
+          title={isUk ? "Job loss & cashflow" : isUs ? "Job loss & cashflow" : "Unemployment & cashflow"}
+          defaultOpen={unemploymentOn}
+        >
         <div className="form-grid">
           <label className="checkbox-label">
             <input
@@ -535,6 +568,7 @@ export function LoanSection() {
             withdrawals model a 10% penalty plus federal withholding.
           </p>
         )}
+        </FormSection>
 
         <p className="hint">
           <strong>Monthly cash to loan:</strong> amount applied as{" "}
@@ -593,7 +627,7 @@ export function LoanSection() {
       </section>
 
       {models && (
-        <>
+        <div className="planner-layout">
           <section className="card">
             <StagedPrepayEditor
               entries={stagedPrepays}
@@ -680,7 +714,11 @@ export function LoanSection() {
               </table>
             </TableWrap>
           </section>
+        </div>
+      )}
 
+      {models && (
+        <>
           <section className="card">
             <h2>Loan baseline summary</h2>
             <dl className="kpi">
@@ -729,86 +767,6 @@ export function LoanSection() {
             <div className="schedule-head">
               <h2>Loan amortisation schedule</h2>
               <div className="schedule-head-actions">
-                <label className="inline">
-                  View{" "}
-                  <select
-                    value={scenarioView}
-                    onChange={(e) => {
-                      const next = e.target.value as ScenarioView;
-                      setScenarioView(next);
-                      trackLoanScenarioViewChange(next, locale);
-                    }}
-                  >
-                    <option value="BASE">Baseline (no one-time prepay)</option>
-                    {models.baseSalarySweep && (
-                      <option value="BASE_SALARY_SWEEP">
-                        Baseline + monthly salary sweep
-                      </option>
-                    )}
-                    {models.baseInflow && (
-                      <option value="BASE_INFLOW">Baseline + monthly cashflow</option>
-                    )}
-                    {models.canPrepay && (
-                      <>
-                        <option value="PREPAY_TENURE">
-                          One-time prepay (
-                          {prepaySourceScheduleLabel(models.prepaySource, locale)}) + keep
-                          tenure
-                        </option>
-                        <option value="PREPAY_EMI">
-                          One-time prepay (
-                          {prepaySourceScheduleLabel(models.prepaySource, locale)}) + keep
-                          EMI
-                        </option>
-                      </>
-                    )}
-                    {models.prepayEmiInflow && (
-                      <option value="PREPAY_EMI_INFLOW">
-                        One-time prepay (
-                        {prepaySourceScheduleLabel(models.prepaySource, locale)}) + keep
-                        EMI + monthly cashflow
-                      </option>
-                    )}
-                    {models.cashflowNoPf && (
-                      <option value="CASHFLOW_NO_PF">
-                        Cash-only prepay + monthly cashflow
-                      </option>
-                    )}
-                    {models.cashflowPlusPf && (
-                      <option value="CASHFLOW_PLUS_PF">
-                        {isUs
-                          ? "Cash + monthly cashflow + 401(k) tranches"
-                          : "Cash + monthly cashflow + PF tranches"}
-                      </option>
-                    )}
-                    {models.uePfToLoan && (
-                      <option value="UE_PF_TO_LOAN">
-                        {pfTrancheToLoanLabel(
-                          locale,
-                          Number(inputs.unemployment_start_month) || 1,
-                          unemploymentOn,
-                        )}
-                      </option>
-                    )}
-                    {models.uePfBridge && (
-                      <option value="UE_PF_BRIDGE">
-                        {isUs
-                          ? "Job loss: 401(k) bridge"
-                          : "Unemployment: PF bridge"}
-                      </option>
-                    )}
-                    {models.ueDelayPrepay && (
-                      <option value="UE_DELAY_PREPAY">
-                        {isUs
-                          ? "Job loss: delay prepay"
-                          : "Unemployment: delay prepay"}
-                      </option>
-                    )}
-                    {models.stagedPrepay && (
-                      <option value="STAGED_PREPAY">Custom staged prepay</option>
-                    )}
-                  </select>
-                </label>
                 <div className="actions inline-actions">
                   <button type="button" className="btn secondary btn-sm" onClick={exportScheduleCsv}>
                     Export CSV
@@ -820,13 +778,20 @@ export function LoanSection() {
               </div>
             </div>
 
-            {activeWarnings.length > 0 && (
-              <ul className="errors" aria-live="assertive">
-                {activeWarnings.map((w) => (
-                  <li key={w}>{WARNING_LABELS[w] ?? w}</li>
-                ))}
-              </ul>
+            {scenarioViewOptions && (
+              <ScenarioCardPicker
+                options={scenarioViewOptions}
+                value={scenarioView}
+                onChange={(next) => {
+                  setScenarioView(next);
+                  trackLoanScenarioViewChange(next, locale);
+                }}
+              />
             )}
+
+            <AlertCallout
+              messages={activeWarnings.map((w) => WARNING_LABELS[w] ?? w)}
+            />
 
             <div className="chart-grid">
               <ScheduleChart

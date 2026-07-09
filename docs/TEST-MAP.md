@@ -25,6 +25,12 @@ manual smoke checks.
 | 10.16 | Retirement scenario ranking (conservative <= optimistic) | `src/lib/retirement.test.ts` |
 | 10.17 | Retirement inflation increases target corpus | `src/lib/retirement.test.ts` |
 | 10.15 | Latest push footer metadata (§8) | `src/components/AppFooter.test.tsx`, `src/lib/buildInfo.test.ts` |
+| 10.28 | Release consent persisted (`accept` / `reject`) | `src/lib/notifications/consent.test.ts`, `src/lib/notifications/useReleaseNotifications.test.tsx`, `src/App.test.tsx` |
+| 10.29 | New version detection (sha change, first baseline silent) | `src/lib/notifications/versionCheck.test.ts`, `src/lib/notifications/releaseNotifications.test.ts` |
+| 10.30 | Notification copy includes short commit id | `src/lib/notifications/browserNotifications.test.ts`, `src/lib/notifications/constants.ts` |
+| 10.31 | In-app update strip with reload/dismiss | `src/components/NewVersionBanner.test.tsx`, `src/App.test.tsx`, `src/lib/notifications/useReleaseNotifications.test.tsx` |
+| 10.32 | Build emits `version.json` + valid `sw.js` | `scripts/verify-release-deploy.mjs` (CI + `npm run verify:release`) |
+| 10.33 | Production `version.json` + `sw.js` reachable | `scripts/verify-production-release.mjs` (`npm run verify:production`) |
 
 ## Golden contracts
 
@@ -53,3 +59,5 @@ Run `npm run dev` and verify:
 3. Retirement scenario select updates yearly timeline heading/content.
 4. Footer disclaimer text from SPEC §14 is visible on the main dashboard.
 5. Footer shows **Latest push** with commit date and linked short SHA (§8 deploy metadata).
+6. **Release notifications (§4.15):** consent strip appears on first visit; **No thanks** hides it; after simulating a new deploy (`lastSeen` ≠ build sha) the update banner shows **Reload**.
+7. **Production smoke (optional):** `npm run verify:production` — fetches live `version.json` and `sw.js`.

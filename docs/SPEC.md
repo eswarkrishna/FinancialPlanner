@@ -1000,6 +1000,8 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 29. **New version detection:** when `lastSeenSha` differs from current build sha, `isNewVersionAvailable` is true; first baseline records sha without alerting.
 30. **Notification copy:** granted permission + new version triggers title/body containing short commit id.
 31. **In-app strip:** new version shows reload control; dismiss hides until next version change.
+32. **Deploy artifacts:** `npm run build` produces valid `dist/version.json` and plain-JS `dist/sw.js` (`scripts/verify-release-deploy.mjs`).
+33. **Production smoke:** `npm run verify:production` fetches live `version.json` and `sw.js` from the deployed site (default GitHub Pages URL).
 
 ---
 

@@ -29,3 +29,6 @@ jobs:
 
       - name: Build app
         run: npm run build
+
+      - name: Verify release notification deploy artifacts (§4.15)
+        run: node scripts/verify-release-deploy.mjs

@@ -39,6 +39,9 @@ jobs:
           fi
           npm run build
 
+      - name: Verify release notification deploy artifacts (§4.15)
+        run: node scripts/verify-release-deploy.mjs
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

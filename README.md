@@ -118,12 +118,14 @@ Every page footer includes **Report on GitHub**, which opens a new issue on the 
 
 ### SEO
 
-Build-time and runtime SEO use `VITE_SITE_URL` (default in `.env.production`: GitHub Pages demo URL).
+Build-time and runtime SEO use `VITE_SITE_URL` (default in `.env.production`: GitHub Pages demo URL). Conventions follow SPEC §8 “SEO metadata” (patterns from [`docs/research/2026-07-financial-sites-seo.md`](docs/research/2026-07-financial-sites-seo.md)).
 
-- **Meta tags:** description, canonical, Open Graph, Twitter cards, JSON-LD (`WebApplication`)
+- **Titles/descriptions:** keyword-first per-tab titles (`{Keyword} | FinancialPlanner`) and unique 120–160-char descriptions
+- **Meta tags:** description, robots (`max-image-preview:large`), theme-color, canonical, Open Graph (`og:site_name`, `og:locale`, `og:image:alt`), Twitter cards
+- **JSON-LD:** `WebApplication` (feature list, `isAccessibleForFree`, publisher `sameAs` → GitHub) plus `BreadcrumbList` on non-loan tabs; refreshed on tab change
 - **Assets:** `public/favicon.svg`, `public/og-image.png`
-- **Tab URLs:** `?tab=loan|debt|retirement|strategies|strategic` (updates `document.title` and meta tags)
-- **Generated on build:** `dist/robots.txt`, `dist/sitemap.xml`
+- **Tab URLs:** `?tab=loan|debt|retirement|strategies|strategic|budget` (updates `document.title`, meta tags, and JSON-LD)
+- **Generated on build:** `dist/robots.txt`, `dist/sitemap.xml` (with `<lastmod>` from the build commit date)
 
 Override `VITE_SITE_URL` when deploying to a custom CloudFront domain.
 

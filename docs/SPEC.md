@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.2  
+**Version:** 2.3  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -1008,6 +1008,20 @@ Engineers must add unit tests for off-by-one with an example: `U=1` → tranche2
 - Show in the **site footer** on every screen: label **“Latest push”**, human-readable commit date, and short SHA linking to `https://github.com/{owner}/{repo}/commit/{sha}`. Default repo: `eswarkrishna/FinancialPlanner` (override via `VITE_GITHUB_REPO` at build).  
 - If git metadata is unavailable (e.g. tarball without `.git`), **omit** the line — do not show placeholders or “unknown”.
 
+### SEO metadata
+
+Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-07-financial-sites-seo.md) (survey of NerdWallet/Bankrate/EMI-calculator page conventions).
+
+- **Titles:** keyword-first per tab, brand suffix last — `{Keyword phrase} | FinancialPlanner`, target ≤ ~65 characters (e.g. “Loan EMI Calculator with Prepayment | FinancialPlanner”). The loan tab doubles as the home/canonical `/` title.
+- **Descriptions:** unique per tab, **120–160 characters**, lead with the tool’s benefit; “Free” allowed, no keyword stuffing.
+- **JSON-LD (per tab, updated on tab change):**
+  - `WebApplication` — `applicationCategory: FinanceApplication`, `featureList` (one entry per planner tab), `isAccessibleForFree: true`, `inLanguage` (`en-IN`, `en-US`, `en-GB`), `offers` price 0, `dateModified` from build commit date, `publisher` `Organization` with GitHub `sameAs`.
+  - `BreadcrumbList` — `Home → {tab label}` for non-loan tabs; omitted on the loan/home tab.
+  - No `FAQPage` markup unless matching visible Q&A content exists (Google deprecated FAQ rich results May 2026).
+- **Head hygiene (static in `index.html`):** `robots` meta `index, follow, max-image-preview:large`, `og:site_name`, `og:locale`, `og:image:alt`, `theme-color` (teal accent `#0d9488`).
+- **Sitemap:** every tab URL with `<lastmod>` set to the build commit date (ISO 8601 date); omit `<lastmod>` when git metadata is unavailable.
+- Existing rules stay: canonical per tab, OG/Twitter tags mirrored, `robots.txt` + `sitemap.xml` generated on build, no user data in URLs (§5.1).
+
 ### Analytics UI (§5.1 Tier 1–2)
 
 - **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
@@ -1136,6 +1150,12 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 34. **Capacitor sync:** after `npm run cap:sync`, `android/app/src/main/assets/public/index.html` exists and references bundled JS/CSS under `assets/public/`.
 35. **Native release UI:** when `Capacitor.isNativePlatform()` is true, the §4.15 release-notification consent banner, service-worker registration, and in-app new-version strip are all hidden.
 36. **Debug APK:** `npm run android:assemble` completes `assembleDebug` without error when Android SDK is installed (CI optional).
+
+### SEO metadata (§8)
+
+45. **Keyword titles:** every tab title starts with its keyword phrase and ends with `| FinancialPlanner`; length ≤ 70 characters; titles are unique across tabs.
+46. **Descriptions:** every tab description is 120–160 characters and unique across tabs.
+47. **JSON-LD:** switching to a non-loan tab injects `WebApplication` (with `featureList`, `isAccessibleForFree`, `publisher.sameAs`) and `BreadcrumbList` (`Home → tab`) into the head; the loan tab omits `BreadcrumbList`; sitemap entries include `<lastmod>` when a build commit date exists.
 
 ---
 

@@ -976,7 +976,6 @@ tbody tr:hover {
 }
 
 .release-notification-consent,
-.analytics-consent,
 .new-version-banner {
   display: flex;
   flex-wrap: wrap;
@@ -995,7 +994,6 @@ tbody tr:hover {
 }
 
 .release-notification-consent p,
-.analytics-consent p,
 .new-version-banner p {
   margin: 0;
   flex: 1;

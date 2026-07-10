@@ -32,6 +32,8 @@ manual smoke checks.
 | 10.45 | Keyword-first unique tab titles ≤ 70 chars (§8) | `src/lib/seo.test.ts` |
 | 10.46 | Unique 120–160-char tab descriptions (§8) | `src/lib/seo.test.ts` |
 | 10.47 | JSON-LD WebApplication + BreadcrumbList, sitemap lastmod (§8) | `src/lib/seo.test.ts`, `src/App.test.tsx` |
+| 10.23 | Tier 2 auto-init (no consent banner) | `src/hooks/useAnalyticsBootstrap.test.ts` |
+| 10.24 | Tier 2 `web_vitals` sample | `src/lib/analytics.test.ts`, `src/lib/analytics/webVitals.ts` |
 | 10.28 | Release consent persisted (`accept` / `reject`) | `src/lib/notifications/consent.test.ts`, `src/lib/notifications/useReleaseNotifications.test.tsx`, `src/App.test.tsx` |
 | 10.29 | New version detection (sha change, first baseline silent) | `src/lib/notifications/versionCheck.test.ts`, `src/lib/notifications/releaseNotifications.test.ts` |
 | 10.30 | Notification copy includes short commit id | `src/lib/notifications/browserNotifications.test.ts`, `src/lib/notifications/constants.ts` |

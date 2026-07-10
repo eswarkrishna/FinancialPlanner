@@ -20,6 +20,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 ### Changed
 
 - **SEO (SPEC §8)** — keyword-first per-tab titles (e.g. “Loan EMI Calculator with Prepayment | FinancialPlanner”), tuned 120–160-char descriptions, richer JSON-LD (`WebApplication` feature list + `BreadcrumbList` per tab + publisher `sameAs`), robots/theme-color/OG head tags, and sitemap `<lastmod>`; patterns from [`docs/research/2026-07-financial-sites-seo.md`](docs/research/2026-07-financial-sites-seo.md).
+- **Analytics (§5.1.2)** — when GA is enabled, capture events on load with **no consent banner**; footer terms still disclose GA and link to Google’s opt-out add-on.
 
 ### Added
 

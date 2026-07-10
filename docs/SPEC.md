@@ -737,9 +737,9 @@ Ship first. Enables channel attribution and GA4 conversion reporting without new
 
 Copied URL must be the canonical tab URL (`tabPageUrl` from SEO helpers) with `utm_source=share` and `utm_medium=copy` appended. No scenario inputs or amounts in the URL.
 
-#### 5.1.2 Tier 2 — Engagement, performance & consent capture
+#### 5.1.2 Tier 2 — Engagement & performance capture
 
-Ship after Tier 1. Adds session-quality metrics and EU/UK-friendly consent.
+Ship after Tier 1. Adds session-quality metrics. **No in-app consent banner:** when `VITE_GA_MEASUREMENT_ID` is set at build time, call `initAnalytics()` on first load and capture all §5.1 events without prompting. Users may still block GA via browser extensions or Google’s opt-out add-on (footer terms). Do not persist an analytics accept/reject choice; ignore any legacy `financial-planner-analytics-consent` key.
 
 **`session_summary`** — fire **once** on `pagehide` / `visibilitychange` (hidden) when analytics initialized; use `navigator.sendBeacon` or `gtag` `transport_type: 'beacon'` when available:
 
@@ -758,15 +758,6 @@ Ship after Tier 1. Adds session-quality metrics and EU/UK-friendly consent.
 | `metric_value` | Rounded number (CLS to 3 decimal places) |
 | `metric_rating` | `good` \| `needs-improvement` \| `poor` per web.dev thresholds |
 | `page_path` | Current path |
-
-**`analytics_consent`** — fire when user acts on the consent banner (§8):
-
-| Parameter | Value |
-|-----------|-------|
-| `decision` | `accept` \| `reject` |
-| `page_path` | Current path |
-
-**Consent gate (Tier 2):** when `VITE_GA_MEASUREMENT_ID` is set, show a compact footer-region banner on first visit until the user chooses. Persist choice in `localStorage` key `financial-planner-analytics-consent` (`accept` \| `reject`). **Do not** call `initAnalytics()` until `accept`. If `reject`, skip all GA loading for that browser profile. Banner copy references §5.1 privacy rules and links to footer terms.
 
 **`feedback_helpful`** (optional Tier 2 UI) — thumbs up/down on active tab:
 
@@ -812,7 +803,6 @@ Explicit `gtag` events — not inferred from generic DOM clicks:
 | `share_link_copy` | “Copy link to this tab” (§5.1.1) | `tab_id`, `locale`, `page_path` |
 | `session_summary` | Tab session end (§5.1.2) | `tabs_visited_count`, `had_export`, `locale`, `page_path` |
 | `web_vitals` | Core Web Vitals sample (§5.1.2) | `metric_name`, `metric_value`, `metric_rating`, `page_path` |
-| `analytics_consent` | Consent banner choice (§5.1.2) | `decision`, `page_path` |
 | `feedback_helpful` | Thumbs up/down (§5.1.2, optional) | `helpful`, `tab_id`, `locale`, `page_path` |
 | `feedback_github_click` | Footer “Report on GitHub” | `page_path` |
 | `footer_commit_link_click` | Footer commit SHA link | `page_path` |
@@ -840,7 +830,7 @@ Ship the same React SPA inside a **Capacitor** Android WebView shell (`android/`
 
 - **Loan / debt / retirement / strategy / game** — identical domain logic to the web SPA; `localStorage` persistence (§5 form persistence) works in the WebView.
 - **Release notifications (§4.15)** — **fully disabled** in the native shell: no service-worker registration, no browser-notification consent banner, no in-app new-version strip, no `sw.js` polling. Users update via Play Store / sideloaded APK, not live web deploy.
-- **Analytics (§5.1)** — optional when `VITE_GA_MEASUREMENT_ID` is set at mobile build time; same PII rules. Consent banner still applies when GA is enabled.
+- **Analytics (§5.1)** — optional when `VITE_GA_MEASUREMENT_ID` is set at mobile build time; same PII rules. Init on load with no consent banner (§5.1.2).
 - **Exports (CSV / JSON)** — use Capacitor share / download affordances where the WebView allows; file pickers for import follow Android WebView behaviour.
 
 **Non-goals (Android v1):** iOS build, FCM push, in-app billing, Play Store listing automation, deep-link URL schemes beyond default Capacitor app links.
@@ -1025,7 +1015,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 ### Analytics UI (§5.1 Tier 1–2)
 
 - **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
-- **Consent banner (Tier 2)** — when GA is enabled, show above the footer on first visit until accept/reject. Buttons: “Accept analytics” / “No thanks”. Dismiss persists per §5.1.2. Must not block calculator inputs (non-modal strip).  
+- **No analytics consent banner** — when GA is enabled, load and capture without an accept/reject strip (§5.1.2). Footer terms still disclose GA and link to Google’s opt-out add-on.  
 - **Release notification consent (§4.15)** — separate strip offering browser notifications for new deploys; persists per §4.15.  
 - **Helpful? (Tier 2, optional)** — thumbs up/down near tab content heading; one vote per tab per session (disable after click).
 
@@ -1112,7 +1102,7 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 20. **Tier 1 `share_link_copy`:** copy control produces a URL containing `utm_source=share` and fires `share_link_copy` with `tab_id`.  
 21. **Tier 1 locale param:** `locale_change` accepts `UK` as `locale` value.  
 22. **Tier 2 `session_summary`:** after visiting two tabs and one export in a mocked session, unload handler emits `session_summary` with `tabs_visited_count` ≥ 2 and `had_export` = `true`.  
-23. **Tier 2 consent:** when consent storage is `reject`, `initAnalytics` does not set `initialized`; no `gtag` calls occur until `accept`.  
+23. **Tier 2 auto-init:** when `VITE_GA_MEASUREMENT_ID` is set, `initAnalytics` runs on load without a consent banner; no analytics accept/reject UI is shown.  
 24. **Tier 2 `web_vitals`:** mocked LCP sample emits `web_vitals` with `metric_name` = `LCP` and `metric_rating` in allowed enum.
 
 ### Persistence & import (§4.9 v1.7)

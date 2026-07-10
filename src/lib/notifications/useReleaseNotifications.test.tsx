@@ -108,3 +108,31 @@ describe("useReleaseNotifications (§4.15)", () => {
     expect(localStorage.getItem(AWAITING_RELOAD_SHA_KEY)).toBe("new-sha");
   });
 });
+
+describe("useReleaseNotifications on native shell (§5.2)", () => {
+  beforeEach(() => {
+    vi.doMock("../platform", () => ({
+      isNativeApp: () => true,
+      nativePlatform: () => "android",
+    }));
+  });
+
+  afterEach(() => {
+    vi.doUnmock("../platform");
+    vi.resetModules();
+  });
+
+  it("hides release notification UI in Capacitor native shell", async () => {
+    vi.resetModules();
+    vi.doMock("../platform", () => ({
+      isNativeApp: () => true,
+      nativePlatform: () => "android",
+    }));
+    const { useReleaseNotifications: useNativeRelease } = await import("./useReleaseNotifications");
+    const { result } = renderHook(() => useNativeRelease());
+
+    expect(result.current.showConsent).toBe(false);
+    expect(result.current.notificationsSupported).toBe(false);
+    expect(result.current.showNewVersion).toBe(false);
+  });
+});

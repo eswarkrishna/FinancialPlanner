@@ -1,4 +1,4 @@
-package com.getcapacitor.myapp;
+package com.eswar.financialplanner;
 
 import static org.junit.Assert.*;
 

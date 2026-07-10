@@ -1,4 +1,5 @@
 import type { VersionManifest } from "./versionManifest";
+import { isNativeApp } from "../platform";
 
 function normalizeBase(base: string): string {
   if (!base || base === "/") return "/";
@@ -39,6 +40,7 @@ export async function fetchRemoteVersion(
 export async function registerReleaseServiceWorker(
   baseUrl?: string,
 ): Promise<ServiceWorkerRegistration | null> {
+  if (isNativeApp()) return null;
   if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
     return null;
   }
@@ -64,6 +66,7 @@ export async function registerReleaseServiceWorker(
 }
 
 export function pingServiceWorkerVersionCheck(): void {
+  if (isNativeApp()) return;
   if (typeof navigator === "undefined" || !navigator.serviceWorker?.controller) {
     return;
   }

@@ -14,6 +14,22 @@ npm run test
 npm run build
 ```
 
+## Android app (Capacitor)
+
+The same SPA ships as a native **Android** app via [Capacitor](https://capacitorjs.com/) (`android/`). Behaviour is defined in `docs/SPEC.md` §5.2.
+
+**Prerequisites:** [Android Studio](https://developer.android.com/studio) (or Android SDK + **JDK 21** — Capacitor 8), `ANDROID_HOME` set.
+
+```bash
+npm install
+npm run cap:sync          # build mobile bundle + copy into android/
+npm run verify:android    # check synced assets (§10.34)
+npm run android:open      # open project in Android Studio
+npm run android:assemble  # debug APK → android/app/build/outputs/apk/debug/
+```
+
+Mobile builds use `VITE_BASE=./` so asset paths work inside the WebView. Release notifications (§4.15) are disabled in the native shell; users update via a new APK / Play Store install.
+
 ## Documentation
 
 | Document | Purpose |

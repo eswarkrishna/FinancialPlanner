@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { isNativeApp } from "../platform";
 import { loadReleaseConsent } from "./consent";
 import { VERSION_POLL_INTERVAL_MS } from "./constants";
 import {
@@ -36,15 +37,20 @@ export function useReleaseNotifications(): {
   dismissNewVersion: () => void;
   reloadForUpdate: () => void;
 } {
+  const nativeShell = isNativeApp();
+
   const [consent, setConsent] = useState(() =>
-    typeof window === "undefined" ? null : loadReleaseConsent(window.localStorage),
+    nativeShell || typeof window === "undefined"
+      ? null
+      : loadReleaseConsent(window.localStorage),
   );
   const [showNewVersion, setShowNewVersion] = useState(false);
   const [newVersionShort, setNewVersionShort] = useState("");
   const [pendingUpdateSha, setPendingUpdateSha] = useState("");
-  const notificationsSupported = isNotificationApiSupported();
+  const notificationsSupported = !nativeShell && isNotificationApiSupported();
 
   const runVersionCheck = useCallback(async () => {
+    if (nativeShell) return;
     const loaded = checkLoadedBuildForUpdate();
     if (applyUpdateResult(loaded, setShowNewVersion, setNewVersionShort, setPendingUpdateSha)) {
       return;
@@ -52,10 +58,10 @@ export function useReleaseNotifications(): {
     if (!consentAllowsPolling(consent)) return;
     const remote = await pollRemoteVersionForUpdate();
     applyUpdateResult(remote, setShowNewVersion, setNewVersionShort, setPendingUpdateSha);
-  }, [consent]);
+  }, [consent, nativeShell]);
 
   useEffect(() => {
-    if (!consentAllowsPolling(consent)) return undefined;
+    if (nativeShell || !consentAllowsPolling(consent)) return undefined;
     void runVersionCheck();
     pingServiceWorkerVersionCheck();
 
@@ -76,7 +82,7 @@ export function useReleaseNotifications(): {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [consent, runVersionCheck]);
+  }, [consent, nativeShell, runVersionCheck]);
 
   const acceptNotifications = useCallback(async () => {
     await acceptReleaseNotifications();

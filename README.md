@@ -110,7 +110,7 @@ The measurement ID is baked in at **build time** (or dev-server start). Defaults
 2. **Production:** update `.env.production`, or set GitHub Actions secret `VITE_GA_MEASUREMENT_ID` to override it on deploy. Redeploy by pushing to `main` or re-running the workflow.
 3. **Local:** `npm run dev` picks up `.env.development`. To override or disable, use `.env.local` (see [`.env.example`](.env.example)).
 
-The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/tab/loan`, etc.). Named interaction events (tab changes, exports, locale switches, etc.) are sent per `docs/SPEC.md` §5.1—loan inputs and personal data are not transmitted. See footer terms for the privacy note.
+The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/tab/loan`, etc.). Named interaction events (tab changes, exports, locale switches, etc.) are sent per `docs/SPEC.md` §5.1—loan inputs and personal data are not transmitted. When the measurement ID is set, analytics loads on first visit **without** an in-app consent prompt; see footer terms for the privacy note and Google’s opt-out add-on.
 
 ### User feedback
 

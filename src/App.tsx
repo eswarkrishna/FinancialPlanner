@@ -8,12 +8,11 @@ import {
   updatePageSeo,
 } from "./lib/seo";
 import { AppFooter } from "./components/AppFooter";
-import { AnalyticsConsentBanner } from "./components/AnalyticsConsentBanner";
 import { FeedbackHelpful } from "./components/FeedbackHelpful";
 import { LocaleSegment } from "./components/LocaleSegment";
 import { NewVersionBanner } from "./components/NewVersionBanner";
 import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
-import { useAnalyticsConsent } from "./hooks/useAnalyticsConsent";
+import { useAnalyticsBootstrap } from "./hooks/useAnalyticsBootstrap";
 import { useAnalyticsLifecycle } from "./hooks/useAnalyticsLifecycle";
 import { DebtSection } from "./features/debt/DebtSection";
 import { GameSection } from "./features/game/GameSection";
@@ -73,15 +72,8 @@ export function App() {
     dismissNewVersion,
     reloadForUpdate,
   } = useReleaseNotifications();
-  const {
-    showBanner: showAnalyticsConsent,
-    accept: acceptAnalytics,
-    reject: rejectAnalytics,
-    consent: analyticsConsent,
-    gaEnabled,
-  } = useAnalyticsConsent(locale);
-  const analyticsActive = gaEnabled && analyticsConsent === "accept";
-  useAnalyticsLifecycle(locale, analyticsActive);
+  const { gaEnabled } = useAnalyticsBootstrap(locale);
+  useAnalyticsLifecycle(locale, gaEnabled);
 
   useEffect(() => {
     const onPopState = () => {
@@ -212,10 +204,6 @@ export function App() {
           </main>
         </div>
       </div>
-
-      {showAnalyticsConsent ? (
-        <AnalyticsConsentBanner onAccept={acceptAnalytics} onReject={rejectAnalytics} />
-      ) : null}
 
       {showConsent ? (
         <ReleaseNotificationConsent

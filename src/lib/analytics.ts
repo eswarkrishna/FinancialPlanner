@@ -288,10 +288,6 @@ export function trackShareLinkCopy(tabId: string, locale: string): void {
   trackEvent("share_link_copy", withPagePath({ tab_id: tabId, locale }));
 }
 
-export function trackAnalyticsConsent(decision: "accept" | "reject"): void {
-  trackEvent("analytics_consent", withPagePath({ decision }));
-}
-
 export function trackSessionSummary(params: {
   tabs_visited_count: number;
   had_export: boolean;

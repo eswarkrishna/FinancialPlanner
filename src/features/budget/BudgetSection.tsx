@@ -25,6 +25,15 @@ const ASSET_CLASS_LABELS: Record<InvestmentAssetClass, string> = {
 
 const EXPENSE_CHART_COLORS = ["#0d9488", "#2563eb", "#7c3aed", "#db2777", "#ea580c", "#ca8a04"];
 
+type BucketRowKind = "need" | "want" | "savings";
+
+function bucketDeltaClass(kind: BucketRowKind, actual: number, target: number): string {
+  if (kind === "savings") {
+    return actual < target ? "warning-text" : "positive-text";
+  }
+  return actual > target ? "warning-text" : "positive-text";
+}
+
 export function BudgetSection() {
   const { locale } = useLocale();
   const money = (value: number) => formatMoneyFinite(value, locale);
@@ -340,18 +349,21 @@ export function BudgetSection() {
             <tbody>
               {[
                 {
+                  kind: "need" as const,
                   label: "Needs",
                   amount: buckets.needs_inr,
                   actual: buckets.needs_pct,
                   target: buckets.target_needs_pct,
                 },
                 {
+                  kind: "want" as const,
                   label: "Wants",
                   amount: buckets.wants_inr,
                   actual: buckets.wants_pct,
                   target: buckets.target_wants_pct,
                 },
                 {
+                  kind: "savings" as const,
                   label: "Savings (budgeted)",
                   amount: buckets.savings_bucket_inr,
                   actual: buckets.savings_bucket_pct,
@@ -363,7 +375,7 @@ export function BudgetSection() {
                   <td>{money(row.amount)}</td>
                   <td>{row.actual.toFixed(1)}%</td>
                   <td>{row.target}%</td>
-                  <td className={row.actual > row.target ? "warning-text" : "positive-text"}>
+                  <td className={bucketDeltaClass(row.kind, row.actual, row.target)}>
                     {(row.actual - row.target).toFixed(1)} pp
                   </td>
                 </tr>

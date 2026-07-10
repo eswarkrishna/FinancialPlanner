@@ -1,10 +1,13 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { renderWithLocale } from "../../test/renderWithLocale";
 import { BudgetSection } from "./BudgetSection";
 
 describe("BudgetSection", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
   it("renders reference budget KPIs for India locale", () => {
     renderWithLocale(<BudgetSection />);
 
@@ -23,5 +26,12 @@ describe("BudgetSection", () => {
     await user.type(salaryInput, "200000");
 
     expect(screen.getByText("Net cash flow")).toBeInTheDocument();
+  });
+
+  it("shows warning styling when savings bucket is below 20% target", () => {
+    renderWithLocale(<BudgetSection />);
+
+    const savingsDelta = screen.getByText(/-5\.7 pp/);
+    expect(savingsDelta).toHaveClass("warning-text");
   });
 });

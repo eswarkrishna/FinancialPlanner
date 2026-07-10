@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   analyzeBudget,
-  REFERENCE_BUDGET_IN,
-  REFERENCE_BUDGET_US,
-  REFERENCE_BUDGET_UK,
   type BudgetBucket,
   type BudgetInput,
   type InvestmentAssetClass,
@@ -59,15 +56,20 @@ function budgetInputToForm(input: BudgetInput): Omit<BudgetFormPersistedState, "
   };
 }
 
+function referenceFormForLocale(
+  locale: import("../../../lib/locale/types").Locale,
+): BudgetFormPersistedState {
+  return {
+    version: 1,
+    locale,
+    ...budgetInputToForm(referenceBudgetForLocale(locale)),
+  };
+}
+
 function formFromPersisted(locale: import("../../../lib/locale/types").Locale) {
   const stored = readBudgetFormState(locale);
   if (stored) return stored;
-  const reference = referenceBudgetForLocale(locale);
-  return {
-    version: 1 as const,
-    locale,
-    ...budgetInputToForm(reference),
-  };
+  return referenceFormForLocale(locale);
 }
 
 function nextId(prefix: string): string {
@@ -90,7 +92,7 @@ export function useBudgetPlanner() {
   useEffect(() => {
     if (prevLocaleEpochRef.current === localeEpoch) return;
     prevLocaleEpochRef.current = localeEpoch;
-    setForm(formFromPersisted(locale));
+    setForm(referenceFormForLocale(locale));
     setImportError(null);
   }, [locale, localeEpoch]);
 
@@ -241,13 +243,7 @@ export function useBudgetPlanner() {
   }
 
   function loadReferenceBudget() {
-    const reference =
-      locale === "US"
-        ? REFERENCE_BUDGET_US
-        : locale === "UK"
-          ? REFERENCE_BUDGET_UK
-          : REFERENCE_BUDGET_IN;
-    setForm({ version: 1, locale, ...budgetInputToForm(reference) });
+    setForm(referenceFormForLocale(locale));
     setImportError(null);
   }
 

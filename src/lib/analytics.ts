@@ -254,6 +254,16 @@ export function trackRetirementExportJson(scenarioId: string, locale: string): v
   );
 }
 
+export function trackBudgetExportSummaryCsv(locale: string): void {
+  markSessionExport();
+  trackEvent("budget_export_summary_csv", withPagePath({ locale }));
+}
+
+export function trackBudgetExportJson(locale: string): void {
+  markSessionExport();
+  trackEvent("budget_export_json", withPagePath({ locale }));
+}
+
 export function trackStrategyExportComparisonCsv(locale: string): void {
   markSessionExport();
   trackEvent("strategy_export_comparison_csv", withPagePath({ locale }));

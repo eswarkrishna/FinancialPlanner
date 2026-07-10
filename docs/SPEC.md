@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.1  
+**Version:** 2.2  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -598,6 +598,74 @@ Notify visitors when a **new deployed version** of the site is available (git co
 
 - Store only consent choice and last-seen commit SHA. No server-side push subscription or FCM in v1.
 
+### 4.16 Personal budget & investment tracker
+
+**Parity:** IN / US / UK with locale-scaled reference amounts (stored field suffix `_inr` per §4.10). Implementation: `src/lib/budget/`, `src/features/budget/`.
+
+Educational monthly budget planner with **50/30/20** bucket analysis and manual investment holdings projection. Complements §4.8 (loan unemployment cashflow), §4.10 (debt budget), and §4.11 (retirement corpus) without bank linking.
+
+#### 4.16.1 Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `month_label` | string | no | Display label, e.g. `2026-07` |
+| `income_lines[]` | array | yes (≥1) | Each: `id`, `name`, `amount_inr` ≥ 0 |
+| `expense_lines[]` | array | yes (≥1) | Each: `id`, `name`, `amount_inr`, `bucket` ∈ `need` \| `want` \| `savings` |
+| `investments[]` | array | no | Each: `id`, `name`, `asset_class` ∈ `equity` \| `debt` \| `gold` \| `cash` \| `other`, `current_value_inr`, `monthly_contribution_inr`, `expected_return_pct` |
+| `emergency_fund_inr` | number | no | Liquid cash for runway KPI |
+| `projection_months` | integer | no | Default `12`; horizon for portfolio projection chart |
+
+#### 4.16.2 Computations
+
+**Totals**
+
+- `total_income_inr` = sum of income lines  
+- `total_expenses_inr` = sum of expense lines  
+- `net_cash_flow_inr` = income − expenses  
+- `savings_rate_pct` = `max(0, net_cash_flow_inr) / total_income_inr × 100` when income &gt; 0, else `0`
+
+**50/30/20 analysis** (expense buckets vs income)
+
+- `needs_inr` = sum of expenses where `bucket = need`  
+- `wants_inr` = sum where `bucket = want`  
+- `savings_bucket_inr` = sum where `bucket = savings`  
+- Report each as **% of total income** and compare to targets **50% / 30% / 20%**
+
+**Emergency fund runway**
+
+- `emergency_fund_months` = `emergency_fund_inr / total_expenses_inr` when expenses &gt; 0, else `0`
+
+**Investment projection** (per holding, monthly compounding)
+
+- Monthly rate \( r_i = \frac{\text{expected\_return\_pct}_i}{100 \times 12} \)  
+- Each month: `value ← (value + monthly_contribution_inr) × (1 + r_i)`  
+- Portfolio month total = sum of holding values  
+- Output rows for months `0 … projection_months`
+
+#### 4.16.3 Warnings
+
+| Code | Condition |
+|------|-----------|
+| `BUDGET_DEFICIT` | `net_cash_flow_inr < 0` |
+| `LOW_EMERGENCY_FUND` | `emergency_fund_months < 3` and `total_expenses_inr > 0` |
+| `NEEDS_OVER_50` | needs &gt; 50% of income |
+| `LOW_SAVINGS_RATE` | `savings_rate_pct < 10` and income &gt; 0 |
+
+#### 4.16.4 Outputs
+
+- **KPI strip:** total income, total expenses, net cash flow, savings rate %, emergency fund months  
+- **50/30/20 table:** actual % vs target for needs / wants / savings bucket  
+- **Expense breakdown chart** by category name  
+- **Investment summary:** portfolio value, monthly contributions, projected value at horizon  
+- **Portfolio projection chart** (line)  
+- **Investment allocation table** by `asset_class`
+
+**Export:** CSV of monthly budget summary + expense lines; JSON export of full inputs and computed summary.
+
+**Import:** JSON round-trip of §4.16 export payload.
+
+**Persistence (v1.8):** Budget tab form state in `localStorage` per locale (`financial-planner-budget-form-IN`, etc.). Locale switch resets to reference budget for the new locale.
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -925,6 +993,8 @@ Engineers must add unit tests for off-by-one with an example: `U=1` → tranche2
 
 1. **Inputs**  
    - Loan + assets + unemployment toggle + budget fields  
+1b. **Budget tab**  
+   - Income/expense category tables, investment holdings, KPI strip, 50/30/20 comparison, charts, export  
 2. **Scenario builder**  
    - Checkboxes for presets + advanced JSON/YAML optional (defer)  
 3. **Results**  
@@ -993,6 +1063,13 @@ Design tokens and layout follow [`docs/research/2026-07-ui-redesign-figma-direct
 8. **Avalanche vs snowball:** for a two-debt fixture, avalanche pays less total interest than snowball when APRs differ and budgets cover minimums.  
 9. **Retirement projection:** reference inputs produce `funded_ratio` within **0.01** of hand-calculated corpus / target.
 
+### Personal budget (§4.16)
+
+9b. **Reference budget:** IN fixture — `total_income_inr` = 1,75,000; `total_expenses_inr` = 1,40,000; `net_cash_flow_inr` = 35,000; `savings_rate_pct` = 20 (±0.1).  
+9c. **50/30/20 buckets:** needs ₹95,000 (54.3% of income), wants ₹20,000, savings bucket ₹25,000 on reference fixture.  
+9d. **Investment projection:** single holding ₹1,00,000, 12% annual, ₹10,000/mo contribution, 12 months — projected value within **₹1** of golden JSON.  
+9e. **Deficit warning:** expenses &gt; income → `BUDGET_DEFICIT` in `warnings[]`.
+
 ### Golden files
 
 Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF_TO_LOAN` with a fixed rounding policy.
@@ -1051,6 +1128,9 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 39. **Persistence:** edited loan principal survives a full page reload (`localStorage`, §4.9).  
 40. **Planner panels:** debt, retirement, strategies, and strategic tabs render their primary headings.  
 41. **Exports:** after reference load, schedule **Export CSV** and **Export JSON** controls are present.
+42. **Budget tab:** `?tab=budget` renders **Personal budget** heading, KPI strip with savings rate, and 50/30/20 comparison section.
+43. **Budget reference:** IN reference fixture — income ₹1,75,000, expenses ₹1,40,000, net flow ₹35,000, savings rate **20%** (±0.1 pp).
+44. **Budget E2E:** editing an income line updates net cash flow KPI without submit; budget JSON export control present.
 ### Android native wrapper (§5.2)
 
 34. **Capacitor sync:** after `npm run cap:sync`, `android/app/src/main/assets/public/index.html` exists and references bundled JS/CSS under `assets/public/`.
@@ -1069,6 +1149,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - Legal settlement / IBC negotiation outcomes.  
 - **Analytics:** third-party ad pixels (Meta, LinkedIn, etc.), fingerprinting, storing full `document.referrer` URLs with query strings, or encoding user financial inputs in share/UTM links (§5.1).
 - **Server-side push:** FCM/APNs campaigns or per-user push backends (§4.15 uses browser notifications + `version.json` polling only).
+- **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 
 **In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 

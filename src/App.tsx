@@ -20,6 +20,7 @@ import { GameSection } from "./features/game/GameSection";
 import { useLocale } from "./features/locale/LocaleContext";
 import { LoanSection } from "./features/loan/LoanSection";
 import { RetirementSection } from "./features/retirement/RetirementSection";
+import { BudgetSection } from "./features/budget/BudgetSection";
 import { StrategySection } from "./features/strategy/StrategySection";
 import type { Locale } from "./lib/locale/types";
 import { useReleaseNotifications } from "./lib/notifications/useReleaseNotifications";
@@ -153,8 +154,8 @@ export function App() {
               </div>
               <p className="lede">
                 Plan your home loan, compare prepayment options, model debt and retirement
-                savings, and explore what-if strategies—all in one place. Numbers are for
-                learning only, not financial advice.
+                savings, track your monthly budget and investments, and explore what-if
+                strategies—all in one place. Numbers are for learning only, not financial advice.
               </p>
             </div>
             <nav className="app-tabs" aria-label="Planner sections">
@@ -203,6 +204,7 @@ export function App() {
                     {tab.id === "retirement" && <RetirementSection />}
                     {tab.id === "strategies" && <StrategySection />}
                     {tab.id === "strategic" && <GameSection />}
+                    {tab.id === "budget" && <BudgetSection />}
                   </>
                 ) : null}
               </div>

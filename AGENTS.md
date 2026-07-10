@@ -60,6 +60,8 @@ This is a **pure client-side SPA** — no backend, no database, no Docker, no `.
 | Dev server | `npm run dev` (serves on `localhost:5173`) |
 | Lint (type-check) | `npm run lint` |
 | Unit tests | `npm run test` |
+| Browser E2E | `npm run test:e2e` |
+| Full automation | `npm run test:automation` |
 | Production build | `npm run build` |
 | Update golden fixtures | `npm run goldens:update` |
 

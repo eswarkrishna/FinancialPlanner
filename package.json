@@ -15,6 +15,9 @@
     "goldens:update:us": "npx tsx scripts/update-goldens-us.ts",
     "goldens:update:uk": "npx tsx scripts/update-goldens-uk.ts",
     "test:a11y": "vitest run src/test/accessibility.test.tsx",
+    "test:e2e": "tsx e2e/run.ts",
+    "test:e2e:full": "npm run build && npm run test:e2e",
+    "test:automation": "npm run test && npm run test:e2e:full",
     "audit:a11y": "npx tsx scripts/a11y-audit.ts",
     "verify:release": "vitest run src/lib/notifications src/components/ReleaseNotificationConsent.test.tsx src/components/NewVersionBanner.test.tsx && node --test scripts/verify-release-artifacts.test.mjs && npm run build && node scripts/verify-release-deploy.mjs",
     "verify:production": "node scripts/verify-production-release.mjs"

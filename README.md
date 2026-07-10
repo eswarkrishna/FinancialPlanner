@@ -11,6 +11,7 @@ npm run dev
 
 ```bash
 npm run test
+npm run test:e2e:full
 npm run build
 ```
 

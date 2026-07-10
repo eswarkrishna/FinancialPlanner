@@ -1015,6 +1015,19 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 32. **Deploy artifacts:** `npm run build` produces valid `dist/version.json` and plain-JS `dist/sw.js` (`scripts/verify-release-deploy.mjs`).
 33. **Production smoke:** `npm run verify:production` fetches live `version.json` and `sw.js` from the deployed site (default GitHub Pages URL).
 
+### Browser automation (E2E smoke)
+
+Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, drives **Puppeteer**). These complement Vitest/jsdom checks with real-browser smoke coverage.
+
+34. **Shell:** app title, disclaimer footer, and terms summary render on first load.  
+35. **Navigation:** all five planner tabs open from URL and tab controls; `?tab=debt` updates the address bar; loan tab clears `tab` query param.  
+36. **Loan reference:** “Load reference scenario” shows comparison + schedule; BASE payoff month = **168**.  
+37. **Reactive inputs:** editing principal changes comparison payoff month without a submit action.  
+38. **Locale:** IN / US / UK segmented control updates `document.documentElement.lang` and principal currency label.  
+39. **Persistence:** edited loan principal survives a full page reload (`localStorage`, §4.9).  
+40. **Planner panels:** debt, retirement, strategies, and strategic tabs render their primary headings.  
+41. **Exports:** after reference load, schedule **Export CSV** and **Export JSON** controls are present.
+
 ---
 
 ## 11. Non-Goals (v1)

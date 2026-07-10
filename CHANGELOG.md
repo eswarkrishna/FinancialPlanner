@@ -17,7 +17,9 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ## [Unreleased]
 
-_No pending changes._
+### Added
+
+- **Browser automation suite** — Puppeteer E2E smoke tests (`npm run test:e2e`, `npm run test:automation`) covering tab navigation, loan reference scenario, locale switching, persistence, and export controls (SPEC §10 #34–41).
 
 ---
 

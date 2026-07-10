@@ -24,6 +24,10 @@ manual smoke checks.
 | 10.15 | Retirement corpus monotonicity by contribution | `src/lib/retirement.test.ts` |
 | 10.16 | Retirement scenario ranking (conservative <= optimistic) | `src/lib/retirement.test.ts` |
 | 10.17 | Retirement inflation increases target corpus | `src/lib/retirement.test.ts` |
+| 10.16b | Budget reference totals and 50/30/20 buckets (§4.16) | `src/lib/budget/budget.test.ts` |
+| 10.16c | Budget deficit warning | `src/lib/budget/budget.test.ts` |
+| 10.16d | Investment projection | `src/lib/budget/budget.test.ts` |
+| 10.42–44 | Budget tab E2E smoke | `e2e/specs/budget-planner.spec.ts`, `e2e/specs/planners.spec.ts`, `e2e/specs/navigation.spec.ts` |
 | 10.15 | Latest push footer metadata (§8) | `src/components/AppFooter.test.tsx`, `src/lib/buildInfo.test.ts` |
 | 10.28 | Release consent persisted (`accept` / `reject`) | `src/lib/notifications/consent.test.ts`, `src/lib/notifications/useReleaseNotifications.test.tsx`, `src/App.test.tsx` |
 | 10.29 | New version detection (sha change, first baseline silent) | `src/lib/notifications/versionCheck.test.ts`, `src/lib/notifications/releaseNotifications.test.ts` |

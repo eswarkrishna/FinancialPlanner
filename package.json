@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:mobile": "VITE_BASE=./ vite build",
+    "cap:sync": "npm run build:mobile && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:assemble": "cd android && ./gradlew assembleDebug",
+    "verify:android": "node scripts/verify-android-sync.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

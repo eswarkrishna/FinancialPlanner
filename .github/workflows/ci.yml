@@ -30,5 +30,35 @@ jobs:
       - name: Build app
         run: npm run build
 
+      - name: Sync Android Capacitor bundle (§5.2)
+        run: npm run cap:sync
+
+      - name: Verify Android sync artifacts (§10.34)
+        run: npm run verify:android
+
       - name: Verify release notification deploy artifacts (§4.15)
         run: node scripts/verify-release-deploy.mjs
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Android Capacitor bundle (§5.2)
+        run: npm run cap:sync
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Assemble debug APK (§10.36)
+        run: npm run android:assemble

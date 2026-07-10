@@ -30,6 +30,8 @@ jobs:
       - name: Build app
         run: npm run build
 
+      - name: Run browser automation (E2E)
+        run: npm run test:e2e
       - name: Sync Android Capacitor bundle (§5.2)
         run: npm run cap:sync
 

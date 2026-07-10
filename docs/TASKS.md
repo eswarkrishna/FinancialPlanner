@@ -129,8 +129,9 @@ This file lives **next to** [`SPEC.md`](SPEC.md). It lists **detailed tasks** fo
 - [ ] **6.1** **Commits:** small, logical; **body cites SPEC §** when behaviour changes.
 - [ ] **6.2** **PR title** clear; **description** has summary, **SPEC link**, **test plan**, screenshots if UI.
 - [ ] **6.3** PR links **`docs/TASKS.md`** (or pasted checklist) with boxes checked for this delivery.
-- [ ] **6.4** Self-review: **§11**, **§14**, **AGENTS.md** skill table still valid.
-- [ ] **6.5** Request review / merge per team process.
+- [ ] **6.4** Update **[`CHANGELOG.md`](../CHANGELOG.md)** — bullets under `[Unreleased]` moved to a dated version on merge (or added before opening PR).
+- [ ] **6.5** Self-review: **§11**, **§14**, **AGENTS.md** skill table still valid.
+- [ ] **6.6** Request review / merge per team process.
 
 ---
 

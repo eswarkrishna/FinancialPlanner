@@ -44,7 +44,7 @@ Lifecycle order (typical feature):
 | 6 | `sdd-improve-test-harness` | Refine fixtures, helpers, Vitest config, stability. |
 | 7 | `sdd-record-learning` | **`docs/LEARNINGS.md`** dated entries. |
 | 8 | `sdd-create-overview` | Keep **`docs/OVERVIEW.md`** accurate for onboarding. |
-| — | `sdd-commit-and-review` | Commits / PRs cite SPEC §; review checklist. |
+| — | `sdd-commit-and-review` | Commits / PRs cite SPEC §; update **`CHANGELOG.md`** on ship. |
 
 **Note:** `sdd-verify-with-tests` focuses on **automated contracts**; `sdd-verify-feature` adds **acceptance mapping and manual checks**. Use both before calling a feature done.
 

@@ -33,6 +33,15 @@ export function buildDebtBalanceCurve(rows: DebtMonthRow[]): ChartPoint[] {
 }
 
 /** Nominal retirement corpus by year (§4.11); `month` holds year index. */
+export function buildBudgetPortfolioCurve(
+  rows: { month: number; total_value_inr: number }[],
+): ChartPoint[] {
+  return rows.map((row) => ({
+    month: row.month,
+    value_inr: row.total_value_inr,
+  }));
+}
+
 export function buildRetirementCorpusCurve(rows: RetirementYearRow[]): ChartPoint[] {
   return rows.map((row) => ({
     month: row.year,

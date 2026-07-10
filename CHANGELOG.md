@@ -19,6 +19,9 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Personal budget & investment tracker (§4.16)** — new Budget tab with monthly income/expense categories, 50/30/20 bucket analysis, emergency fund runway KPIs, manual investment holdings with portfolio projection, CSV/JSON export, and locale-specific reference budgets (IN/US/UK).
+- Research spike: [`docs/research/2026-07-personal-budgeting-app.md`](docs/research/2026-07-personal-budgeting-app.md).
+- E2E smoke for budget tab (`e2e/specs/budget-planner.spec.ts`).
 - **Browser automation suite** — Puppeteer E2E smoke tests (`npm run test:e2e`, `npm run test:automation`) covering tab navigation, loan reference scenario, locale switching, persistence, and export controls (SPEC §10 #34–41).
 - **Android app (Capacitor)** — native shell wrapping the SPA (`android/`, `npm run cap:sync`, `npm run android:assemble`); §5.2 spec + §10.34–36 acceptance checks.
 - Platform helper (`src/lib/platform.ts`) disables web-only release notifications in the native shell.

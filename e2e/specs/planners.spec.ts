@@ -44,6 +44,12 @@ describe("planner sections", () => {
     assert.equal(hasMatrix, true);
   });
 
+  it("renders budget planner on budget tab", async () => {
+    await gotoApp(session.page, "budget");
+    await waitForHeading(session.page, "Personal budget");
+    await waitForHeading(session.page, "50/30/20 comparison");
+  });
+
   it("can return to loan tab from another section", async () => {
     await gotoApp(session.page, "debt");
     await clickTab(session.page, "loan");

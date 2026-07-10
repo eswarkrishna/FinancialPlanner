@@ -1,6 +1,6 @@
 /** SEO helpers: tab URLs, titles, meta updates, sitemap/robots builders. */
 
-export type TabId = "loan" | "debt" | "retirement" | "strategies" | "strategic";
+export type TabId = "loan" | "debt" | "retirement" | "strategies" | "strategic" | "budget";
 
 export type PlannerTab = {
   id: TabId;
@@ -39,6 +39,12 @@ export const PLANNER_TABS: PlannerTab[] = [
     description:
       "Explore game-theory payoff matrices for borrower vs lender or household strategic choices.",
   },
+  {
+    id: "budget",
+    label: "Budget",
+    description:
+      "Personal monthly budget planner with 50/30/20 analysis, emergency fund runway, and investment portfolio tracking.",
+  },
 ];
 
 export const DEFAULT_SITE_URL = "https://eswarkrishna.github.io/FinancialPlanner";
@@ -46,7 +52,7 @@ export const DEFAULT_SITE_URL = "https://eswarkrishna.github.io/FinancialPlanner
 export const SITE_NAME = "FinancialPlanner";
 
 export const DEFAULT_DESCRIPTION =
-  "Free loan payoff calculator for India and the US. Compare prepayment strategies, EMI schedules, PF/401(k) unemployment scenarios, debt avalanche vs snowball, and retirement projections.";
+  "Free loan payoff calculator for India and the US. Compare prepayment strategies, EMI schedules, PF/401(k) unemployment scenarios, debt avalanche vs snowball, retirement projections, and personal budgeting.";
 
 const TAB_IDS = new Set<string>(PLANNER_TABS.map((tab) => tab.id));
 

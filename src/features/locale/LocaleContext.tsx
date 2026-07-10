@@ -20,6 +20,11 @@ import {
   REFERENCE_RETIREMENT_FORM_US,
   REFERENCE_RETIREMENT_FORM_UK,
 } from "../../lib/retirement/constants";
+import {
+  REFERENCE_BUDGET_IN,
+  REFERENCE_BUDGET_US,
+  REFERENCE_BUDGET_UK,
+} from "../../lib/budget/constants";
 
 interface LocaleContextValue {
   locale: Locale;
@@ -107,6 +112,12 @@ export function referenceRetirementFormForLocale(locale: Locale) {
   if (locale === "US") return REFERENCE_RETIREMENT_FORM_US;
   if (locale === "UK") return REFERENCE_RETIREMENT_FORM_UK;
   return REFERENCE_RETIREMENT_FORM_IN;
+}
+
+export function referenceBudgetForLocale(locale: Locale) {
+  if (locale === "US") return REFERENCE_BUDGET_US;
+  if (locale === "UK") return REFERENCE_BUDGET_UK;
+  return REFERENCE_BUDGET_IN;
 }
 
 export function loanFormFromScenario(

@@ -18,6 +18,7 @@ See **SPEC §3** (borrower optimiser, stress tester, comparator).
 |------|------|
 | `src/lib/` | Pure finance modules: loan amortisation, debt payoff strategy engine, retirement corpus projection, **repayment strategy planner** (`strategy/`), input shaping, formatting. |
 | `src/features/strategy/` | §4.12 household inputs, tier presets, strategy comparison + allocation tables. |
+| `src/features/budget/` | §4.16 personal budget, 50/30/20 analysis, investment tracker. |
 | `src/App.tsx` (and other `features/`) | Dashboard inputs, scenario selection, comparison tables, timeline views. |
 | `android/` | Capacitor Android shell (§5.2); `npm run cap:sync` copies `dist/` into the WebView bundle. |
 | `docs/SPEC.md` | Source of truth for India locale behaviour and acceptance tests. |
@@ -85,5 +86,5 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [2026-07-us-employee-benefits-mapping.md](research/2026-07-us-employee-benefits-mapping.md) | US locale summary spike (parity matrix + recommendations) |
 | [2026-07-us-employee-locale-deep-dive.md](research/2026-07-us-employee-locale-deep-dive.md) | US locale deep-dive: 401(k), UI, mortgage, LTCG, SS, Roth, vesting, games |
 | [2026-07-other-planner-areas.md](research/2026-07-other-planner-areas.md) | Beyond US employee: IN spec symmetry, UK/CA locales, HSA, PMI, ARM games, Tier P2 |
-| [2026-07-ui-redesign-figma-direction.md](research/2026-07-ui-redesign-figma-direction.md) | UI redesign: Figma kits, layout IA, visual direction, phased delivery |
+| [2026-07-personal-budgeting-app.md](research/2026-07-personal-budgeting-app.md) | Personal budget & investment tracker spike (§4.16) |
 | [2026-07-uk-employee-benefits-mapping.md](research/2026-07-uk-employee-benefits-mapping.md) | UK locale spike: NMPA lock, redundancy/JSA/SMI bridge, ISA/GIA, auto-enrolment, ERC |

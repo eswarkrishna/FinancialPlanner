@@ -1,7 +1,7 @@
 import type { Page } from "puppeteer";
 import { getBaseUrl } from "./env";
 
-const TAB_IDS = ["loan", "debt", "retirement", "strategies", "strategic"] as const;
+const TAB_IDS = ["loan", "debt", "retirement", "strategies", "strategic", "budget"] as const;
 export type PlannerTabId = (typeof TAB_IDS)[number];
 
 export async function dismissConsentBanners(page: Page): Promise<void> {
@@ -48,6 +48,7 @@ const TAB_LABELS: Record<PlannerTabId, string> = {
   retirement: "Retirement",
   strategies: "Strategies",
   strategic: "Strategic",
+  budget: "Budget",
 };
 
 export async function clickTab(page: Page, tabId: PlannerTabId): Promise<void> {

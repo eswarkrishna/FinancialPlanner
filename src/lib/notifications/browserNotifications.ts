@@ -1,6 +1,9 @@
 /** docs/SPEC.md §4.15 — browser notification permission helpers. */
 
+import { isNativeApp } from "../platform";
+
 export function isNotificationApiSupported(): boolean {
+  if (isNativeApp()) return false;
   return typeof window !== "undefined" && "Notification" in window;
 }
 

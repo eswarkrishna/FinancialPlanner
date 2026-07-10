@@ -19,6 +19,7 @@ See **SPEC §3** (borrower optimiser, stress tester, comparator).
 | `src/lib/` | Pure finance modules: loan amortisation, debt payoff strategy engine, retirement corpus projection, **repayment strategy planner** (`strategy/`), input shaping, formatting. |
 | `src/features/strategy/` | §4.12 household inputs, tier presets, strategy comparison + allocation tables. |
 | `src/App.tsx` (and other `features/`) | Dashboard inputs, scenario selection, comparison tables, timeline views. |
+| `android/` | Capacitor Android shell (§5.2); `npm run cap:sync` copies `dist/` into the WebView bundle. |
 | `docs/SPEC.md` | Source of truth for India locale behaviour and acceptance tests. |
 | `docs/SPEC-US.md` | Source of truth for US locale (401(k), mortgage, USD). |
 | `docs/SPEC-UK.md` | Source of truth for UK locale (redundancy/JSA/SMI bridge, ISA, GBP). |
@@ -45,7 +46,7 @@ flowchart LR
 
 ## Tech stack
 
-Vite, React 19, TypeScript, Zod, Vitest, jsdom (see `package.json`).
+Vite, React 19, TypeScript, Zod, Vitest, jsdom, Capacitor 8 (Android native wrapper — see `package.json`, `capacitor.config.ts`, `android/`).
 
 ## Testing & quality
 

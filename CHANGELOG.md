@@ -20,6 +20,12 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 ### Added
 
 - **Browser automation suite** — Puppeteer E2E smoke tests (`npm run test:e2e`, `npm run test:automation`) covering tab navigation, loan reference scenario, locale switching, persistence, and export controls (SPEC §10 #34–41).
+- **Android app (Capacitor)** — native shell wrapping the SPA (`android/`, `npm run cap:sync`, `npm run android:assemble`); §5.2 spec + §10.34–36 acceptance checks.
+- Platform helper (`src/lib/platform.ts`) disables web-only release notifications in the native shell.
+
+### Fixed
+
+- Android CI: install JDK 21 before `assembleDebug` (Capacitor 8 requires Java 21; fixes `invalid source release: 21`).
 
 ---
 

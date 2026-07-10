@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -753,6 +753,30 @@ Explicit `gtag` events — not inferred from generic DOM clicks:
 
 **Out of scope for analytics:** per-keystroke input changes, amortisation row data, exported file contents, blanket delegated click listeners on all DOM elements, third-party ad/marketing pixels, and cross-session user IDs derived from form data.
 
+### 5.2 Android native wrapper (Capacitor)
+
+Ship the same React SPA inside a **Capacitor** Android WebView shell (`android/`). The native app is an **offline-first** distribution of the calculator — no backend, no Play Store push backend in v1.
+
+**Build & packaging**
+
+| Item | Value |
+|------|-------|
+| App ID | `com.eswar.financialplanner` |
+| Web bundle | `dist/` copied by `npx cap sync android` |
+| Vite base (mobile) | `./` (relative asset paths for `file://` / WebView) |
+| Min SDK | Capacitor 8 default (`android/variables.gradle`) |
+
+**Scripts (repo root):** `npm run build:mobile` → `npm run cap:sync` → optional `npm run android:assemble` (debug APK via Gradle).
+
+**Platform behaviour**
+
+- **Loan / debt / retirement / strategy / game** — identical domain logic to the web SPA; `localStorage` persistence (§5 form persistence) works in the WebView.
+- **Release notifications (§4.15)** — **fully disabled** in the native shell: no service-worker registration, no browser-notification consent banner, no in-app new-version strip, no `sw.js` polling. Users update via Play Store / sideloaded APK, not live web deploy.
+- **Analytics (§5.1)** — optional when `VITE_GA_MEASUREMENT_ID` is set at mobile build time; same PII rules. Consent banner still applies when GA is enabled.
+- **Exports (CSV / JSON)** — use Capacitor share / download affordances where the WebView allows; file pickers for import follow Android WebView behaviour.
+
+**Non-goals (Android v1):** iOS build, FCM push, in-app billing, Play Store listing automation, deep-link URL schemes beyond default Capacitor app links.
+
 ---
 
 ## 6. Data Models (TypeScript-friendly sketch)
@@ -1027,6 +1051,11 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 39. **Persistence:** edited loan principal survives a full page reload (`localStorage`, §4.9).  
 40. **Planner panels:** debt, retirement, strategies, and strategic tabs render their primary headings.  
 41. **Exports:** after reference load, schedule **Export CSV** and **Export JSON** controls are present.
+### Android native wrapper (§5.2)
+
+34. **Capacitor sync:** after `npm run cap:sync`, `android/app/src/main/assets/public/index.html` exists and references bundled JS/CSS under `assets/public/`.
+35. **Native release UI:** when `Capacitor.isNativePlatform()` is true, the §4.15 release-notification consent banner, service-worker registration, and in-app new-version strip are all hidden.
+36. **Debug APK:** `npm run android:assemble` completes `assembleDebug` without error when Android SDK is installed (CI optional).
 
 ---
 

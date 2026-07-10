@@ -18,7 +18,7 @@ npm run build
 
 The same SPA ships as a native **Android** app via [Capacitor](https://capacitorjs.com/) (`android/`). Behaviour is defined in `docs/SPEC.md` §5.2.
 
-**Prerequisites:** [Android Studio](https://developer.android.com/studio) (or Android SDK + JDK 17+), `ANDROID_HOME` set.
+**Prerequisites:** [Android Studio](https://developer.android.com/studio) (or Android SDK + **JDK 21** — Capacitor 8), `ANDROID_HOME` set.
 
 ```bash
 npm install

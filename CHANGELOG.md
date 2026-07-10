@@ -22,6 +22,10 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 - **Android app (Capacitor)** — native shell wrapping the SPA (`android/`, `npm run cap:sync`, `npm run android:assemble`); §5.2 spec + §10.34–36 acceptance checks.
 - Platform helper (`src/lib/platform.ts`) disables web-only release notifications in the native shell.
 
+### Fixed
+
+- Android CI: install JDK 21 before `assembleDebug` (Capacitor 8 requires Java 21; fixes `invalid source release: 21`).
+
 ---
 
 ## [0.2.0] - 2026-07-09

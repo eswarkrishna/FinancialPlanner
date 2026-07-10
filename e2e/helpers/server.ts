@@ -20,50 +20,40 @@ function getFreePort(): Promise<number> {
   });
 }
 
-function waitForPreviewReady(
-  child: ChildProcessWithoutNullStreams,
-  port: number,
-  timeoutMs = 30_000,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const deadline = Date.now() + timeoutMs;
-    let output = "";
+async function waitForHttpReady(baseUrl: string, timeoutMs = 60_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  let lastError: unknown;
 
-    const onData = (chunk: Buffer) => {
-      output += chunk.toString();
-      if (output.includes(`http://localhost:${port}/`) || output.includes(`127.0.0.1:${port}`)) {
-        cleanup();
-        resolve();
-      } else if (Date.now() > deadline) {
-        cleanup();
-        reject(new Error(`Timed out waiting for preview server on port ${port}\n${output}`));
-      }
-    };
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(baseUrl, { redirect: "follow" });
+      if (response.ok) return;
+      lastError = new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      lastError = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
 
-    const onExit = (code: number | null) => {
-      cleanup();
-      reject(
-        new Error(`Preview server exited before ready (code ${code ?? "unknown"})\n${output}`),
-      );
-    };
+  throw new Error(
+    `Timed out waiting for preview server at ${baseUrl}${
+      lastError instanceof Error ? `: ${lastError.message}` : ""
+    }`,
+  );
+}
 
-    const timer = setInterval(() => {
-      if (Date.now() > deadline) {
-        cleanup();
-        reject(new Error(`Timed out waiting for preview server on port ${port}\n${output}`));
-      }
-    }, 250);
-
-    const cleanup = () => {
-      clearInterval(timer);
-      child.stdout.off("data", onData);
-      child.stderr.off("data", onData);
-      child.off("exit", onExit);
-    };
-
-    child.stdout.on("data", onData);
-    child.stderr.on("data", onData);
-    child.on("exit", onExit);
+function attachProcessFailureLogging(child: ChildProcessWithoutNullStreams): void {
+  let output = "";
+  const onData = (chunk: Buffer) => {
+    output += chunk.toString();
+  };
+  child.stdout.on("data", onData);
+  child.stderr.on("data", onData);
+  child.on("exit", (code, signal) => {
+    const terminatedByUs = signal === "SIGTERM" || code === 143 || code === 0;
+    if (!terminatedByUs && code !== null) {
+      console.error(`Preview server exited with code ${code}\n${output}`);
+    }
   });
 }
 
@@ -74,20 +64,35 @@ export interface PreviewServer {
 
 export async function startPreviewServer(): Promise<PreviewServer> {
   const port = await getFreePort();
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const viteBin =
+    process.platform === "win32"
+      ? "node_modules\\.bin\\vite.cmd"
+      : "node_modules/.bin/vite";
+
   const child = spawn(
-    process.platform === "win32" ? "npx.cmd" : "npx",
-    ["vite", "preview", "--host", "127.0.0.1", "--port", String(port), "--strictPort"],
+    viteBin,
+    ["preview", "--host", "127.0.0.1", "--port", String(port), "--strictPort"],
     {
       cwd: process.cwd(),
-      env: { ...process.env },
+      env: { ...process.env, FORCE_COLOR: "0" },
       stdio: ["ignore", "pipe", "pipe"],
     },
   );
 
-  await waitForPreviewReady(child, port);
+  attachProcessFailureLogging(child);
+
+  await Promise.race([
+    waitForHttpReady(baseUrl),
+    new Promise<never>((_, reject) => {
+      child.once("exit", (code) => {
+        reject(new Error(`Preview server exited before ready (code ${code ?? "unknown"})`));
+      });
+    }),
+  ]);
 
   return {
-    baseUrl: `http://127.0.0.1:${port}`,
+    baseUrl,
     stop: async () => {
       if (child.killed) return;
       child.kill("SIGTERM");

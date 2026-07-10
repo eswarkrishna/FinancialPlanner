@@ -3,7 +3,6 @@ import {
   initAnalytics,
   isAnalyticsEnabled,
   resetAnalyticsForTests,
-  trackAnalyticsConsent,
   trackFeedbackHelpful,
   trackHomePageView,
   trackLoanExportScheduleCsv,
@@ -112,24 +111,6 @@ describe("analytics", () => {
         locale: "US",
         page_path: expect.any(String),
       });
-    });
-
-    it("tracks analytics_consent decision (§5.1.2)", () => {
-      trackAnalyticsConsent("accept");
-
-      expect(gtagSpy).toHaveBeenCalledWith("event", "analytics_consent", {
-        decision: "accept",
-        page_path: expect.any(String),
-      });
-    });
-
-    it("tracks analytics_consent after init on accept path", () => {
-      resetAnalyticsForTests();
-      initAnalytics();
-      gtagSpy = vi.fn();
-      window.gtag = gtagSpy;
-      trackAnalyticsConsent("accept");
-      expect(gtagSpy).toHaveBeenCalled();
     });
 
     it("tracks session_summary on unload (§5.1.2)", () => {

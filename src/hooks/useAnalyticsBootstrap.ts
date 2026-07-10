@@ -1,17 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   initAnalytics,
   isAnalyticsEnabled,
   isAnalyticsInitialized,
-  trackAnalyticsConsent,
   trackHomePageView,
   trackSessionStart,
 } from "../lib/analytics";
-import {
-  loadAnalyticsConsent,
-  saveAnalyticsConsent,
-  type AnalyticsConsentChoice,
-} from "../lib/analytics/consent";
 import {
   captureAcquisitionOnLoad,
   hasSessionStarted,
@@ -45,14 +39,10 @@ function bootstrapAnalytics(locale: string): void {
 }
 
 /**
- * Consent-gated GA4 bootstrap (SPEC §5.1.2).
- * Returns consent state and handlers for the footer banner.
+ * Auto-init GA4 when measurement ID is set (SPEC §5.1.2 — no consent gate).
  */
-export function useAnalyticsConsent(locale: string) {
+export function useAnalyticsBootstrap(locale: string): { gaEnabled: boolean } {
   const gaEnabled = isAnalyticsEnabled();
-  const [consent, setConsent] = useState<AnalyticsConsentChoice | null>(() =>
-    gaEnabled ? loadAnalyticsConsent() : "reject",
-  );
 
   useEffect(() => {
     if (!gaEnabled) return;
@@ -60,24 +50,9 @@ export function useAnalyticsConsent(locale: string) {
   }, [gaEnabled]);
 
   useEffect(() => {
-    if (!gaEnabled || consent !== "accept") return;
+    if (!gaEnabled) return;
     bootstrapAnalytics(locale);
-  }, [gaEnabled, consent, locale]);
+  }, [gaEnabled, locale]);
 
-  const accept = useCallback(() => {
-    saveAnalyticsConsent("accept");
-    setConsent("accept");
-    bootstrapAnalytics(locale);
-    trackAnalyticsConsent("accept");
-  }, [locale]);
-
-  const reject = useCallback(() => {
-    saveAnalyticsConsent("reject");
-    setConsent("reject");
-    trackAnalyticsConsent("reject");
-  }, []);
-
-  const showBanner = gaEnabled && consent === null;
-
-  return { showBanner, consent, accept, reject, gaEnabled };
+  return { gaEnabled };
 }

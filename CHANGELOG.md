@@ -17,6 +17,10 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ## [Unreleased]
 
+### Changed
+
+- **Analytics (§5.1.2)** — when GA is enabled, capture events on load with **no consent banner**; footer terms still disclose GA and link to Google’s opt-out add-on.
+
 ### Added
 
 - **Feature roadmap checklist** — [`docs/FEATURE-ROADMAP.md`](docs/FEATURE-ROADMAP.md) backlog (games P1, UK completion, loan polish, locales, platform); linked from [`docs/OVERVIEW.md`](docs/OVERVIEW.md).

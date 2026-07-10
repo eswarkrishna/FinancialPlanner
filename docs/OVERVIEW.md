@@ -89,3 +89,4 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [2026-07-other-planner-areas.md](research/2026-07-other-planner-areas.md) | Beyond US employee: IN spec symmetry, UK/CA locales, HSA, PMI, ARM games, Tier P2 |
 | [2026-07-personal-budgeting-app.md](research/2026-07-personal-budgeting-app.md) | Personal budget & investment tracker spike (§4.16) |
 | [2026-07-uk-employee-benefits-mapping.md](research/2026-07-uk-employee-benefits-mapping.md) | UK locale spike: NMPA lock, redundancy/JSA/SMI bridge, ISA/GIA, auto-enrolment, ERC |
+| [2026-07-financial-sites-seo.md](research/2026-07-financial-sites-seo.md) | SEO patterns of famous financial sites → §8 SEO metadata (titles, JSON-LD, sitemap) |

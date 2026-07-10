@@ -1,10 +1,13 @@
-/** SEO helpers: tab URLs, titles, meta updates, sitemap/robots builders. */
+/** SEO helpers: tab URLs, titles, meta updates, JSON-LD, sitemap/robots builders (SPEC §8). */
 
 export type TabId = "loan" | "debt" | "retirement" | "strategies" | "strategic" | "budget";
 
 export type PlannerTab = {
   id: TabId;
   label: string;
+  /** Keyword-first SERP title without the brand suffix (§8 SEO metadata). */
+  seoTitle: string;
+  /** Unique meta description, 120–160 characters (§8, §10.46). */
   description: string;
 };
 
@@ -12,38 +15,44 @@ export const PLANNER_TABS: PlannerTab[] = [
   {
     id: "loan",
     label: "Loan",
+    seoTitle: "Loan EMI Calculator with Prepayment",
     description:
-      "Home loan EMI calculator with prepayment, PF/401(k) unemployment tranches, and amortisation schedules for India and the US.",
+      "Free home loan EMI calculator with prepayment strategies, PF/401(k) unemployment planning, and full amortisation schedules for India, the US, and the UK.",
   },
   {
     id: "debt",
     label: "Multi-debt",
+    seoTitle: "Debt Avalanche vs Snowball Calculator",
     description:
-      "Compare debt avalanche vs snowball payoff strategies with minimum payment and budget constraints.",
+      "Compare debt avalanche vs snowball payoff strategies with minimum payments, budget constraints, and month-by-month payoff timelines. Free.",
   },
   {
     id: "retirement",
     label: "Retirement",
+    seoTitle: "Retirement Corpus & SIP Calculator",
     description:
-      "Project retirement corpus growth and funded ratio with monthly SIP-style contributions.",
+      "Project your retirement corpus and funded ratio with monthly SIP-style contributions, inflation, and conservative to optimistic scenarios.",
   },
   {
     id: "strategies",
     label: "Strategies",
+    seoTitle: "Loan Repayment Strategy Comparison",
     description:
-      "Compare equity blend, prepay heavy, and aggressive prepay household repayment strategies.",
+      "Compare equity blend, prepay heavy, and aggressive prepay household repayment strategies side by side with payoff month and total interest.",
   },
   {
     id: "strategic",
     label: "Strategic",
+    seoTitle: "Loan Payoff Game Theory Explorer",
     description:
-      "Explore game-theory payoff matrices for borrower vs lender or household strategic choices.",
+      "Explore game-theory payoff matrices for borrower, lender, household, and nature moves, built on the same amortisation engine as the loan planner.",
   },
   {
     id: "budget",
     label: "Budget",
+    seoTitle: "Budget Planner with 50/30/20 Rule",
     description:
-      "Personal monthly budget planner with 50/30/20 analysis, emergency fund runway, and investment portfolio tracking.",
+      "Plan your monthly budget with 50/30/20 analysis, emergency fund runway, and investment portfolio projections for India, the US, and the UK. Free.",
   },
 ];
 
@@ -51,8 +60,12 @@ export const DEFAULT_SITE_URL = "https://eswarkrishna.github.io/FinancialPlanner
 
 export const SITE_NAME = "FinancialPlanner";
 
+export const DEFAULT_GITHUB_REPO = "eswarkrishna/FinancialPlanner";
+
+export const SITE_LANGUAGES = ["en-IN", "en-US", "en-GB"];
+
 export const DEFAULT_DESCRIPTION =
-  "Free loan payoff calculator for India and the US. Compare prepayment strategies, EMI schedules, PF/401(k) unemployment scenarios, debt avalanche vs snowball, retirement projections, and personal budgeting.";
+  "Free loan EMI, debt payoff, retirement, and budget calculators for India, the US, and the UK. Compare prepayment strategies and amortisation schedules.";
 
 const TAB_IDS = new Set<string>(PLANNER_TABS.map((tab) => tab.id));
 
@@ -86,8 +99,10 @@ export function tabPageUrl(tabId: TabId, siteUrl = getSiteUrl()): string {
   return `${base}/?tab=${tabId}`;
 }
 
-export function pageTitle(tabLabel: string): string {
-  return `${SITE_NAME} — ${tabLabel}`;
+/** Keyword-first title with brand suffix (§8 SEO metadata, §10.45). */
+export function pageTitle(tabId: TabId): string {
+  const tab = PLANNER_TABS.find((entry) => entry.id === tabId) ?? PLANNER_TABS[0];
+  return `${tab.seoTitle} | ${SITE_NAME}`;
 }
 
 export function pageDescription(tabId: TabId): string {
@@ -137,14 +152,15 @@ function upsertLink(rel: string, href: string): void {
   element.href = href;
 }
 
-/** Update title, description, canonical, and social tags for the active tab. */
+const STRUCTURED_DATA_SCRIPT_ID = "seo-structured-data";
+
+/** Update title, description, canonical, social tags, and JSON-LD for the active tab. */
 export function updatePageSeo(tabId: TabId, siteUrl = getSiteUrl()): void {
   if (typeof document === "undefined") {
     return;
   }
 
-  const tab = PLANNER_TABS.find((entry) => entry.id === tabId) ?? PLANNER_TABS[0];
-  const title = pageTitle(tab.label);
+  const title = pageTitle(tabId);
   const description = pageDescription(tabId);
   const canonical = tabPageUrl(tabId, siteUrl);
   const image = `${resolveSiteUrl(siteUrl)}/og-image.png`;
@@ -167,6 +183,22 @@ export function updatePageSeo(tabId: TabId, siteUrl = getSiteUrl()): void {
     content: description,
   });
   upsertMeta('meta[name="twitter:image"]', { name: "twitter:image", content: image });
+
+  const jsonLd = buildStructuredData(siteUrl, {
+    tabId,
+    dateModified: import.meta.env.VITE_BUILD_COMMIT_DATE,
+    githubRepo: import.meta.env.VITE_GITHUB_REPO,
+  });
+  let script = document.head.querySelector<HTMLScriptElement>(
+    `script#${STRUCTURED_DATA_SCRIPT_ID}`,
+  );
+  if (!script) {
+    script = document.createElement("script");
+    script.id = STRUCTURED_DATA_SCRIPT_ID;
+    script.type = "application/ld+json";
+    document.head.appendChild(script);
+  }
+  script.textContent = serializeJsonLd(jsonLd);
 }
 
 export function buildRobotsTxt(siteUrl: string): string {
@@ -178,15 +210,18 @@ Sitemap: ${base}/sitemap.xml
 `;
 }
 
-export function buildSitemapXml(siteUrl: string): string {
+/** `lastmod` is an ISO timestamp or date; omitted from entries when empty (§8). */
+export function buildSitemapXml(siteUrl: string, lastmod?: string): string {
   const base = resolveSiteUrl(siteUrl);
   const urls = PLANNER_TABS.map((tab) => tabPageUrl(tab.id, base));
   const unique = [...new Set(urls)];
+  const lastmodDate = lastmod?.trim() ? lastmod.trim().slice(0, 10) : "";
+  const lastmodLine = lastmodDate ? `\n    <lastmod>${lastmodDate}</lastmod>` : "";
 
   const body = unique
     .map(
       (loc) => `  <url>
-    <loc>${loc}</loc>
+    <loc>${loc}</loc>${lastmodLine}
     <changefreq>weekly</changefreq>
     <priority>${loc.endsWith("/") ? "1.0" : "0.8"}</priority>
   </url>`,
@@ -200,29 +235,98 @@ ${body}
 `;
 }
 
-export function buildJsonLd(siteUrl: string): Record<string, unknown> {
+export type JsonLdOptions = {
+  tabId?: TabId;
+  /** ISO commit timestamp; `dateModified` omitted when empty (§8). */
+  dateModified?: string;
+  /** `owner/repo` slug for publisher sameAs; defaults to the canonical repo. */
+  githubRepo?: string;
+};
+
+/** WebApplication entity per §8 SEO metadata (calculator schema used by finance sites). */
+export function buildWebApplicationJsonLd(
+  siteUrl: string,
+  options: JsonLdOptions = {},
+): Record<string, unknown> {
   const base = resolveSiteUrl(siteUrl);
+  const tabId = options.tabId ?? "loan";
+  const repo = options.githubRepo?.trim() || DEFAULT_GITHUB_REPO;
+  const dateModified = options.dateModified?.trim() ?? "";
+
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: SITE_NAME,
-    url: `${base}/`,
+    url: tabPageUrl(tabId, base),
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web",
-    description: DEFAULT_DESCRIPTION,
+    browserRequirements: "Requires JavaScript",
+    description: pageDescription(tabId),
+    isAccessibleForFree: true,
+    inLanguage: SITE_LANGUAGES,
+    featureList: PLANNER_TABS.map((tab) => tab.seoTitle),
     offers: {
       "@type": "Offer",
       price: "0",
       priceCurrency: "INR",
     },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: `${base}/`,
+      sameAs: [`https://github.com/${repo}`],
+    },
+    ...(dateModified ? { dateModified } : {}),
   };
 }
 
-export function buildIndexHtmlReplacements(siteUrl: string): Record<string, string> {
+/** Home → tab breadcrumb; `null` on the loan/home tab (§8, §10.47). */
+export function buildBreadcrumbJsonLd(
+  tabId: TabId,
+  siteUrl: string,
+): Record<string, unknown> | null {
+  if (tabId === "loan") return null;
+  const base = resolveSiteUrl(siteUrl);
+  const tab = PLANNER_TABS.find((entry) => entry.id === tabId);
+  if (!tab) return null;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${base}/` },
+      { "@type": "ListItem", position: 2, name: tab.label, item: tabPageUrl(tabId, base) },
+    ],
+  };
+}
+
+/** All JSON-LD entities for a tab: WebApplication plus breadcrumb when applicable. */
+export function buildStructuredData(
+  siteUrl: string,
+  options: JsonLdOptions = {},
+): Array<Record<string, unknown>> {
+  const tabId = options.tabId ?? "loan";
+  const entities: Array<Record<string, unknown>> = [
+    buildWebApplicationJsonLd(siteUrl, options),
+  ];
+  const breadcrumb = buildBreadcrumbJsonLd(tabId, siteUrl);
+  if (breadcrumb) entities.push(breadcrumb);
+  return entities;
+}
+
+export function serializeJsonLd(entities: Array<Record<string, unknown>>): string {
+  const payload = entities.length === 1 ? entities[0] : entities;
+  return JSON.stringify(payload).replace(/</g, "\\u003c");
+}
+
+export function buildIndexHtmlReplacements(
+  siteUrl: string,
+  options: Omit<JsonLdOptions, "tabId"> = {},
+): Record<string, string> {
   const base = resolveSiteUrl(siteUrl);
   const image = `${base}/og-image.png`;
-  const title = pageTitle("Loan & debt payoff planner");
-  const jsonLd = JSON.stringify(buildJsonLd(base)).replace(/</g, "\\u003c");
+  const title = pageTitle("loan");
+  const jsonLd = serializeJsonLd(buildStructuredData(base, { ...options, tabId: "loan" }));
 
   return {
     __SEO_SITE_URL__: base,

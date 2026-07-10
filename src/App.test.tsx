@@ -48,7 +48,7 @@ describe("App shell composition", () => {
     await user.click(screen.getByRole("tab", { name: "Multi-debt" }));
     expect(screen.getByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();
     expect(window.location.search).toBe("?tab=debt");
-    expect(document.title).toBe("FinancialPlanner — Multi-debt");
+    expect(document.title).toBe("Debt Avalanche vs Snowball Calculator | FinancialPlanner");
 
     await user.click(screen.getByRole("tab", { name: "Retirement" }));
     expect(screen.getByRole("heading", { name: "Retirement planner" })).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe("App shell composition", () => {
 
     await user.click(screen.getByRole("tab", { name: "Loan" }));
     expect(window.location.search).toBe("");
-    expect(document.title).toBe("FinancialPlanner — Loan");
+    expect(document.title).toBe("Loan EMI Calculator with Prepayment | FinancialPlanner");
   });
 
   it("opens the tab from the URL query param", () => {

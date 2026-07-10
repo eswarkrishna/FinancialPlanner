@@ -20,10 +20,14 @@ function seoSiteUrl(): string {
 }
 
 function seoPlugin(): Plugin {
+  const jsonLdOptions = {
+    dateModified: gitBuildInfo.VITE_BUILD_COMMIT_DATE,
+    githubRepo: process.env.VITE_GITHUB_REPO,
+  };
   return {
     name: "financial-planner-seo",
     transformIndexHtml(html) {
-      const replacements = buildIndexHtmlReplacements(seoSiteUrl());
+      const replacements = buildIndexHtmlReplacements(seoSiteUrl(), jsonLdOptions);
       return Object.entries(replacements).reduce(
         (next, [token, value]) => next.replaceAll(token, value),
         html,
@@ -33,7 +37,10 @@ function seoPlugin(): Plugin {
       const siteUrl = seoSiteUrl();
       const outDir = path.resolve("dist");
       fs.writeFileSync(path.join(outDir, "robots.txt"), buildRobotsTxt(siteUrl));
-      fs.writeFileSync(path.join(outDir, "sitemap.xml"), buildSitemapXml(siteUrl));
+      fs.writeFileSync(
+        path.join(outDir, "sitemap.xml"),
+        buildSitemapXml(siteUrl, gitBuildInfo.VITE_BUILD_COMMIT_DATE),
+      );
       fs.writeFileSync(
         path.join(outDir, "version.json"),
         versionManifestJson(gitBuildInfo),

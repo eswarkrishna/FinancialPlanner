@@ -2,6 +2,7 @@ import { useEffect, useState, type KeyboardEvent } from "react";
 import { trackPageView, trackTabSelect } from "./lib/analytics";
 import {
   getTabFromLocation,
+  pageTitle,
   PLANNER_TABS,
   setTabInUrl,
   type TabId,
@@ -88,9 +89,8 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const label = PLANNER_TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
     updatePageSeo(activeTab);
-    trackPageView(`tab/${activeTab}`, `FinancialPlanner — ${label}`);
+    trackPageView(`tab/${activeTab}`, pageTitle(activeTab));
   }, [activeTab]);
 
   useEffect(() => {

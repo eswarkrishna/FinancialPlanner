@@ -40,11 +40,13 @@ Use this as the **default playbook** for a single vertical slice of product valu
 ## Phase 6 — Ship
 
 - **`sdd-commit-and-review`**: commits / PR cite SPEC **§**; checklist before merge.
+- **`CHANGELOG.md`**: add user-facing bullets under `[Unreleased]` during the PR; on merge to `main`, move them into a dated `[x.y.z]` section.
 
 ## Quick checklist
 
 - [ ] SPEC governs behaviour; §10 has checks  
 - [ ] Code + tests merged intent  
+- [ ] **CHANGELOG.md** updated for user-visible changes  
 - [ ] OVERVIEW / LEARNINGS updated only when useful  
 
 ## Do not

@@ -16,11 +16,13 @@ description: Keeps commits and reviews aligned with FinancialPlanner docs/SPEC.m
 - **Summary:** what behaviour changed for the user or tester.  
 - **Spec:** link or quote the governing **§** from `docs/SPEC.md`.  
 - **Testing:** how §10 / Vitest / goldens were updated.  
+- **Changelog:** user-visible changes under **`CHANGELOG.md` → `[Unreleased]`** (move to a dated version when merging to `main`).  
 - **Screenshots:** only when UI changed meaningfully.
 
 ## Review checklist
 
 - [ ] Behaviour matches **SPEC**; non-goals (§11) not violated  
+- [ ] **`CHANGELOG.md`** updated for user-facing changes  
 - [ ] **AGENTS.md** still accurate if workflow paths changed  
 - [ ] **`.cursor/skills/`** descriptions updated if skill triggers changed  
 - [ ] Footer / disclaimer (§14) intact if user-facing copy touched  

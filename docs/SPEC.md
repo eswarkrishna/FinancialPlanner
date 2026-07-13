@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.3  
+**Version:** 2.4  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -725,6 +725,7 @@ Ship first. Enables channel attribution and GA4 conversion reporting without new
 | `strategy_export_json` | Strategy value |
 | `game_export_json` | Strategic module value |
 | `share_link_copy` | Viral distribution |
+| `share_link_facebook` | Viral distribution (Facebook sharer) |
 | `feedback_github_click` | Product feedback intent |
 
 **`share_link_copy`** — user activates “Copy link to this tab” (§8):
@@ -736,6 +737,16 @@ Ship first. Enables channel attribution and GA4 conversion reporting without new
 | `page_path` | Current path |
 
 Copied URL must be the canonical tab URL (`tabPageUrl` from SEO helpers) with `utm_source=share` and `utm_medium=copy` appended. No scenario inputs or amounts in the URL.
+
+**`share_link_facebook`** — user activates “Share on Facebook” (§8):
+
+| Parameter | Value |
+|-----------|-------|
+| `tab_id` | Active tab |
+| `locale` | Active locale |
+| `page_path` | Current path |
+
+Opens Facebook’s sharer dialog (`https://www.facebook.com/sharer/sharer.php`) in a new window/tab with `u` set to the canonical tab URL plus `utm_source=facebook` and `utm_medium=social`. No scenario inputs, amounts, or form text in the shared URL. Does **not** load the Meta Pixel or any Facebook SDK (§11).
 
 #### 5.1.2 Tier 2 — Engagement & performance capture
 
@@ -801,6 +812,7 @@ Explicit `gtag` events — not inferred from generic DOM clicks:
 | `game_profile_change` | Game profile dropdown | `profile_id`, `page_path` |
 | `game_export_json` | Game payoff matrix JSON export | `profile_id`, `locale`, `page_path` |
 | `share_link_copy` | “Copy link to this tab” (§5.1.1) | `tab_id`, `locale`, `page_path` |
+| `share_link_facebook` | “Share on Facebook” (§5.1.1) | `tab_id`, `locale`, `page_path` |
 | `session_summary` | Tab session end (§5.1.2) | `tabs_visited_count`, `had_export`, `locale`, `page_path` |
 | `web_vitals` | Core Web Vitals sample (§5.1.2) | `metric_name`, `metric_value`, `metric_rating`, `page_path` |
 | `feedback_helpful` | Thumbs up/down (§5.1.2, optional) | `helpful`, `tab_id`, `locale`, `page_path` |
@@ -1015,6 +1027,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 ### Analytics UI (§5.1 Tier 1–2)
 
 - **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
+- **Share on Facebook** — control next to the copy-link action in `AppFooter`. Label: “Share on Facebook”. Opens Facebook’s sharer with the tab URL per §5.1.1 (`utm_source=facebook`, `utm_medium=social`) and fires `share_link_facebook`. No Meta Pixel / Facebook SDK.  
 - **No analytics consent banner** — when GA is enabled, load and capture without an accept/reject strip (§5.1.2). Footer terms still disclose GA and link to Google’s opt-out add-on.  
 - **Release notification consent (§4.15)** — separate strip offering browser notifications for new deploys; persists per §4.15.  
 - **Helpful? (Tier 2, optional)** — thumbs up/down near tab content heading; one vote per tab per session (disable after click).
@@ -1100,7 +1113,8 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 18. **Named events:** with GA enabled in tests, `tab_select` and `loan_export_schedule_csv` call `gtag` with the event names and parameters in §5.1; generic delegated `click` events are **not** emitted for arbitrary DOM clicks.  
 19. **Tier 1 `session_start`:** with GA mocked, first init emits `session_start` with `referrer_host` and `landing_tab`; `utm_source` present when `?utm_source=test` in URL.  
 20. **Tier 1 `share_link_copy`:** copy control produces a URL containing `utm_source=share` and fires `share_link_copy` with `tab_id`.  
-21. **Tier 1 locale param:** `locale_change` accepts `UK` as `locale` value.  
+20a. **Tier 1 `share_link_facebook`:** Share on Facebook control builds a sharer URL whose `u` query contains `utm_source=facebook` and `utm_medium=social` (no loan amounts), and fires `share_link_facebook` with `tab_id`.  
+21. **Tier 1 locale param:** `locale_change` accepts `UK` as `locale` value. 
 22. **Tier 2 `session_summary`:** after visiting two tabs and one export in a mocked session, unload handler emits `session_summary` with `tabs_visited_count` ≥ 2 and `had_export` = `true`.  
 23. **Tier 2 auto-init:** when `VITE_GA_MEASUREMENT_ID` is set, `initAnalytics` runs on load without a consent banner; no analytics accept/reject UI is shown.  
 24. **Tier 2 `web_vitals`:** mocked LCP sample emits `web_vitals` with `metric_name` = `LCP` and `metric_rating` in allowed enum.

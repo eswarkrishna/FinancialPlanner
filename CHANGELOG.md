@@ -24,6 +24,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Share on Facebook (§5.1.1 / §8)** — footer control opens Facebook’s sharer for the active tab URL (`utm_source=facebook`, `utm_medium=social`) and fires `share_link_facebook`; no Meta Pixel or Facebook SDK.
 - **Feature roadmap checklist** — [`docs/FEATURE-ROADMAP.md`](docs/FEATURE-ROADMAP.md) backlog (games P1, UK completion, loan polish, locales, platform); linked from [`docs/OVERVIEW.md`](docs/OVERVIEW.md).
 - **Personal budget & investment tracker (§4.16)** — new Budget tab with monthly income/expense categories, 50/30/20 bucket analysis, emergency fund runway KPIs, manual investment holdings with portfolio projection, CSV/JSON export, and locale-specific reference budgets (IN/US/UK).
 - Research spike: [`docs/research/2026-07-personal-budgeting-app.md`](docs/research/2026-07-personal-budgeting-app.md).

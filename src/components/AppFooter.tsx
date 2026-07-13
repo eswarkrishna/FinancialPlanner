@@ -12,6 +12,7 @@ import {
   trackFooterTermsToggle,
 } from "../lib/analytics";
 import { CopyTabLink } from "./CopyTabLink";
+import { ShareFacebook } from "./ShareFacebook";
 import { useLocale } from "../features/locale/LocaleContext";
 import type { TabId } from "../lib/seo";
 
@@ -51,6 +52,8 @@ function FooterFeedback({ activeTab, locale }: { activeTab: TabId; locale: strin
       <p className="footer-feedback-lead">Help us improve</p>
       <p className="footer-feedback-actions">
         <CopyTabLink tabId={activeTab} locale={locale} />
+        {" · "}
+        <ShareFacebook tabId={activeTab} locale={locale} />
         {" · "}
         <a
           href={issuesUrl}

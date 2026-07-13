@@ -10,6 +10,7 @@ import {
   trackSessionStart,
   trackSessionSummary,
   trackShareLinkCopy,
+  trackShareLinkFacebook,
   trackTabSelect,
   trackWebVitals,
 } from "./analytics";
@@ -109,6 +110,16 @@ describe("analytics", () => {
       expect(gtagSpy).toHaveBeenCalledWith("event", "share_link_copy", {
         tab_id: "debt",
         locale: "US",
+        page_path: expect.any(String),
+      });
+    });
+
+    it("tracks share_link_facebook with tab_id and locale (§5.1.1 / §10.20a)", () => {
+      trackShareLinkFacebook("strategy", "IN");
+
+      expect(gtagSpy).toHaveBeenCalledWith("event", "share_link_facebook", {
+        tab_id: "strategy",
+        locale: "IN",
         page_path: expect.any(String),
       });
     });

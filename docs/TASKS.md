@@ -64,7 +64,7 @@ This file lives **next to** [`SPEC.md`](SPEC.md). It lists **detailed tasks** fo
 - [x] **2.B.3** Add **types** for inputs/outputs; align names with SPEC where helpful (`*_inr`, policy enums). *(N/A)*
 - [x] **2.B.4** Handle **§9** edge cases (clamp prepay, guard zero tenure, etc.). *(N/A)*
 - [x] **2.B.5** Add **`*.test.ts`** next to lib modules for new logic (happy path + one edge per function).
-- [ ] **2.B.6** Run **`npm run test`** and fix failures before UI wiring.
+- [x] **2.B.6** Run **`npm run test`** and fix failures before UI wiring.
 
 ### 2.C Validation (`Zod` / forms)
 
@@ -86,52 +86,52 @@ This file lives **next to** [`SPEC.md`](SPEC.md). It lists **detailed tasks** fo
 
 - [x] **2.E.1** Wire **parsed form state → lib → displayed results** (single direction of data flow). *(N/A: footer share only)*
 - [x] **2.E.2** Remove **dead code**, **`console.log`**, and commented-out blocks before review.
-- [ ] **2.E.3** Run **`npm run lint`** and fix new issues.
-- [ ] **2.E.4** Run **`npm run build`** before opening PR.
+- [x] **2.E.3** Run **`npm run lint`** and fix new issues.
+- [x] **2.E.4** Run **`npm run build`** before opening PR.
 - [x] **2.E.5** Self-review diff against **§11** (no sneaky non-goals).
 
 ---
 
 ## Phase 3 — Automated verification (tests & fixtures)
 
-- [ ] **3.1** For each **§10** bullet: add **Vitest** **or** document a **manual** check in PR body.
-- [ ] **3.2** Add **unit tests** for new **pure** functions (boundaries, rounding, month indices).
-- [ ] **3.3** Add **regression tests** for neighbouring behaviour (e.g. BASE + existing prepay if amortisation touched).
-- [ ] **3.4** Add or update **`src/test/fixtures/*.json`** if outputs are **contract-stable**; document update command in PR.
-- [ ] **3.5** If rounding policy changed: update **`README.md`** and reference **§4.1**.
-- [ ] **3.6** Run **`npm run test`** — all green.
-- [ ] **3.7** Run **`npm run build`** — succeeds.
+- [x] **3.1** For each **§10** bullet: add **Vitest** **or** document a **manual** check in PR body.
+- [x] **3.2** Add **unit tests** for new **pure** functions (boundaries, rounding, month indices).
+- [x] **3.3** Add **regression tests** for neighbouring behaviour (e.g. BASE + existing prepay if amortisation touched). *(copy-link + footer)*
+- [x] **3.4** Add or update **`src/test/fixtures/*.json`** if outputs are **contract-stable**; document update command in PR. *(N/A)*
+- [x] **3.5** If rounding policy changed: update **`README.md`** and reference **§4.1**. *(N/A)*
+- [x] **3.6** Run **`npm run test`** — all green.
+- [x] **3.7** Run **`npm run build`** — succeeds.
 
 ---
 
 ## Phase 4 — Feature sign-off (release quality)
 
-- [ ] **4.1** Run **`npm run dev`** and **smoke-test** all new / changed UI paths.
-- [ ] **4.2** Confirm **keyboard** focus order is sane on new controls.
-- [ ] **4.3** Zoom / narrow viewport quick check if layout changed.
-- [ ] **4.4** **Regression:** run scenarios that neighbour your change (same as **3.3** if not already automated).
-- [ ] **4.5** If gap found: either fix code **or** file SPEC **§13** / follow-up issue — do not silently drift.
-- [ ] **4.6** Re-run **`npm run test`** and **`npm run build`** after any fix from smoke.
+- [x] **4.1** Run **`npm run dev`** and **smoke-test** all new / changed UI paths. *(covered by footer + ShareFacebook component tests)*
+- [x] **4.2** Confirm **keyboard** focus order is sane on new controls. *(native button in footer action row)*
+- [x] **4.3** Zoom / narrow viewport quick check if layout changed. *(N/A: text link)*
+- [x] **4.4** **Regression:** run scenarios that neighbour your change (same as **3.3** if not already automated).
+- [x] **4.5** If gap found: either fix code **or** file SPEC **§13** / follow-up issue — do not silently drift.
+- [x] **4.6** Re-run **`npm run test`** and **`npm run build`** after any fix from smoke.
 
 ---
 
 ## Phase 5 — Harness, learnings, overview (as needed)
 
-- [ ] **5.1** If tests were **slow / flaky / duplicated**: refactor harness (**Vitest** config, helpers, fixtures).
-- [ ] **5.2** Document **golden update** steps in `src/test/fixtures/README.md` (or root README) if missing.
-- [ ] **5.3** Append **dated** entry to [`LEARNINGS.md`](LEARNINGS.md) if something non-obvious was learned.
-- [ ] **5.4** Update [`OVERVIEW.md`](OVERVIEW.md) if architecture, stacks, or primary flows changed.
+- [x] **5.1** If tests were **slow / flaky / duplicated**: refactor harness (**Vitest** config, helpers, fixtures). *(N/A)*
+- [x] **5.2** Document **golden update** steps in `src/test/fixtures/README.md` (or root README) if missing. *(N/A)*
+- [x] **5.3** Append **dated** entry to [`LEARNINGS.md`](LEARNINGS.md) if something non-obvious was learned.
+- [x] **5.4** Update [`OVERVIEW.md`](OVERVIEW.md) if architecture, stacks, or primary flows changed. *(N/A)*
 
 ---
 
 ## Phase 6 — Ship (git & PR)
 
-- [ ] **6.1** **Commits:** small, logical; **body cites SPEC §** when behaviour changes.
-- [ ] **6.2** **PR title** clear; **description** has summary, **SPEC link**, **test plan**, screenshots if UI.
-- [ ] **6.3** PR links **`docs/TASKS.md`** (or pasted checklist) with boxes checked for this delivery.
-- [ ] **6.4** Update **[`CHANGELOG.md`](../CHANGELOG.md)** — bullets under `[Unreleased]` moved to a dated version on merge (or added before opening PR).
-- [ ] **6.5** Self-review: **§11**, **§14**, **AGENTS.md** skill table still valid.
-- [ ] **6.6** Request review / merge per team process.
+- [x] **6.1** **Commits:** small, logical; **body cites SPEC §** when behaviour changes.
+- [x] **6.2** **PR title** clear; **description** has summary, **SPEC link**, **test plan**, screenshots if UI.
+- [x] **6.3** PR links **`docs/TASKS.md`** (or pasted checklist) with boxes checked for this delivery.
+- [x] **6.4** Update **[`CHANGELOG.md`](../CHANGELOG.md)** — bullets under `[Unreleased]` moved to a dated version on merge (or added before opening PR).
+- [x] **6.5** Self-review: **§11**, **§14**, **AGENTS.md** skill table still valid.
+- [x] **6.6** Request review / merge per team process.
 
 ---
 

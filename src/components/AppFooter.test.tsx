@@ -44,4 +44,11 @@ describe("AppFooter", () => {
     );
     expect(link).toHaveAttribute("target", "_blank");
   });
+
+  it("shows Share on Facebook next to copy-link (§8)", () => {
+    renderWithLocale(<AppFooter activeTab="debt" locale="US" />);
+
+    expect(screen.getByRole("button", { name: "Copy link to this tab" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Share on Facebook" })).toBeInTheDocument();
+  });
 });

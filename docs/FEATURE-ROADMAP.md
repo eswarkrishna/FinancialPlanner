@@ -58,7 +58,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 - [ ] Strategies tab — net worth at horizon bar chart
 - [ ] Shared SVG chart components reused across tabs
 - [ ] Richer CSV/JSON export fields where useful
-- [ ] Shareable scenario / tab links (UTM rules stay within §5.1)
+- [x] Shareable scenario / tab links (UTM rules stay within §5.1) — **Share on Facebook** footer control (`utm_source=facebook`, `utm_medium=social`) shipped; copy-link already present
 
 ---
 

@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-13 — Share on Facebook without Meta Pixel
+
+- **Context:** SPEC §5.1.1 / §8 / §10.20a — “Create a post for Facebook” delivered as a footer share control.
+- **What we learned:** Facebook’s `sharer/sharer.php?u=` is enough for organic link posts and reuses existing OG tags; loading the Meta Pixel would violate §11. Shared URLs must stay tab-canonical + UTM only (same privacy bar as copy-link).
+- **Action:** Prefer web sharer + GA `share_link_facebook` over any Facebook SDK; keep amounts out of the `u` parameter.
+
+---
+
 ## 2026-07-10 — Analytics without consent banner
 
 - **Context:** SPEC §5.1.2 / §8 / §10.23 — product owner asked to capture GA without an in-app permission prompt.

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trackShareLinkCopy } from "../lib/analytics";
-import { tabPageUrl, type TabId } from "../lib/seo";
+import { buildShareTabUrl } from "../lib/shareUrl";
+import type { TabId } from "../lib/seo";
 
 interface CopyTabLinkProps {
   tabId: TabId;
@@ -11,11 +12,7 @@ export function CopyTabLink({ tabId, locale }: CopyTabLinkProps) {
   const [copied, setCopied] = useState(false);
 
   async function copyLink() {
-    const base = tabPageUrl(tabId);
-    const url = new URL(base);
-    url.searchParams.set("utm_source", "share");
-    url.searchParams.set("utm_medium", "copy");
-    const text = url.toString();
+    const text = buildShareTabUrl(tabId, { source: "share", medium: "copy" });
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);

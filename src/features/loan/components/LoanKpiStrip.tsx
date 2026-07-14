@@ -59,6 +59,24 @@ export function LoanKpiStrip({
     },
   ];
 
+  if (
+    activeRow.grossInterestSaved !== 0 ||
+    activeRow.prepaymentFees !== 0
+  ) {
+    items.push({
+      id: "gross-saved",
+      label: "Gross interest saved",
+      value: money(activeRow.grossInterestSaved),
+      tone: activeRow.grossInterestSaved > 0 ? "positive" : "default",
+    });
+    items.push({
+      id: "net-saved",
+      label: "Net savings after fee",
+      value: money(activeRow.netSavingsAfterFee),
+      tone: activeRow.netSavingsAfterFee > 0 ? "positive" : "default",
+    });
+  }
+
   if (activeRow.minCashBalance !== undefined) {
     items.push({
       id: "min-cash",

@@ -15,11 +15,27 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. UK locale completion + game theory Tier P1  
-2. Loan engine polish (timing / EMI / deterministic rate stress)  
-3. Charts, exports, persistence UX  
-4. Canada locale **or** multi-creditor games (after SPEC bump)  
-5. Platform (iOS, PDF)
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **in progress**; then inflation, locale formatting, SIP/PPF, scenarios
+2. UK locale completion + game theory Tier P1  
+3. Loan engine polish (timing / EMI / deterministic rate stress)  
+4. Charts, exports, persistence UX  
+5. Canada locale **or** multi-creditor games (after SPEC bump)  
+6. Platform (iOS, PDF)
+
+---
+
+## A0 — Competitor gap-fill (SPEC v2.5+)
+
+Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)
+
+- [x] Prepayment fee modeling (flat / %) + net savings (§4.4.1)
+- [x] Reduce EMI vs Reduce Tenure side-by-side (§4.4.2)
+- [ ] Retirement inflation adjustment (real vs nominal)
+- [ ] Currency/locale formatting polish (lakhs vs millions)
+- [ ] Amortisation CSV already shipped — PDF export still open
+- [ ] SIP + PPF calculators (India instruments)
+- [ ] Scenario save/compare (named localStorage slots)
+- [ ] Remaining: SSY, gratuity, lumpsum, drawdown phase, budget charts, tax-aware rate, SEO polish
 
 ---
 

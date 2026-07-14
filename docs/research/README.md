@@ -6,6 +6,14 @@ Spikes, options analysis, and external desk research live here as **Markdown** f
 
 `YYYY-MM-short-topic.md` (example: `2026-04-unemployment-cashflow-order.md`).
 
+## Index (recent)
+
+| Note | Topic |
+|------|-------|
+| [2026-07-gap-fill-competitors.md](2026-07-gap-fill-competitors.md) | Competitor parity gap-fill (EMI fees, India instruments, inflation, …) |
+| [2026-07-financial-sites-seo.md](2026-07-financial-sites-seo.md) | SEO patterns from financial calculator sites |
+| [2026-07-personal-budgeting-app.md](2026-07-personal-budgeting-app.md) | Personal budget tab spike |
+
 ## Workflow
 
 1. Follow **`.cursor/skills/sdd-research-spike/SKILL.md`**.  

@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-14 — Gap-fill prepay fee vs game-theory fees
+
+- **Context:** SPEC §4.4.1–§4.4.2 / gap-fill §1.2–1.3; PR for competitor parity first slice.
+- **What we learned:** Strategic-tab `L_FEE_*` actions already modeled fees for game payoffs, but the **loan tab** had no fee inputs—so “interest saved” overstated benefits for everyday users. Fee is a cash outflow (does not reduce principal); net savings = gross interest saved − fees.
+- **Action:** Keep loan-tab `prepayment_fee_type` default `none` so goldens stay stable; reuse pure `computePrepaymentFeeInr` rather than coupling loan UI to game action enums.
+
+---
+
 ## 2026-07-13 — Share on Facebook without Meta Pixel
 
 - **Context:** SPEC §5.1.1 / §8 / §10.20a — “Create a post for Facebook” delivered as a footer share control.

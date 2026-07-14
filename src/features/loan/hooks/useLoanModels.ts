@@ -44,7 +44,7 @@ import {
   referenceScenarioForLocale,
   useLocale,
 } from "../../locale/LocaleContext";
-import { buildComparisonRows } from "./buildComparisonRows";
+import { buildComparisonRows, buildPrepayStrategyCompare } from "./buildComparisonRows";
 import { buildLoanModels } from "./buildLoanModels";
 import {
   pfTrancheToLoanLabel,
@@ -113,6 +113,13 @@ export function useLoanModels() {
       gold_haircut_enabled: inputs.gold_haircut_enabled === "true",
       gold_haircut_pct: inputs.gold_haircut_pct || 0,
       monthly_cash_to_loan_inr: inputs.monthly_cash_to_loan_inr || 0,
+      prepayment_fee_type:
+        inputs.prepayment_fee_type === "flat" ||
+        inputs.prepayment_fee_type === "percent"
+          ? inputs.prepayment_fee_type
+          : "none",
+      prepayment_fee_inr: inputs.prepayment_fee_inr || 0,
+      prepayment_fee_pct: inputs.prepayment_fee_pct || 0,
       unemployment_mode: inputs.unemployment_mode === "true",
       unemployment_start_month: inputs.unemployment_start_month || 1,
       monthly_living_expense_inr: inputs.monthly_living_expense_inr || 0,
@@ -198,6 +205,12 @@ export function useLoanModels() {
         ? buildComparisonRows(models, baseInterest, stagedEvents.length, locale)
         : [],
     [models, baseInterest, stagedEvents.length, locale],
+  );
+
+  const prepayStrategyCompare = useMemo(
+    () =>
+      models ? buildPrepayStrategyCompare(models, baseInterest, locale) : null,
+    [models, baseInterest, locale],
   );
 
   const withdrawalPlan = useMemo(() => {
@@ -435,6 +448,7 @@ export function useLoanModels() {
     locale,
     models,
     comparisonRows,
+    prepayStrategyCompare,
     withdrawalPlan,
     activeRows,
     activeCashBalances,

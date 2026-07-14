@@ -24,4 +24,22 @@ export type ComparisonRow = {
   deltaVsBaseMonths: number;
   deltaInterestVsBase: number;
   minCashBalance?: number;
+  /** Gross interest saved vs BASE (§4.4.1). */
+  grossInterestSaved: number;
+  /** Prepayment / foreclosure fees charged (§4.4.1). */
+  prepaymentFees: number;
+  /** Gross interest saved minus fees (§4.4.1). */
+  netSavingsAfterFee: number;
+};
+
+/** Side-by-side Reduce EMI vs Reduce Tenure row (§4.4.2). */
+export type PrepayStrategyCompareRow = {
+  id: "PREPAY_EMI" | "PREPAY_TENURE";
+  policyLabel: string;
+  newEmi: number;
+  newTenureMonths: number;
+  totalInterest: number;
+  grossInterestSaved: number;
+  prepaymentFees: number;
+  netSavingsAfterFee: number;
 };

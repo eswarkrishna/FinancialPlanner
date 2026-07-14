@@ -77,6 +77,7 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (Keep a Changelog) |
 | [LEARNINGS.md](LEARNINGS.md) | Dated post-feature notes |
 | [research/README.md](research/README.md) | Spike and research index |
+| [research/2026-07-gap-fill-competitors.md](research/2026-07-gap-fill-competitors.md) | Competitor gap-fill backlog (fee, instruments, inflation, …) |
 | [../infra/README.md](../infra/README.md) | AWS deploy (S3 + CloudFront) infra-as-code |
 | [../AGENTS.md](../AGENTS.md) | Cursor agent + skill index |
 

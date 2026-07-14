@@ -8,12 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.4  
+**Version:** 2.5  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
-**Status:** Draft for implementation
+**Status:** Draft for implementation  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9).
 
 ---
 
@@ -71,7 +72,9 @@ Optional **strategic interaction** modelling (§4.13) compares borrower, lender,
 | `tenure_months` | integer | yes | e.g. `168` |
 | `start_date` | date | optional | For calendar output; default “today” |
 | `rounding_mode` | enum | optional | `banker` / `floor` / `ceil` — document choice in README |
-| `prepayment_fee_inr` | number | optional | Default `0` |
+| `prepayment_fee_type` | enum | optional | `none` (default) / `flat` / `percent` — loan-tab fee on lump prepays (§4.4.1) |
+| `prepayment_fee_inr` | number | optional | Flat fee when type = `flat`; default `0`. Also used by §4.13 `L_FEE_FLAT`. |
+| `prepayment_fee_pct` | number | optional | % of prepaid principal when type = `percent`; default `0`. Also used by §4.13 `L_FEE_PCT` (game default 1% if unset). |
 | `rate_type` | enum | optional | `fixed` (v1); `floating` deferred |
 
 ### 4.2 Asset inputs (for labelling & constraints, not all are auto-spent)
@@ -115,6 +118,36 @@ Prepayments are applied **at month boundary after scheduled EMI** unless advance
    - If prepayment + scheduled payments clear loan early, stop schedule.  
 
 **Partial prepayment minimum:** configurable constant `MIN_PREPAYMENT_INR` default `0`.
+
+#### 4.4.1 Prepayment fee modeling (loan tab)
+
+Banks often charge a foreclosure / prepayment fee; without it, “interest saved” overstates the real benefit (gap-fill §1.2).
+
+**Fee computation** (applied once per lump-prepay event that actually reduces principal by `prepaid_principal_inr > 0`):
+
+| `prepayment_fee_type` | Fee amount |
+|-----------------------|------------|
+| `none` | `0` |
+| `flat` | `prepayment_fee_inr` |
+| `percent` | `prepayment_fee_pct / 100 × prepaid_principal_inr` |
+
+- Fee is a **cash outflow** and does **not** reduce loan principal.  
+- Sum fees across events as `prepayment_fees_inr` on the scenario.  
+- **Gross interest saved** = `BASE.total_interest_inr − scenario.total_interest_inr`.  
+- **Net savings after fee** = `gross_interest_saved_inr − prepayment_fees_inr`.  
+- UI must show both KPIs on prepay scenarios and in the Reduce EMI vs Reduce Tenure panel (§4.9).  
+- Default type = `none` so existing goldens / BASE behaviour are unchanged until the user opts in.
+
+#### 4.4.2 Prepayment strategy comparison (Reduce EMI vs Reduce Tenure)
+
+For a one-time prepay (month 1 from the selected source), the loan tab must surface a **side-by-side** comparison of:
+
+| Column | Policy |
+|--------|--------|
+| **Reduce tenure** (keep EMI) | `recompute_tenure_keep_emi` → scenarios `PREPAY_*_EMI` / view `PREPAY_EMI` |
+| **Reduce EMI** (keep tenure) | `recompute_emi_keep_tenure` → scenarios `PREPAY_*_TENURE` / view `PREPAY_TENURE` |
+
+Each column shows: **new EMI**, **new tenure** (payoff months), **total interest**, **gross interest saved**, **prepayment fees**, **net savings after fee**. Selecting a column sets the active schedule view to that policy (gap-fill §1.3).
 
 ### 4.5 Extra monthly principal
 
@@ -195,7 +228,8 @@ Add optional fields:
 
 For each scenario:
 
-- **Summary KPIs:** payoff month (date), total interest, total outflows, total prepayments, interest vs baseline delta  
+- **Summary KPIs:** payoff month (date), total interest, total outflows, total prepayments, interest vs baseline delta, **gross interest saved**, **prepayment fees**, **net savings after fee** (when a prepay scenario is active / fee modeling enabled)  
+- **Strategy comparison panel (§4.4.2):** side-by-side Reduce EMI vs Reduce Tenure for the current one-time prepay; selecting a strategy updates the amortisation schedule.  
 - **Schedule table:** month index, opening balance, interest, principal, extra principal, prepayment, closing balance, cash_balance (if enabled), events  
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
 - **Charts (v1.8):** debt tab — total balance over time; retirement tab — nominal corpus by year; strategies tab — net worth at horizon bar chart (reuse shared SVG components).
@@ -1161,6 +1195,13 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 46. **Descriptions:** every tab description is 120–160 characters and unique across tabs.
 47. **JSON-LD:** switching to a non-loan tab injects `WebApplication` (with `featureList`, `isAccessibleForFree`, `publisher.sameAs`) and `BreadcrumbList` (`Home → tab`) into the head; the loan tab omits `BreadcrumbList`; sitemap entries include `<lastmod>` when a build commit date exists.
 
+### Prepayment fee & strategy comparison (§4.4.1–§4.4.2)
+
+48. **Flat fee:** reference loan, ₹25L month-1 prepay, `prepayment_fee_type = flat`, `prepayment_fee_inr = 25_000` → `prepayment_fees_inr = 25_000` and `net_savings_after_fee_inr = gross_interest_saved_inr − 25_000` for both keep-EMI and keep-tenure policies.  
+49. **Percent fee:** same prepay with `prepayment_fee_type = percent`, `prepayment_fee_pct = 1` → fee = **₹25,000** (1% of prepaid principal).  
+50. **No fee default:** `prepayment_fee_type = none` → fees = 0 and net savings equals gross interest saved.  
+51. **Strategy panel:** when a one-time prepay source has balance &gt; 0, UI shows side-by-side Reduce EMI vs Reduce Tenure with new EMI, payoff months, total interest, gross saved, fees, and net savings; selecting either policy switches the active schedule view.
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -1174,6 +1215,9 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Analytics:** third-party ad pixels (Meta, LinkedIn, etc.), fingerprinting, storing full `document.referrer` URLs with query strings, or encoding user financial inputs in share/UTM links (§5.1).
 - **Server-side push:** FCM/APNs campaigns or per-user push backends (§4.15 uses browser notifications + `version.json` polling only).
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
+- **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
+
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation. Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
 
 **In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 

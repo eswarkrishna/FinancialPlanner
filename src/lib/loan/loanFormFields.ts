@@ -14,7 +14,11 @@ export const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
   gold_haircut_enabled: "false",
   gold_haircut_pct: "",
   monthly_cash_to_loan_inr: "",
+  prepayment_fee_type: "none",
+  prepayment_fee_inr: "",
+  prepayment_fee_pct: "",
   unemployment_mode: "false",
+
   unemployment_start_month: "1",
   monthly_living_expense_inr: "",
   monthly_income_inr: "",
@@ -83,7 +87,14 @@ export function loanInputToFormFields(
     gold_haircut_enabled: boolField(input.gold_haircut_enabled, false),
     gold_haircut_pct: stringField(input.gold_haircut_pct),
     monthly_cash_to_loan_inr: stringField(input.monthly_cash_to_loan_inr),
+    prepayment_fee_type:
+      input.prepayment_fee_type === "flat" || input.prepayment_fee_type === "percent"
+        ? input.prepayment_fee_type
+        : "none",
+    prepayment_fee_inr: stringField(input.prepayment_fee_inr),
+    prepayment_fee_pct: stringField(input.prepayment_fee_pct),
     unemployment_mode: boolField(input.unemployment_mode, false),
+
     unemployment_start_month: stringField(input.unemployment_start_month, "1"),
     monthly_living_expense_inr: stringField(input.monthly_living_expense_inr),
     monthly_income_inr: stringField(input.monthly_income_inr),

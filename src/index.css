@@ -641,6 +641,62 @@ tbody tr:hover {
   color: var(--danger);
 }
 
+.strategy-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.strategy-compare-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.strategy-compare-card:hover {
+  border-color: var(--accent, #0f766e);
+}
+
+.strategy-compare-card.is-selected {
+  border-color: var(--accent, #0f766e);
+  box-shadow: inset 0 0 0 1px var(--accent, #0f766e);
+}
+
+.strategy-compare-card__title {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.strategy-compare-card__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem 1rem;
+  margin: 0;
+}
+
+.strategy-compare-card__metrics dt {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.strategy-compare-card__metrics dd {
+  margin: 0.15rem 0 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
 .planner-layout {
   display: flex;
   flex-direction: column;

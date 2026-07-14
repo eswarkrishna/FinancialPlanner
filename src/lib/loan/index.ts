@@ -9,5 +9,6 @@ export * from "./cashflowUk";
 export * from "./erc";
 export * from "./giaLiquidation";
 export * from "./loanFormFields";
+export * from "./prepaymentFee";
 export * from "./scenarioViews";
 export * from "./stagedPrepays";

@@ -1,12 +1,22 @@
 import { formatMoney } from "../../../lib/locale/formatMoney";
 import type { Locale } from "../../../lib/locale/types";
+import {
+  computePrepaymentFeeInr,
+  computePrepaymentSavings,
+} from "../../../lib/loan/prepaymentFee";
 import type { BuiltLoanModels } from "./buildLoanModels";
 import {
   isCashflowResult,
   pfTrancheToLoanLabel,
   prepaySourceComparisonWord,
 } from "./loanModelHelpers";
-import type { ComparisonRow } from "./loanModelTypes";
+import type { ComparisonRow, PrepayStrategyCompareRow } from "./loanModelTypes";
+
+const ONE_TIME_PREPAY_ROW_IDS = new Set([
+  "PREPAY_TENURE",
+  "PREPAY_EMI",
+  "PREPAY_EMI_INFLOW",
+]);
 
 export function buildComparisonRows(
   models: BuiltLoanModels,
@@ -14,6 +24,20 @@ export function buildComparisonRows(
   stagedEventCount: number,
   locale: Locale,
 ): ComparisonRow[] {
+  const oneTimeForFee = (() => {
+    if (!models.canPrepay) return 0;
+    if (models.prepaySource === "cash") return models.v.cash_inr;
+    if (models.prepaySource === "pf") {
+      return locale === "US"
+        ? models.k401Plan.vested_balance_usd
+        : models.v.pf_corpus_inr;
+    }
+    if (models.prepaySource === "isa") return models.v.isa_balance_inr;
+    if (models.prepaySource === "gia") return models.v.gia_balance_inr;
+    return models.effectiveLiquidInr;
+  })();
+  const lumpFee = computePrepaymentFeeInr(oneTimeForFee, models.v);
+
   const baseM = models.base.totals.payoff_month;
   const row = (
     id: string,
@@ -22,16 +46,24 @@ export function buildComparisonRows(
     totalInterest: number,
     totalPaid: number,
     minCashBalance?: number,
-  ): ComparisonRow => ({
-    id,
-    label,
-    payoffMonth,
-    totalInterest,
-    totalPaid,
-    deltaVsBaseMonths: baseM - payoffMonth,
-    deltaInterestVsBase: baseInterest - totalInterest,
-    minCashBalance,
-  });
+  ): ComparisonRow => {
+    const applyFee = ONE_TIME_PREPAY_ROW_IDS.has(id);
+    const fees = applyFee ? lumpFee : 0;
+    const savings = computePrepaymentSavings(baseInterest, totalInterest, fees);
+    return {
+      id,
+      label,
+      payoffMonth,
+      totalInterest,
+      totalPaid,
+      deltaVsBaseMonths: baseM - payoffMonth,
+      deltaInterestVsBase: baseInterest - totalInterest,
+      minCashBalance,
+      grossInterestSaved: savings.gross_interest_saved_inr,
+      prepaymentFees: savings.prepayment_fees_inr,
+      netSavingsAfterFee: savings.net_savings_after_fee_inr,
+    };
+  };
 
   const rows: ComparisonRow[] = [
     row(
@@ -179,4 +211,67 @@ export function buildComparisonRows(
     );
   }
   return rows;
+}
+
+/** Side-by-side Reduce EMI vs Reduce Tenure (§4.4.2). */
+export function buildPrepayStrategyCompare(
+  models: BuiltLoanModels,
+  baseInterest: number,
+  locale: Locale,
+): PrepayStrategyCompareRow[] | null {
+  if (!models.canPrepay || !models.prepayEmi || !models.prepayTenure) return null;
+
+  const oneTimeForFee =
+    models.prepaySource === "cash"
+      ? models.v.cash_inr
+      : models.prepaySource === "pf"
+        ? locale === "US"
+          ? models.k401Plan.vested_balance_usd
+          : models.v.pf_corpus_inr
+        : models.prepaySource === "isa"
+          ? models.v.isa_balance_inr
+          : models.prepaySource === "gia"
+            ? models.v.gia_balance_inr
+            : models.effectiveLiquidInr;
+  const fees = computePrepaymentFeeInr(oneTimeForFee, models.v);
+  const baseEmi = models.base.emi_inr;
+
+  const reducedEmi =
+    "rows" in models.prepayTenure && models.prepayTenure.rows.length >= 2
+      ? models.prepayTenure.rows[1]!.emi_inr
+      : baseEmi;
+
+  const keepEmiSavings = computePrepaymentSavings(
+    baseInterest,
+    models.prepayEmi.totals.total_interest_inr,
+    fees,
+  );
+  const keepTenureSavings = computePrepaymentSavings(
+    baseInterest,
+    models.prepayTenure.totals.total_interest_inr,
+    fees,
+  );
+
+  return [
+    {
+      id: "PREPAY_EMI",
+      policyLabel: "Reduce tenure (keep EMI)",
+      newEmi: baseEmi,
+      newTenureMonths: models.prepayEmi.totals.payoff_month,
+      totalInterest: models.prepayEmi.totals.total_interest_inr,
+      grossInterestSaved: keepEmiSavings.gross_interest_saved_inr,
+      prepaymentFees: keepEmiSavings.prepayment_fees_inr,
+      netSavingsAfterFee: keepEmiSavings.net_savings_after_fee_inr,
+    },
+    {
+      id: "PREPAY_TENURE",
+      policyLabel: "Reduce EMI (keep tenure)",
+      newEmi: reducedEmi,
+      newTenureMonths: models.prepayTenure.totals.payoff_month,
+      totalInterest: models.prepayTenure.totals.total_interest_inr,
+      grossInterestSaved: keepTenureSavings.gross_interest_saved_inr,
+      prepaymentFees: keepTenureSavings.prepayment_fees_inr,
+      netSavingsAfterFee: keepTenureSavings.net_savings_after_fee_inr,
+    },
+  ];
 }

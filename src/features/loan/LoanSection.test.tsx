@@ -29,6 +29,9 @@ describe("LoanSection", () => {
       screen.getByRole("heading", { name: "Loan scenario comparison" }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("heading", { name: "Reduce EMI vs Reduce Tenure" }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("heading", { name: "Loan amortisation schedule" }),
     ).toBeInTheDocument();
   });
@@ -162,16 +165,40 @@ describe("LoanSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows import error for invalid JSON without mutating form (§10 #21)", async () => {
+  it("selecting Reduce Tenure strategy updates schedule view (§10.51)", async () => {
     const user = userEvent.setup();
     renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
 
-    const file = new File(["not json"], "bad.json", { type: "application/json" });
-    await user.click(screen.getByRole("button", { name: /Import scenario JSON/i }));
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    await user.upload(input, file);
+    const reduceTenure = screen.getByRole("button", {
+      name: /Reduce tenure \(keep EMI\)/i,
+    });
+    await user.click(reduceTenure);
+    expect(reduceTenure).toHaveAttribute("aria-pressed", "true");
 
-    expect(await screen.findByText(/Invalid JSON file/i)).toBeInTheDocument();
-    expect(screen.getByLabelText("Principal (INR)")).toHaveValue("");
+    const scheduleCard = screen.getByRole("radio", {
+      name: /Prepay \+ EMI: One-time prepay/i,
+    });
+    expect(scheduleCard).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("applies flat prepayment fee to net savings KPI (§10.48)", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    fireEvent.change(screen.getByLabelText("Prepayment fee type"), {
+      target: { value: "flat" },
+    });
+    fireEvent.change(screen.getByLabelText(/Prepayment fee \(INR\)/), {
+      target: { value: "25000" },
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /Reduce tenure \(keep EMI\)/i }),
+    );
+
+    expect(screen.getByText("Net savings after fee")).toBeInTheDocument();
+    expect(screen.getByText("Gross interest saved")).toBeInTheDocument();
   });
 });

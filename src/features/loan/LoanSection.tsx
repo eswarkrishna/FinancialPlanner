@@ -6,6 +6,7 @@ import { trackLoanPrepaySourceChange, trackLoanScenarioViewChange } from "../../
 import { useLocale } from "../locale/LocaleContext";
 import { TableWrap } from "../../components/TableWrap";
 import { LoanKpiStrip } from "./components/LoanKpiStrip";
+import { PrepayStrategyCompare } from "./components/PrepayStrategyCompare";
 import { ScenarioCardPicker } from "./components/ScenarioCardPicker";
 import { ScheduleChart } from "./components/ScheduleChart";
 import { ScenarioTable } from "./components/ScenarioTable";
@@ -48,6 +49,7 @@ export function LoanSection() {
     parsed,
     models,
     comparisonRows,
+    prepayStrategyCompare,
     withdrawalPlan,
     activeRows,
     activeCashBalances,
@@ -155,6 +157,37 @@ export function LoanSection() {
               onChange={(e) => setField("monthly_cash_to_loan_inr", e.target.value)}
             />
           </label>
+          <label>
+            Prepayment fee type
+            <select
+              value={inputs.prepayment_fee_type || "none"}
+              onChange={(e) => setField("prepayment_fee_type", e.target.value)}
+            >
+              <option value="none">None</option>
+              <option value="flat">Flat amount</option>
+              <option value="percent">Percent of prepaid principal</option>
+            </select>
+          </label>
+          {inputs.prepayment_fee_type === "flat" && (
+            <label>
+              Prepayment fee ({currencyLabel})
+              <input
+                inputMode="decimal"
+                value={inputs.prepayment_fee_inr}
+                onChange={(e) => setField("prepayment_fee_inr", e.target.value)}
+              />
+            </label>
+          )}
+          {inputs.prepayment_fee_type === "percent" && (
+            <label>
+              Prepayment fee (%)
+              <input
+                inputMode="decimal"
+                value={inputs.prepayment_fee_pct}
+                onChange={(e) => setField("prepayment_fee_pct", e.target.value)}
+              />
+            </label>
+          )}
         </div>
         </FormSection>
 
@@ -645,7 +678,8 @@ export function LoanSection() {
               <strong>{prepaySourceHintLabel(models.prepaySource, locale)}</strong> at end
               of month 1. Monthly-inflow column uses your{" "}
               <strong>Monthly cash to loan</strong> value (salary sweep is listed
-              separately).
+              separately). Net savings subtracts any prepayment fee from gross
+              interest saved.
             </p>
             <label className="inline">
               One-time prepay source{" "}
@@ -681,7 +715,9 @@ export function LoanSection() {
                     <th>Payoff (months)</th>
                     <th>Faster vs BASE</th>
                     <th>Total interest</th>
-                    <th>Δ interest vs BASE</th>
+                    <th>Gross interest saved</th>
+                    <th>Fees</th>
+                    <th>Net savings after fee</th>
                     <th>Min cash</th>
                     <th>Total paid</th>
                   </tr>
@@ -698,9 +734,17 @@ export function LoanSection() {
                       </td>
                       <td>{money(row.totalInterest)}</td>
                       <td>
-                        {row.deltaInterestVsBase === 0
+                        {row.grossInterestSaved === 0
                           ? "—"
-                          : money(row.deltaInterestVsBase)}
+                          : money(row.grossInterestSaved)}
+                      </td>
+                      <td>
+                        {row.prepaymentFees === 0 ? "—" : money(row.prepaymentFees)}
+                      </td>
+                      <td>
+                        {row.grossInterestSaved === 0 && row.prepaymentFees === 0
+                          ? "—"
+                          : money(row.netSavingsAfterFee)}
                       </td>
                       <td>
                         {row.minCashBalance !== undefined
@@ -715,6 +759,19 @@ export function LoanSection() {
             </TableWrap>
           </section>
         </div>
+      )}
+
+      {models && prepayStrategyCompare && (
+        <PrepayStrategyCompare
+          locale={locale}
+          rows={prepayStrategyCompare}
+          selectedView={scenarioView}
+          emiLabel={emiLabel}
+          onSelect={(view) => {
+            setScenarioView(view);
+            trackLoanScenarioViewChange(view, locale);
+          }}
+        />
       )}
 
       {models && (

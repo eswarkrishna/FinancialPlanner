@@ -17,6 +17,10 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ## [Unreleased]
 
+### Changed
+
+- **Production demo offline** — GitHub Pages now serves a static “This site is offline” page (`offline-site/`) instead of the calculator SPA.
+
 ### Added
 
 - **Gap-fill backlog** — [`docs/research/2026-07-gap-fill-competitors.md`](docs/research/2026-07-gap-fill-competitors.md) competitor parity list; SPEC v2.5 ships first slice.

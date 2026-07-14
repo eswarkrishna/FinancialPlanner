@@ -1,106 +1,22 @@
+# Deploy (S3 + CloudFront)
+
+Paused while the public demo is offline. Re-enable by restoring the previous
+job steps from git history when bringing production back up.
+
 name: Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch: {}
 
 permissions:
-  id-token: write
   contents: read
 
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
-  build-and-deploy:
+  paused:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ap-south-1
-      S3_BUCKET: ${{ secrets.S3_BUCKET }}
-      DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
-      ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-
     steps:
-      - name: Check AWS deploy configuration
-        id: aws_configured
+      - name: Production deploy paused
         run: |
-          if [ -z "${S3_BUCKET}" ] || [ -z "${DISTRIBUTION_ID}" ] || [ -z "${ROLE_ARN}" ]; then
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "AWS deploy secrets not set; skipping S3/CloudFront deploy."
-          else
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout
-        if: steps.aws_configured.outputs.configured == 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        if: steps.aws_configured.outputs.configured == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: npm ci
-
-      - name: Type check
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: npm run lint
-
-      - name: Run tests
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: npm run test
-
-      - name: Build
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: |
-          # Only export when set; an empty env var would override .env.production.
-          if [ -n "${{ secrets.VITE_GA_MEASUREMENT_ID }}" ]; then
-            export VITE_GA_MEASUREMENT_ID="${{ secrets.VITE_GA_MEASUREMENT_ID }}"
-          fi
-          npm run build
-
-      - name: Configure AWS credentials
-        if: steps.aws_configured.outputs.configured == 'true'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Sync hashed assets (immutable, 1y cache)
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: |
-          aws s3 sync dist/assets/ s3://${S3_BUCKET}/assets/ \
-            --delete \
-            --cache-control "public, max-age=31536000, immutable" \
-            --no-progress
-
-      - name: Sync top-level files (short cache)
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: |
-          aws s3 sync dist/ s3://${S3_BUCKET}/ \
-            --delete \
-            --exclude "assets/*" \
-            --exclude "index.html" \
-            --cache-control "public, max-age=300, must-revalidate" \
-            --no-progress
-
-      - name: Upload index.html (no cache)
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: |
-          aws s3 cp dist/index.html s3://${S3_BUCKET}/index.html \
-            --cache-control "no-cache, must-revalidate" \
-            --content-type "text/html; charset=utf-8" \
-            --no-progress
-
-      - name: Invalidate CloudFront entry points
-        if: steps.aws_configured.outputs.configured == 'true'
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${DISTRIBUTION_ID} \
-            --paths "/" "/index.html"
+          echo "S3/CloudFront deploy is paused (site taken down)."
+          echo "GitHub Pages serves offline-site/ instead of the SPA."
+          exit 0

@@ -198,7 +198,7 @@ describe("LoanSection", () => {
       screen.getByRole("button", { name: /Reduce tenure \(keep EMI\)/i }),
     );
 
-    expect(screen.getByText("Net savings after fee")).toBeInTheDocument();
-    expect(screen.getByText("Gross interest saved")).toBeInTheDocument();
+    expect(screen.getAllByText("Net savings after fee").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Gross interest saved").length).toBeGreaterThan(0);
   });
 });

@@ -1,4 +1,5 @@
 # Public demo: https://eswarkrishna.github.io/FinancialPlanner/
+# Currently serving the offline takedown page (see offline-site/).
 name: GitHub Pages
 
 on:
@@ -21,26 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install, test, build
-        env:
-          VITE_BASE: /${{ github.event.repository.name }}/
+      - name: Stage offline site
         run: |
-          npm ci
-          npm run lint
-          npm run test
-          # Only export when set; an empty env var would override .env.production.
-          if [ -n "${{ secrets.VITE_GA_MEASUREMENT_ID }}" ]; then
-            export VITE_GA_MEASUREMENT_ID="${{ secrets.VITE_GA_MEASUREMENT_ID }}"
-          fi
-          npm run build
-
-      - name: Verify release notification deploy artifacts (§4.15)
-        run: node scripts/verify-release-deploy.mjs
+          mkdir -p dist
+          cp offline-site/index.html dist/index.html
+          # Keep a robots.txt so crawlers stop indexing the old app.
+          printf 'User-agent: *\nDisallow: /\n' > dist/robots.txt
 
       - uses: actions/upload-pages-artifact@v3
         with:

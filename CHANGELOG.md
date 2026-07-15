@@ -22,32 +22,20 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 - **Gap-fill backlog** — [`docs/research/2026-07-gap-fill-competitors.md`](docs/research/2026-07-gap-fill-competitors.md) competitor parity list; SPEC v2.5 ships first slice.
 - **Prepayment fee modeling (§4.4.1)** — loan-tab fee type (`none` / flat / % of prepaid principal) with **gross interest saved** and **net savings after fee** on comparison + KPIs.
 - **Reduce EMI vs Reduce Tenure panel (§4.4.2)** — side-by-side prepay strategy cards; selecting a card updates the amortisation schedule.
-
-### Changed
-
-- **Production demo offline** — GitHub Pages now serves a static “This site is offline” page (`offline-site/`) instead of the calculator SPA.
-
-### Added
-
-- **Gap-fill backlog** — [`docs/research/2026-07-gap-fill-competitors.md`](docs/research/2026-07-gap-fill-competitors.md) competitor parity list; SPEC v2.5 ships first slice.
-- **Prepayment fee modeling (§4.4.1)** — loan-tab fee type (`none` / flat / % of prepaid principal) with **gross interest saved** and **net savings after fee** on comparison + KPIs.
-- **Reduce EMI vs Reduce Tenure panel (§4.4.2)** — side-by-side prepay strategy cards; selecting a card updates the amortisation schedule.
-
-### Changed
-
-- **SEO (SPEC §8)** — keyword-first per-tab titles (e.g. “Loan EMI Calculator with Prepayment | FinancialPlanner”), tuned 120–160-char descriptions, richer JSON-LD (`WebApplication` feature list + `BreadcrumbList` per tab + publisher `sameAs`), robots/theme-color/OG head tags, and sitemap `<lastmod>`; patterns from [`docs/research/2026-07-financial-sites-seo.md`](docs/research/2026-07-financial-sites-seo.md).
-- **Analytics (§5.1.2)** — when GA is enabled, capture events on load with **no consent banner**; footer terms still disclose GA and link to Google’s opt-out add-on.
-
-### Added
-
 - **Share on Facebook (§5.1.1 / §8)** — footer control opens Facebook’s sharer for the active tab URL (`utm_source=facebook`, `utm_medium=social`) and fires `share_link_facebook`; no Meta Pixel or Facebook SDK.
-- **Feature roadmap checklist** — [`docs/FEATURE-ROADMAP.md`](docs/FEATURE-ROADMAP.md) backlog (games P1, UK completion, loan polish, locales, platform); linked from [`docs/OVERVIEW.md`](docs/OVERVIEW.md).
+- **Feature roadmap checklist** — [`docs/FEATURE-ROADMAP.md`](docs/FEATURE-ROADMAP.md) backlog (game P1, UK completion, loan polish, locales, platform); linked from [`docs/OVERVIEW.md`](docs/OVERVIEW.md).
 - **Personal budget & investment tracker (§4.16)** — new Budget tab with monthly income/expense categories, 50/30/20 bucket analysis, emergency fund runway KPIs, manual investment holdings with portfolio projection, CSV/JSON export, and locale-specific reference budgets (IN/US/UK).
 - Research spike: [`docs/research/2026-07-personal-budgeting-app.md`](docs/research/2026-07-personal-budgeting-app.md).
 - E2E smoke for budget tab (`e2e/specs/budget-planner.spec.ts`).
 - **Browser automation suite** — Puppeteer E2E smoke tests (`npm run test:e2e`, `npm run test:automation`) covering tab navigation, loan reference scenario, locale switching, persistence, and export controls (SPEC §10 #34–41).
 - **Android app (Capacitor)** — native shell wrapping the SPA (`android/`, `npm run cap:sync`, `npm run android:assemble`); §5.2 spec + §10.34–36 acceptance checks.
 - Platform helper (`src/lib/platform.ts`) disables web-only release notifications in the native shell.
+
+### Changed
+
+- **Production demo online** — GitHub Pages and Deploy workflows restored; SPA is served again at the public demo URL.
+- **SEO (SPEC §8)** — keyword-first per-tab titles (e.g. “Loan EMI Calculator with Prepayment | FinancialPlanner”), tuned 120–160-char descriptions, richer JSON-LD (`WebApplication` feature list + `BreadcrumbList` per tab + publisher `sameAs`), robots/theme-color/OG head tags, and sitemap `<lastmod>`; patterns from [`docs/research/2026-07-financial-sites-seo.md`](docs/research/2026-07-financial-sites-seo.md).
+- **Analytics (§5.1.2)** — when GA is enabled, capture events on load with **no consent banner**; footer terms still disclose GA and link to Google’s opt-out add-on.
 
 ### Fixed
 

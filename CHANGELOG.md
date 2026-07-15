@@ -17,6 +17,12 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ## [Unreleased]
 
+### Added
+
+- **Gap-fill backlog** — [`docs/research/2026-07-gap-fill-competitors.md`](docs/research/2026-07-gap-fill-competitors.md) competitor parity list; SPEC v2.5 ships first slice.
+- **Prepayment fee modeling (§4.4.1)** — loan-tab fee type (`none` / flat / % of prepaid principal) with **gross interest saved** and **net savings after fee** on comparison + KPIs.
+- **Reduce EMI vs Reduce Tenure panel (§4.4.2)** — side-by-side prepay strategy cards; selecting a card updates the amortisation schedule.
+
 ### Changed
 
 - **Production demo offline** — GitHub Pages now serves a static “This site is offline” page (`offline-site/`) instead of the calculator SPA.

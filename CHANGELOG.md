@@ -25,7 +25,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Changed
 
-- **Production demo offline** — GitHub Pages now serves a static “This site is offline” page (`offline-site/`) instead of the calculator SPA.
+- **Production demo online** — GitHub Pages and Deploy workflows restored; SPA is served again at the public demo URL.
 
 ### Added
 

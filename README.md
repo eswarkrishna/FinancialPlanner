@@ -80,7 +80,7 @@ Optional: install the [GitHub CLI](https://cli.github.com/) (`winget install Git
 
 Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml) and deploys the built SPA.
 
-**Live URL:** currently **offline** (takedown page at [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)). To fully disable hosting, turn off GitHub Pages in repo **Settings → Pages**.
+**Live URL (after enable):** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)
 
 GitHub does **not** offer Pages on **private** repos with the free plan. Either:
 

@@ -8,4 +8,7 @@ app/build/
 keystore.properties
 *.keystore
 *.jks
-
+signing.local.md
+local.properties
+env.sh
+**/jniLibs/**/*.so

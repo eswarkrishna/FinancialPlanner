@@ -18,6 +18,19 @@ export ANDROID_NDK_HOME="$HOME/Android/Sdk/ndk/<version>"
 rustup target add aarch64-linux-android x86_64-linux-android
 ```
 
+## One-time setup (automated)
+
+```bash
+./mobile/scripts/setup-android-once.sh
+source mobile/android/env.sh
+```
+
+This installs the Android NDK, creates `financial-planner-mobile.keystore` + `keystore.properties`, and installs `cargo-ndk`. Credentials are in `signing.local.md` (gitignored).
+
+**Back up** `mobile/android/financial-planner-mobile.keystore` — losing it blocks future Play Store updates.
+
+Override keystore password: `FP_KEYSTORE_PASSWORD=your-secret ./mobile/scripts/setup-android-once.sh`
+
 ## Debug build (local testing)
 
 ```bash
@@ -36,6 +49,14 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ### One-time: create signing keystore
 
+**Automated (recommended):**
+
+```bash
+./mobile/scripts/setup-android-once.sh
+```
+
+**Manual:**
+
 ```bash
 keytool -genkey -v -keystore financial-planner-mobile.keystore \
   -alias financial-planner -keyalg RSA -keysize 2048 -validity 10000
@@ -50,7 +71,7 @@ cp mobile/android/keystore.properties.example mobile/android/keystore.properties
 # Edit keystore.properties — use an absolute path for storeFile
 ```
 
-`keystore.properties` is gitignored.
+`keystore.properties` is gitignored. After `setup-android-once.sh`, it is created automatically.
 
 ### Build signed release (one command)
 

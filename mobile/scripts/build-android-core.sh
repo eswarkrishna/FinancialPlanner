@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build Rust core for Android ABIs and copy into jniLibs/.
-# Requires: rustup, cargo-ndk (`cargo install cargo-ndk`), Android NDK (ANDROID_NDK_HOME).
+# Requires: rustup, cargo-ndk (`cargo install cargo-ndk --version 2.12.7`), ANDROID_NDK_HOME.
+# Tip: run `source mobile/android/env.sh` after setup-android-once.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

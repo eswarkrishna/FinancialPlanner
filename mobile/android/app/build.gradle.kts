@@ -18,6 +18,7 @@ val hasReleaseKeystore = keystorePropertiesFile.exists().also { exists ->
 android {
     namespace = "com.eswar.financialplanner.mobile"
     compileSdk = 35
+    ndkVersion = "26.1.10909125"
 
     defaultConfig {
         applicationId = "com.eswar.financialplanner.mobile"

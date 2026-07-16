@@ -8,7 +8,9 @@ import {
   downloadTextFile,
   debtResultToJson,
   debtTimelineToCsv,
+  ImportFileTooLargeError,
   parseDebtImportJson,
+  readImportTextFile,
 } from "../../../lib/export";
 import {
   readDebtFormState,
@@ -169,8 +171,7 @@ export function useDebtPlanner() {
 
   function importDebtJson(file: File): void {
     setImportError(null);
-    void file
-      .text()
+    void readImportTextFile(file)
       .then((text) => {
         const outcome = parseDebtImportJson(text, locale);
         if (!outcome.success) {
@@ -182,8 +183,12 @@ export function useDebtPlanner() {
         setSelectedDebtStrategy(outcome.selectedDebtStrategy);
         setDebtRows(outcome.debtRows);
       })
-      .catch(() => {
-        setImportError("Could not read the selected file.");
+      .catch((error: unknown) => {
+        setImportError(
+          error instanceof ImportFileTooLargeError
+            ? error.message
+            : "Could not read the selected file.",
+        );
       });
   }
 

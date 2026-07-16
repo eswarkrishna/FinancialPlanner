@@ -7,6 +7,8 @@ import {
 } from "../../../lib/loan";
 import {
   downloadTextFile,
+  ImportFileTooLargeError,
+  readImportTextFile,
   scheduleToCsv,
   scenarioToJson,
   type ScenarioExportPayload,
@@ -354,20 +356,8 @@ export function useLoanModels() {
     );
   }
 
-  function readImportFile(file: File): Promise<string> {
-    if (typeof file.text === "function") {
-      return file.text();
-    }
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result ?? ""));
-      reader.onerror = () => reject(reader.error ?? new Error("Failed to read file."));
-      reader.readAsText(file);
-    });
-  }
-
   function importScenarioJson(file: File) {
-    void readImportFile(file)
+    void readImportTextFile(file)
       .then((text) => {
         const outcome = parseScenarioImportJson(text, locale);
         if (!outcome.success) {
@@ -384,8 +374,12 @@ export function useLoanModels() {
         });
         trackLoanImportScenarioJson(outcome.scenarioView, locale, true);
       })
-      .catch(() => {
-        setImportError("Failed to read file.");
+      .catch((error: unknown) => {
+        setImportError(
+          error instanceof ImportFileTooLargeError
+            ? error.message
+            : "Failed to read file.",
+        );
         trackLoanImportScenarioJson(scenarioView, locale, false);
       });
   }

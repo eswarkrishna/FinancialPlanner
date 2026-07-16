@@ -234,9 +234,9 @@ For each scenario:
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
 - **Charts (v1.8):** debt tab — total balance over time; retirement tab — nominal corpus by year; strategies tab — net worth at horizon bar chart (reuse shared SVG components).
 
-**Export:** CSV export of schedule + JSON export of scenario config.
+**Export:** CSV export of schedule + JSON export of scenario config. CSV text fields that begin with `=`, `+`, `-`, `@`, or tab are prefixed with `'` so spreadsheet apps do not treat them as formulas.
 
-**Import (v1.7):** JSON import of a previously exported loan scenario config (§4.9 payload shape). Restores numeric inputs, one-time prepay source, staged prepayments, and the exported scenario view when recognised. Invalid files surface an inline error; no silent partial apply.
+**Import (v1.7):** JSON import of a previously exported loan scenario config (§4.9 payload shape). Restores numeric inputs, one-time prepay source, staged prepayments, and the exported scenario view when recognised. Invalid files surface an inline error; no silent partial apply. Imports are rejected when the file exceeds **5 MB**.
 
 **Persistence (v1.7):** Loan tab form state (inputs, scenario view, prepay source, staged prepayments) is stored in **`localStorage`** using **separate keys per locale** (`financial-planner-loan-form-IN`, `financial-planner-loan-form-US`) so a refresh preserves user edits and switching the active locale does not overwrite another locale's saved state. Legacy single-key blobs are migrated on read. Locale switch resets to the reference scenario for the new locale (existing behaviour). Analytics must not transmit stored values (§5.1).
 
@@ -784,7 +784,7 @@ Opens Facebook’s sharer dialog (`https://www.facebook.com/sharer/sharer.php`) 
 
 #### 5.1.2 Tier 2 — Engagement & performance capture
 
-Ship after Tier 1. Adds session-quality metrics. **No in-app consent banner:** when `VITE_GA_MEASUREMENT_ID` is set at build time, call `initAnalytics()` on first load and capture all §5.1 events without prompting. Users may still block GA via browser extensions or Google’s opt-out add-on (footer terms). Do not persist an analytics accept/reject choice; ignore any legacy `financial-planner-analytics-consent` key.
+Ship after Tier 1. Adds session-quality metrics. **Web consent banner:** when `VITE_GA_MEASUREMENT_ID` is set and the app runs in a normal browser (not the Capacitor native shell), show an accept/decline strip before loading `gtag.js`. Persist choice in `localStorage` key `financial-planner-analytics-consent` (`accept` \| `reject`). Call `initAnalytics()` only after `accept`. Users may still block GA via browser extensions or Google’s opt-out add-on (footer terms). The native Android shell (§5.2) continues to auto-init without a banner when GA is enabled.
 
 **`session_summary`** — fire **once** on `pagehide` / `visibilitychange` (hidden) when analytics initialized; use `navigator.sendBeacon` or `gtag` `transport_type: 'beacon'` when available:
 
@@ -876,7 +876,7 @@ Ship the same React SPA inside a **Capacitor** Android WebView shell (`android/`
 
 - **Loan / debt / retirement / strategy / game** — identical domain logic to the web SPA; `localStorage` persistence (§5 form persistence) works in the WebView.
 - **Release notifications (§4.15)** — **fully disabled** in the native shell: no service-worker registration, no browser-notification consent banner, no in-app new-version strip, no `sw.js` polling. Users update via Play Store / sideloaded APK, not live web deploy.
-- **Analytics (§5.1)** — optional when `VITE_GA_MEASUREMENT_ID` is set at mobile build time; same PII rules. Init on load with no consent banner (§5.1.2).
+- **Analytics (§5.1)** — optional when `VITE_GA_MEASUREMENT_ID` is set at mobile build time; same PII rules. Init on load with **no consent banner** in the native shell (§5.1.2).
 - **Exports (CSV / JSON)** — use Capacitor share / download affordances where the WebView allows; file pickers for import follow Android WebView behaviour.
 
 **Non-goals (Android v1):** iOS build, FCM push, in-app billing, Play Store listing automation, deep-link URL schemes beyond default Capacitor app links.
@@ -1054,7 +1054,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
   - `WebApplication` — `applicationCategory: FinanceApplication`, `featureList` (one entry per planner tab), `isAccessibleForFree: true`, `inLanguage` (`en-IN`, `en-US`, `en-GB`), `offers` price 0, `dateModified` from build commit date, `publisher` `Organization` with GitHub `sameAs`.
   - `BreadcrumbList` — `Home → {tab label}` for non-loan tabs; omitted on the loan/home tab.
   - No `FAQPage` markup unless matching visible Q&A content exists (Google deprecated FAQ rich results May 2026).
-- **Head hygiene (static in `index.html`):** `robots` meta `index, follow, max-image-preview:large`, `og:site_name`, `og:locale`, `og:image:alt`, `theme-color` (teal accent `#0d9488`).
+- **Head hygiene (static in `index.html`):** `robots` meta `index, follow, max-image-preview:large`, `og:site_name`, `og:locale`, `og:image:alt`, `theme-color` (teal accent `#0d9488`). Production builds inject a **Content-Security-Policy** meta tag from `security/content-security-policy.txt`; CloudFront deploys add the same policy as an HTTP response header.
 - **Sitemap:** every tab URL with `<lastmod>` set to the build commit date (ISO 8601 date); omit `<lastmod>` when git metadata is unavailable.
 - Existing rules stay: canonical per tab, OG/Twitter tags mirrored, `robots.txt` + `sitemap.xml` generated on build, no user data in URLs (§5.1).
 
@@ -1062,7 +1062,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
 - **Share on Facebook** — control next to the copy-link action in `AppFooter`. Label: “Share on Facebook”. Opens Facebook’s sharer with the tab URL per §5.1.1 (`utm_source=facebook`, `utm_medium=social`) and fires `share_link_facebook`. No Meta Pixel / Facebook SDK.  
-- **No analytics consent banner** — when GA is enabled, load and capture without an accept/reject strip (§5.1.2). Footer terms still disclose GA and link to Google’s opt-out add-on.  
+- **Analytics consent (§5.1.2)** — when GA is enabled in the web app, show accept/decline strip before loading gtag; persist `financial-planner-analytics-consent`. Footer terms disclose GA, `localStorage` sensitivity, and link to Google’s opt-out add-on.  
 - **Release notification consent (§4.15)** — separate strip offering browser notifications for new deploys; persists per §4.15.  
 - **Helpful? (Tier 2, optional)** — thumbs up/down near tab content heading; one vote per tab per session (disable after click).
 
@@ -1150,23 +1150,24 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 20a. **Tier 1 `share_link_facebook`:** Share on Facebook control builds a sharer URL whose `u` query contains `utm_source=facebook` and `utm_medium=social` (no loan amounts), and fires `share_link_facebook` with `tab_id`.  
 21. **Tier 1 locale param:** `locale_change` accepts `UK` as `locale` value. 
 22. **Tier 2 `session_summary`:** after visiting two tabs and one export in a mocked session, unload handler emits `session_summary` with `tabs_visited_count` ≥ 2 and `had_export` = `true`.  
-23. **Tier 2 auto-init:** when `VITE_GA_MEASUREMENT_ID` is set, `initAnalytics` runs on load without a consent banner; no analytics accept/reject UI is shown.  
+23. **Tier 2 analytics consent:** when `VITE_GA_MEASUREMENT_ID` is set, web app shows analytics consent strip; `initAnalytics` runs only after accept; reject leaves GA unloaded.  
 24. **Tier 2 `web_vitals`:** mocked LCP sample emits `web_vitals` with `metric_name` = `LCP` and `metric_rating` in allowed enum.
 
 ### Persistence & import (§4.9 v1.7)
 
 25. **Loan form persistence:** after loading the reference scenario and editing a field, a simulated refresh (re-mount) restores the same input values from `localStorage` for the active locale.  
 26. **Scenario JSON round-trip:** export scenario JSON, parse via import helper, and verify principal/rate/tenure match exported `inputs` within coercion rules.  
-27. **Import error handling:** malformed JSON or missing required numeric fields returns a user-visible error without mutating form state.
+27. **Import error handling:** malformed JSON or missing required numeric fields returns a user-visible error without mutating form state.  
+28. **Import size cap:** JSON files larger than 5 MB are rejected with a user-visible error.
 
 ### Release notifications (§4.15)
 
-28. **Consent storage:** `accept` / `reject` persisted; banner hidden after choice.
-29. **New version detection:** when `lastSeenSha` differs from current build sha, `isNewVersionAvailable` is true; first baseline records sha without alerting.
-30. **Notification copy:** granted permission + new version triggers title/body containing short commit id.
-31. **In-app strip:** new version shows reload control; dismiss hides until next version change.
-32. **Deploy artifacts:** `npm run build` produces valid `dist/version.json` and plain-JS `dist/sw.js` (`scripts/verify-release-deploy.mjs`).
-33. **Production smoke:** `npm run verify:production` fetches live `version.json` and `sw.js` from the deployed site (default GitHub Pages URL).
+29. **Consent storage:** `accept` / `reject` persisted; banner hidden after choice.
+30. **New version detection:** when `lastSeenSha` differs from current build sha, `isNewVersionAvailable` is true; first baseline records sha without alerting.
+31. **Notification copy:** granted permission + new version triggers title/body containing short commit id.
+32. **In-app strip:** new version shows reload control; dismiss hides until next version change.
+33. **Deploy artifacts:** `npm run build` produces valid `dist/version.json` and plain-JS `dist/sw.js` (`scripts/verify-release-deploy.mjs`).
+34. **Production smoke:** `npm run verify:production` fetches live `version.json` and `sw.js` from the deployed site (default GitHub Pages URL).
 
 ### Browser automation (E2E smoke)
 

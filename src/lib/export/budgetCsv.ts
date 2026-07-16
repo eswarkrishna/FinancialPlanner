@@ -1,4 +1,5 @@
 import type { BudgetAnalysisResult, BudgetInput } from "../budget/types";
+import { escapeCsvCell } from "./csvEscape";
 
 export function budgetSummaryToCsv(
   input: BudgetInput,
@@ -18,20 +19,13 @@ export function budgetSummaryToCsv(
   ];
 
   for (const row of input.income_lines) {
-    lines.push(`income,${escapeCsv(row.name)},${row.amount_inr}`);
+    lines.push(`income,${escapeCsvCell(row.name)},${row.amount_inr}`);
   }
   for (const row of input.expense_lines) {
     lines.push(
-      `expense,${escapeCsv(row.name)},${row.amount_inr},${row.bucket ?? ""}`,
+      `expense,${escapeCsvCell(row.name)},${row.amount_inr},${row.bucket ?? ""}`,
     );
   }
 
   return `${lines.join("\n")}\n`;
-}
-
-function escapeCsv(value: string): string {
-  if (value.includes(",") || value.includes('"')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
 }

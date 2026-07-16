@@ -8,6 +8,7 @@ import {
   type TabId,
   updatePageSeo,
 } from "./lib/seo";
+import { AnalyticsConsent } from "./components/AnalyticsConsent";
 import { AppFooter } from "./components/AppFooter";
 import { FeedbackHelpful } from "./components/FeedbackHelpful";
 import { LocaleSegment } from "./components/LocaleSegment";
@@ -73,8 +74,13 @@ export function App() {
     dismissNewVersion,
     reloadForUpdate,
   } = useReleaseNotifications();
-  const { gaEnabled } = useAnalyticsBootstrap(locale);
-  useAnalyticsLifecycle(locale, gaEnabled);
+  const {
+    analyticsActive,
+    showAnalyticsConsent,
+    acceptAnalytics,
+    rejectAnalytics,
+  } = useAnalyticsBootstrap(locale);
+  useAnalyticsLifecycle(locale, analyticsActive);
 
   useEffect(() => {
     const onPopState = () => {
@@ -204,6 +210,10 @@ export function App() {
           </main>
         </div>
       </div>
+
+      {showAnalyticsConsent ? (
+        <AnalyticsConsent onAccept={acceptAnalytics} onReject={rejectAnalytics} />
+      ) : null}
 
       {showConsent ? (
         <ReleaseNotificationConsent

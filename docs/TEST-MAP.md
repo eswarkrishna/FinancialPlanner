@@ -34,7 +34,7 @@ manual smoke checks.
 | 10.47 | JSON-LD WebApplication + BreadcrumbList, sitemap lastmod (§8) | `src/lib/seo.test.ts`, `src/App.test.tsx` |
 | 10.48–50 | Prepayment fee flat/%/none → gross & net savings (§4.4.1) | `src/lib/loan/prepaymentFee.test.ts`, `src/features/loan/hooks/buildComparisonRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |
 | 10.51 | Reduce EMI vs Reduce Tenure panel selects schedule (§4.4.2) | `src/features/loan/hooks/buildComparisonRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |
-| 10.23 | Tier 2 auto-init (no consent banner) | `src/hooks/useAnalyticsBootstrap.test.ts` |
+| 10.23 | Tier 2 analytics consent gate | `src/hooks/useAnalyticsBootstrap.test.ts` |
 | 10.24 | Tier 2 `web_vitals` sample | `src/lib/analytics.test.ts`, `src/lib/analytics/webVitals.ts` |
 | 10.28 | Release consent persisted (`accept` / `reject`) | `src/lib/notifications/consent.test.ts`, `src/lib/notifications/useReleaseNotifications.test.tsx`, `src/App.test.tsx` |
 | 10.29 | New version detection (sha change, first baseline silent) | `src/lib/notifications/versionCheck.test.ts`, `src/lib/notifications/releaseNotifications.test.ts` |

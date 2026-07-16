@@ -1,12 +1,5 @@
 import type { RetirementYearRow } from "../retirement";
-
-function escapeCsvCell(value: string | number): string {
-  const s = String(value);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
+import { escapeCsvCell } from "./csvEscape";
 
 /** Serialize retirement yearly corpus timeline to CSV (SPEC §4.11). */
 export function retirementTimelineToCsv(rows: RetirementYearRow[]): string {

@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { renderWithLocale } from "../test/renderWithLocale";
 import { AppFooter } from "./AppFooter";
@@ -50,5 +51,15 @@ describe("AppFooter", () => {
 
     expect(screen.getByRole("button", { name: "Copy link to this tab" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Share on Facebook" })).toBeInTheDocument();
+  });
+
+  it("documents localStorage and analytics consent in terms", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<AppFooter activeTab="loan" locale="IN" />);
+
+    await user.click(screen.getByText("Terms and conditions"));
+
+    expect(screen.getByText(/Browser storage/i)).toBeInTheDocument();
+    expect(screen.getByText(/ask for consent before loading/i)).toBeInTheDocument();
   });
 });

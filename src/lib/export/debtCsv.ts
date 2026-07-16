@@ -1,13 +1,6 @@
 import type { DebtMonthRow } from "../debt";
 import { addMonthsToIsoDate } from "../shared/dateIso";
-
-function escapeCsvCell(value: string | number): string {
-  const s = String(value);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
+import { escapeCsvCell } from "./csvEscape";
 
 function debtMonthCalendarDate(monthIndex: number, startDateIso: string): string {
   return addMonthsToIsoDate(startDateIso, monthIndex) ?? String(monthIndex);

@@ -1,12 +1,5 @@
 import type { StrategyResult } from "../strategy/types";
-
-function escapeCsvCell(value: string | number): string {
-  const s = String(value);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
+import { escapeCsvCell } from "./csvEscape";
 
 /** Serialize strategy comparison rows to CSV (SPEC §4.12). */
 export function strategyComparisonToCsv(results: StrategyResult[]): string {

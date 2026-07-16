@@ -1032,6 +1032,7 @@ tbody tr:hover {
 }
 
 .release-notification-consent,
+.analytics-consent,
 .new-version-banner {
   display: flex;
   flex-wrap: wrap;
@@ -1050,6 +1051,7 @@ tbody tr:hover {
 }
 
 .release-notification-consent p,
+.analytics-consent p,
 .new-version-banner p {
   margin: 0;
   flex: 1;
@@ -1057,6 +1059,7 @@ tbody tr:hover {
 }
 
 .release-notification-actions,
+.analytics-consent-actions,
 .new-version-actions {
   display: flex;
   align-items: center;
@@ -1065,6 +1068,7 @@ tbody tr:hover {
 }
 
 .release-notification-accept,
+.analytics-consent-accept,
 .new-version-reload {
   border: 1px solid var(--accent);
   background: var(--accent-active-bg);
@@ -1082,6 +1086,7 @@ tbody tr:hover {
 }
 
 .release-notification-reject,
+.analytics-consent-reject,
 .new-version-dismiss {
   border: none;
   background: transparent;

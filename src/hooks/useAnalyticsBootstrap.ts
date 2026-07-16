@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   initAnalytics,
   isAnalyticsEnabled,
@@ -7,11 +7,17 @@ import {
   trackSessionStart,
 } from "../lib/analytics";
 import {
+  loadAnalyticsConsent,
+  saveAnalyticsConsent,
+  type AnalyticsConsent,
+} from "../lib/analytics/consent";
+import {
   captureAcquisitionOnLoad,
   hasSessionStarted,
   markSessionStarted,
   readAcquisitionParams,
 } from "../lib/analytics/sessionState";
+import { isNativeApp } from "../lib/platform";
 import { getTabFromLocation } from "../lib/seo";
 
 function fireSessionStart(locale: string): void {
@@ -38,21 +44,58 @@ function bootstrapAnalytics(locale: string): void {
   trackHomePageView();
 }
 
+function shouldRunAnalytics(consent: AnalyticsConsent | null): boolean {
+  if (!isAnalyticsEnabled()) return false;
+  if (isNativeApp()) return true;
+  return consent === "accept";
+}
+
 /**
- * Auto-init GA4 when measurement ID is set (SPEC §5.1.2 — no consent gate).
+ * GA4 bootstrap with web consent gate (SPEC §5.1.2). Native shell auto-inits.
  */
-export function useAnalyticsBootstrap(locale: string): { gaEnabled: boolean } {
+export function useAnalyticsBootstrap(locale: string): {
+  gaEnabled: boolean;
+  analyticsActive: boolean;
+  showAnalyticsConsent: boolean;
+  acceptAnalytics: () => void;
+  rejectAnalytics: () => void;
+} {
   const gaEnabled = isAnalyticsEnabled();
+  const [consent, setConsent] = useState<AnalyticsConsent | null>(() => {
+    if (typeof window === "undefined") return null;
+    if (isNativeApp()) return "accept";
+    return loadAnalyticsConsent(window.localStorage);
+  });
+
+  const analyticsActive = shouldRunAnalytics(consent);
+  const showAnalyticsConsent =
+    gaEnabled && !isNativeApp() && consent === null;
+
+  const acceptAnalytics = useCallback(() => {
+    saveAnalyticsConsent(window.localStorage, "accept");
+    setConsent("accept");
+  }, []);
+
+  const rejectAnalytics = useCallback(() => {
+    saveAnalyticsConsent(window.localStorage, "reject");
+    setConsent("reject");
+  }, []);
 
   useEffect(() => {
-    if (!gaEnabled) return;
+    if (!analyticsActive) return;
     captureAcquisitionOnLoad(getTabFromLocation(window.location));
-  }, [gaEnabled]);
+  }, [analyticsActive]);
 
   useEffect(() => {
-    if (!gaEnabled) return;
+    if (!analyticsActive) return;
     bootstrapAnalytics(locale);
-  }, [gaEnabled, locale]);
+  }, [analyticsActive, locale]);
 
-  return { gaEnabled };
+  return {
+    gaEnabled,
+    analyticsActive,
+    showAnalyticsConsent,
+    acceptAnalytics,
+    rejectAnalytics,
+  };
 }

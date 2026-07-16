@@ -22,6 +22,9 @@ import { useLocale } from "./features/locale/LocaleContext";
 import { LoanSection } from "./features/loan/LoanSection";
 import { RetirementSection } from "./features/retirement/RetirementSection";
 import { BudgetSection } from "./features/budget/BudgetSection";
+import { GuidesSection } from "./features/guides/GuidesSection";
+import { PpfSection } from "./features/ppf/PpfSection";
+import { SipSection } from "./features/sip/SipSection";
 import { StrategySection } from "./features/strategy/StrategySection";
 import type { Locale } from "./lib/locale/types";
 import { useReleaseNotifications } from "./lib/notifications/useReleaseNotifications";
@@ -203,6 +206,11 @@ export function App() {
                     {tab.id === "strategies" && <StrategySection />}
                     {tab.id === "strategic" && <GameSection />}
                     {tab.id === "budget" && <BudgetSection />}
+                    {tab.id === "sip" && <SipSection />}
+                    {tab.id === "ppf" && <PpfSection />}
+                    {tab.id === "guides" && (
+                      <GuidesSection onOpenTab={selectTab} />
+                    )}
                   </>
                 ) : null}
               </div>

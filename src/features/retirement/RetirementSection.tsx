@@ -1,7 +1,7 @@
 import { formatMoney } from "../../lib/locale/formatMoney";
 import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "../../lib/retirement/constants";
 import { trackRetirementScenarioSelect } from "../../lib/analytics";
-import { buildRetirementCorpusCurve } from "../../lib/loan/chartData";
+import { buildRetirementCorpusCurve, buildRetirementRealCorpusCurve } from "../../lib/loan/chartData";
 import { LineChart } from "../../components/LineChart";
 import { TableWrap } from "../../components/TableWrap";
 import { useLocale } from "../locale/LocaleContext";
@@ -260,14 +260,24 @@ export function RetirementSection() {
           <p className="hint">Enter valid years to retirement to see the yearly timeline.</p>
         ) : (
         <>
-        <LineChart
-          title="Nominal corpus growth"
-          points={buildRetirementCorpusCurve(activeRetirementScenario.projection.yearly)}
-          stroke="#7c3aed"
-          yLabel="Corpus"
-          xLabel="Year"
-          locale={locale}
-        />
+        <div className="chart-grid">
+          <LineChart
+            title="Nominal corpus growth"
+            points={buildRetirementCorpusCurve(activeRetirementScenario.projection.yearly)}
+            stroke="#7c3aed"
+            yLabel="Corpus"
+            xLabel="Year"
+            locale={locale}
+          />
+          <LineChart
+            title="Real corpus (today's value)"
+            points={buildRetirementRealCorpusCurve(activeRetirementScenario.projection.yearly)}
+            stroke="#0d9488"
+            yLabel="Corpus"
+            xLabel="Year"
+            locale={locale}
+          />
+        </div>
         <TableWrap label="Retirement yearly corpus timeline">
           <table>
             <thead>

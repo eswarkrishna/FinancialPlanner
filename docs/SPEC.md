@@ -700,6 +700,47 @@ Educational monthly budget planner with **50/30/20** bucket analysis and manual 
 
 **Persistence (v1.8):** Budget tab form state in `localStorage` per locale (`financial-planner-budget-form-IN`, etc.). Locale switch resets to reference budget for the new locale.
 
+### 4.17 SIP calculator (India-focused)
+
+**Tab:** `sip` (`?tab=sip`)
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `monthly_investment_inr` | number | yes | &gt; 0 |
+| `annual_return_pct` | number | yes | Nominal annual % (hypothetical) |
+| `duration_years` | number | yes | Converted to months internally |
+
+**Formula:** month-end contributions with monthly compounding: corpus grows by `r = annual_return_pct / 12 / 100` each month; contribution added after growth.
+
+**Outputs:** total invested, maturity value, total gains, corpus growth chart, yearly milestone table.
+
+**Disclaimer:** hypothetical returns; not investment advice.
+
+### 4.18 PPF calculator (India)
+
+**Tab:** `ppf` (`?tab=ppf`)
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `opening_balance_inr` | number | no | Default 0 |
+| `annual_contribution_inr` | number | yes | UI hints statutory cap (verify officially) |
+| `annual_interest_rate_pct` | number | yes | Default government-notified placeholder |
+| `duration_years` | number | yes | |
+
+**Formula:** each year — add annual contribution, then credit interest on year-end balance (`balance × rate`).
+
+**Outputs:** total contributed, interest earned, maturity value, year-by-year table, balance chart.
+
+### 4.19 Named scenario save / compare (localStorage)
+
+Up to **5** named slots per calculator tab per locale (`financial-planner-named-scenarios-{tab}-{locale}`).
+
+**Loan tab (v1):** each slot stores full `LoanFormPersistedState` plus KPI snapshot (schedule view, payoff month, total interest, Δ vs BASE).
+
+**UI:** save current with name, load, delete, select up to **3** for side-by-side compare table.
+
+**Privacy:** no server sync; no financial data in share URLs (§5.1).
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1056,6 +1097,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
   - No `FAQPage` markup unless matching visible Q&A content exists (Google deprecated FAQ rich results May 2026).
 - **Head hygiene (static in `index.html`):** `robots` meta `index, follow, max-image-preview:large`, `og:site_name`, `og:locale`, `og:image:alt`, `theme-color` (teal accent `#0d9488`). Production builds inject a **Content-Security-Policy** meta tag from `security/content-security-policy.txt`; CloudFront deploys add the same policy as an HTTP response header.
 - **Sitemap:** every tab URL with `<lastmod>` set to the build commit date (ISO 8601 date); omit `<lastmod>` when git metadata is unavailable.
+- **Content hub (v2.6):** static crawlable guide pages under `/guides/{slug}.html` (build-time HTML) plus in-app **Guides** tab (`?tab=guides`). Sitemap includes guide URLs. Each guide links to the relevant calculator tab.
 - Existing rules stay: canonical per tab, OG/Twitter tags mirrored, `robots.txt` + `sitemap.xml` generated on build, no user data in URLs (§5.1).
 
 ### Analytics UI (§5.1 Tier 1–2)
@@ -1203,6 +1245,14 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 50. **No fee default:** `prepayment_fee_type = none` → fees = 0 and net savings equals gross interest saved.  
 51. **Strategy panel:** when a one-time prepay source has balance &gt; 0, UI shows side-by-side Reduce EMI vs Reduce Tenure with new EMI, payoff months, total interest, gross saved, fees, and net savings; selecting either policy switches the active schedule view.
 
+### SIP / PPF / guides / scenarios (§4.17–§4.19, §8)
+
+52. **SIP:** `monthly=10_000`, `annual_return=12%`, `duration=12` months → `total_invested_inr = 120_000`, `maturity_value_inr &gt; 120_000`.  
+53. **PPF:** `annual_contribution=150_000`, `rate=7.1%`, `years=2`, `opening=0` → year-1 interest = `round(150_000 × 0.071)`.  
+54. **Named scenarios:** save named loan slot → reload page → slot list persists; compare 2+ slots shows side-by-side KPI table.  
+55. **Guides build:** `npm run build` emits `dist/guides/*.html` and sitemap includes guide URLs.  
+56. **Charts:** loan tab shows principal + cumulative interest curves; debt tab shows balance curve; retirement tab shows nominal + real corpus curves.
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -1218,7 +1268,9 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation. Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
+**Deferred (gap-fill backlog):** payment-in-advance timing toggle; retirement drawdown phase; SSY/gratuity/lumpsum calculators; budget savings-rate colours; tax-aware effective rate; PDF amortisation. Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
+
+**Shipped (v2.6):** SIP + PPF calculators (§4.17–§4.18); named scenario save/compare on loan tab (§4.19); SEO content hub + static guide pages (§8); chart polish on loan/debt/retirement (§4.9).
 
 **In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 

@@ -19,6 +19,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Tier 1 reach & productivity (§4.17–§4.19, §8)** — SIP and PPF calculator tabs; Guides content hub with static `/guides/*.html` SEO pages; named loan scenario save/compare (up to 5 slots, compare 3); retirement nominal + real corpus charts.
 - **Gap-fill backlog** — [`docs/research/2026-07-gap-fill-competitors.md`](docs/research/2026-07-gap-fill-competitors.md) competitor parity list; SPEC v2.5 ships first slice.
 - **Prepayment fee modeling (§4.4.1)** — loan-tab fee type (`none` / flat / % of prepaid principal) with **gross interest saved** and **net savings after fee** on comparison + KPIs.
 - **Reduce EMI vs Reduce Tenure panel (§4.4.2)** — side-by-side prepay strategy cards; selecting a card updates the amortisation schedule.

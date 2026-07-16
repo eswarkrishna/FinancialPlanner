@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financialplanner.local/schema/loan-baseline-input.json",
+  "title": "LoanBaselineInput",
+  "description": "Minimal loan inputs for baseline EMI / schedule (India locale). Maps to SPEC §4.1–4.3.",
+  "type": "object",
+  "required": ["principal_inr", "annual_interest_rate", "tenure_months"],
+  "properties": {
+    "principal_inr": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Outstanding principal in INR"
+    },
+    "annual_interest_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 50,
+      "description": "Nominal annual rate in percent (e.g. 7.9)"
+    },
+    "tenure_months": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600,
+      "description": "Original loan tenure in months"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Optional calendar anchor for export"
+    }
+  },
+  "additionalProperties": false
+}

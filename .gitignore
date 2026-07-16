@@ -19,3 +19,6 @@ android/.gradle/
 android/build/
 android/**/build/
 android/local.properties
+
+# Encrypted brainstorm — keep plaintext out of git
+docs/research/2026-07-client-growth-productivity-brainstorm.md

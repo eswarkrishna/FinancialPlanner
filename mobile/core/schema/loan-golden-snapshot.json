@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financialplanner.local/schema/loan-golden-snapshot.json",
+  "title": "LoanGoldenSnapshot",
+  "description": "Compact schedule snapshot for parity tests (matches buildGoldens.ts).",
+  "type": "object",
+  "required": ["emi_inr", "totals", "first_row", "row_count"],
+  "properties": {
+    "emi_inr": { "type": "number" },
+    "totals": {
+      "type": "object",
+      "required": [
+        "total_paid_inr",
+        "total_interest_inr",
+        "total_prepayments_inr",
+        "payoff_month"
+      ],
+      "properties": {
+        "total_paid_inr": { "type": "number" },
+        "total_interest_inr": { "type": "number" },
+        "total_prepayments_inr": { "type": "number" },
+        "payoff_month": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "first_row": { "$ref": "#/$defs/schedule_row" },
+    "row_12": { "$ref": "#/$defs/schedule_row" },
+    "last_row": { "$ref": "#/$defs/schedule_row" },
+    "row_count": { "type": "integer", "minimum": 1 }
+  },
+  "$defs": {
+    "schedule_row": {
+      "type": "object",
+      "required": [
+        "month",
+        "opening_inr",
+        "interest_inr",
+        "principal_inr",
+        "prepayment_inr",
+        "closing_inr",
+        "payment_inr",
+        "emi_inr"
+      ],
+      "properties": {
+        "month": { "type": "integer", "minimum": 1 },
+        "opening_inr": { "type": "number" },
+        "interest_inr": { "type": "number" },
+        "principal_inr": { "type": "number" },
+        "prepayment_inr": { "type": "number" },
+        "closing_inr": { "type": "number" },
+        "payment_inr": { "type": "number" },
+        "emi_inr": { "type": "number" }
+      }
+    }
+  }
+}

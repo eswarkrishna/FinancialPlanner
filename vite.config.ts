@@ -4,6 +4,11 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { buildInfoDefine, getGitBuildInfo } from "./scripts/git-build-info";
 import { versionManifestJson } from "./src/lib/notifications/versionManifest";
+import { GUIDE_PAGES } from "./src/content/guides";
+import {
+  buildGuidePageHtml,
+  buildGuidesHubHtml,
+} from "./src/lib/guidePages";
 import {
   buildIndexHtmlReplacements,
   buildRobotsTxt,
@@ -62,6 +67,20 @@ function seoPlugin(): Plugin {
         path.join(outDir, "version.json"),
         versionManifestJson(gitBuildInfo),
       );
+      const guidesDir = path.join(outDir, "guides");
+      fs.mkdirSync(guidesDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(guidesDir, "index.html"),
+        buildGuidesHubHtml(siteUrl),
+        "utf8",
+      );
+      for (const guide of GUIDE_PAGES) {
+        fs.writeFileSync(
+          path.join(guidesDir, `${guide.slug}.html`),
+          buildGuidePageHtml(guide, siteUrl),
+          "utf8",
+        );
+      }
     },
   };
 }

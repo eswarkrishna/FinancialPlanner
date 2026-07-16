@@ -460,5 +460,6 @@ export function useLoanModels() {
     updateStagedPrepay,
     exportScheduleCsv,
     exportScenarioJson,
+    loadLoanState: applyLoanState,
   };
 }

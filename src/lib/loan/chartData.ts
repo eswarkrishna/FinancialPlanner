@@ -48,3 +48,11 @@ export function buildRetirementCorpusCurve(rows: RetirementYearRow[]): ChartPoin
     value_inr: row.corpus_nominal_inr,
   }));
 }
+
+/** Inflation-adjusted corpus by year (§4.9 / §4.11 charts). */
+export function buildRetirementRealCorpusCurve(rows: RetirementYearRow[]): ChartPoint[] {
+  return rows.map((row) => ({
+    month: row.year,
+    value_inr: row.corpus_real_inr,
+  }));
+}

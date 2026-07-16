@@ -1,7 +1,10 @@
 import { useRef } from "react";
 import { AlertCallout } from "../../components/AlertCallout";
 import { FormSection } from "../../components/FormSection";
+import { NamedScenarioSlots } from "../../components/NamedScenarioSlots";
 import { formatMoney } from "../../lib/locale/formatMoney";
+import type { LoanFormPersistedState } from "../../lib/persistence/loanFormState";
+import { SCENARIO_LABELS } from "../../lib/loan/scenarioViews";
 import { trackLoanPrepaySourceChange, trackLoanScenarioViewChange } from "../../lib/analytics";
 import { useLocale } from "../locale/LocaleContext";
 import { TableWrap } from "../../components/TableWrap";
@@ -67,6 +70,7 @@ export function LoanSection() {
     updateStagedPrepay,
     exportScheduleCsv,
     exportScenarioJson,
+    loadLoanState,
   } = useLoanModels();
 
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -100,6 +104,8 @@ export function LoanSection() {
 
   const emiLabel = isUk || isUs ? "Mortgage payment" : "EMI";
 
+  const activeComparison = comparisonRows.find((row) => row.id === scenarioView);
+
   return (
     <>
       {models && (
@@ -112,6 +118,34 @@ export function LoanSection() {
           emiValue={models.base.emi_inr}
         />
       )}
+
+      <NamedScenarioSlots<LoanFormPersistedState>
+        tab="loan"
+        locale={locale}
+        buildPayload={() => ({
+          version: 1,
+          locale,
+          inputs,
+          scenarioView,
+          prepaySource,
+          stagedPrepays,
+        })}
+        applyPayload={(payload) => loadLoanState(payload)}
+        buildSummary={() => ({
+          scenario: SCENARIO_LABELS[scenarioView],
+          payoff: activeComparison ? String(activeComparison.payoffMonth) : "—",
+          interest: activeComparison ? money(activeComparison.totalInterest) : "—",
+          delta: activeComparison?.deltaInterestVsBase
+            ? money(activeComparison.deltaInterestVsBase)
+            : "—",
+        })}
+        compareFields={[
+          { key: "scenario", label: "Schedule view" },
+          { key: "payoff", label: "Payoff month" },
+          { key: "interest", label: "Total interest" },
+          { key: "delta", label: "Δ vs BASE" },
+        ]}
+      />
 
       <section className="card">
         <h2>Loan &amp; assets</h2>

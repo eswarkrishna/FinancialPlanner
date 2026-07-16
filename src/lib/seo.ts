@@ -1,6 +1,17 @@
+import { allGuideUrls } from "../content/guides";
+
 /** SEO helpers: tab URLs, titles, meta updates, JSON-LD, sitemap/robots builders (SPEC §8). */
 
-export type TabId = "loan" | "debt" | "retirement" | "strategies" | "strategic" | "budget";
+export type TabId =
+  | "loan"
+  | "debt"
+  | "retirement"
+  | "strategies"
+  | "strategic"
+  | "budget"
+  | "sip"
+  | "ppf"
+  | "guides";
 
 export type PlannerTab = {
   id: TabId;
@@ -53,6 +64,27 @@ export const PLANNER_TABS: PlannerTab[] = [
     seoTitle: "Budget Planner with 50/30/20 Rule",
     description:
       "Plan your monthly budget with 50/30/20 analysis, emergency fund runway, and investment portfolio projections for India, the US, and the UK. Free.",
+  },
+  {
+    id: "sip",
+    label: "SIP",
+    seoTitle: "SIP Calculator — Monthly Investment",
+    description:
+      "Free SIP calculator for monthly mutual fund investments. Project maturity value, total gains, and corpus growth chart. Compare vs loan prepay. Free.",
+  },
+  {
+    id: "ppf",
+    label: "PPF",
+    seoTitle: "PPF Calculator — Public Provident Fund",
+    description:
+      "Free PPF calculator with annual contributions and notified interest. Year-by-year balance, interest earned, and maturity value for India savers.",
+  },
+  {
+    id: "guides",
+    label: "Guides",
+    seoTitle: "Home Loan & Investment Planning Guides",
+    description:
+      "Free guides on loan prepayment, SIP, PPF, and PF stress tests. Each article links to the live calculator — no sign-up, privacy-first planning.",
   },
 ];
 
@@ -213,8 +245,9 @@ Sitemap: ${base}/sitemap.xml
 /** `lastmod` is an ISO timestamp or date; omitted from entries when empty (§8). */
 export function buildSitemapXml(siteUrl: string, lastmod?: string): string {
   const base = resolveSiteUrl(siteUrl);
-  const urls = PLANNER_TABS.map((tab) => tabPageUrl(tab.id, base));
-  const unique = [...new Set(urls)];
+  const tabUrls = PLANNER_TABS.map((tab) => tabPageUrl(tab.id, base));
+  const guideUrls = allGuideUrls(base);
+  const unique = [...new Set([...tabUrls, ...guideUrls])];
   const lastmodDate = lastmod?.trim() ? lastmod.trim().slice(0, 10) : "";
   const lastmodLine = lastmodDate ? `\n    <lastmod>${lastmodDate}</lastmod>` : "";
 

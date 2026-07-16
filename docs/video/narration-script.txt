@@ -1,0 +1,12 @@
+# Timed narration for FinancialPlanner demo (~84s video)
+# Format: START_SEC|TEXT
+
+0|Welcome to Financial Planner.
+3|Start with the loan EMI calculator. Model your principal, interest rate, and tenure, then compare prepayment strategies side by side. See how extra payments reduce your tenure or lower your EMI.
+14|The multi-debt planner helps you choose between avalanche and snowball strategies for paying off multiple loans.
+22|Project your retirement corpus with conservative, base, and optimistic scenarios. Watch your savings grow over time.
+32|Compare three household repayment strategies: equity blend, prepay heavy, and aggressive prepay.
+42|Explore game theory scenarios for borrower, lender, and household decisions.
+50|Plan your monthly budget with the fifty-thirty-twenty rule, emergency fund runway, and investment tracking.
+60|Switch between India, the United States, and the United Kingdom with locale-aware currency and regional defaults.
+72|Financial Planner is free, open source, and runs entirely in your browser. Try it today.

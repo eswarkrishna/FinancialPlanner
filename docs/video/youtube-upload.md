@@ -2,9 +2,12 @@
 
 ## Video file
 
-- **Recording:** `financial-planner-demo.mp4` (artifact)
-- **Duration:** ~82 seconds
-- **Resolution:** 1920×1200 @ 60fps
+- **Upload (with narration):** `financial-planner-youtube-with-audio.mp4` (artifact)
+- **Silent final cut:** `financial-planner-youtube-final.mp4` (artifact)
+- **Raw recording:** `financial-planner-demo.mp4` (artifact)
+- **Duration:** ~85 seconds
+- **Resolution:** 1920×1080 @ 60fps
+- **Audio:** AI narration (en-US-AriaNeural via edge-tts); regenerate with `python3 scripts/add-video-narration.py`
 
 ## Suggested title
 

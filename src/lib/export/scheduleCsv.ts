@@ -1,17 +1,10 @@
 import type { ScheduleRow } from "../loan";
+import { escapeCsvCell } from "./csvEscape";
 
 export interface ScheduleCsvOptions {
   includeCashBalance?: boolean;
   cashBalances?: number[];
   startDateIso?: string;
-}
-
-function escapeCsvCell(value: string | number): string {
-  const s = String(value);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
 }
 
 function monthLabel(monthIndex: number, startDateIso?: string): string {

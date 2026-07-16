@@ -9,7 +9,9 @@ import {
   budgetResultToJson,
   budgetSummaryToCsv,
   downloadTextFile,
+  ImportFileTooLargeError,
   parseBudgetImportJson,
+  readImportTextFile,
 } from "../../../lib/export";
 import {
   readBudgetFormState,
@@ -272,13 +274,21 @@ export function useBudgetPlanner() {
 
   async function importBudgetJson(file: File) {
     setImportError(null);
-    const text = await file.text();
-    const outcome = parseBudgetImportJson(text, locale);
-    if (!outcome.success) {
-      setImportError(outcome.message);
-      return;
+    try {
+      const text = await readImportTextFile(file);
+      const outcome = parseBudgetImportJson(text, locale);
+      if (!outcome.success) {
+        setImportError(outcome.message);
+        return;
+      }
+      setForm({ version: 1, locale, ...outcome.form });
+    } catch (error: unknown) {
+      setImportError(
+        error instanceof ImportFileTooLargeError
+          ? error.message
+          : "Could not read the selected file.",
+      );
     }
-    setForm({ version: 1, locale, ...outcome.form });
   }
 
   const warningMessages = analysis.summary.warnings.map(

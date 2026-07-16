@@ -19,6 +19,16 @@ function seoSiteUrl(): string {
   return resolveSiteUrl(process.env.VITE_SITE_URL);
 }
 
+function readContentSecurityPolicy(): string {
+  return fs
+    .readFileSync(path.resolve("security/content-security-policy.txt"), "utf8")
+    .trim();
+}
+
+function cspMetaTag(policy: string): string {
+  return `<meta http-equiv="Content-Security-Policy" content="${policy}" />`;
+}
+
 function seoPlugin(): Plugin {
   const jsonLdOptions = {
     dateModified: gitBuildInfo.VITE_BUILD_COMMIT_DATE,
@@ -26,12 +36,19 @@ function seoPlugin(): Plugin {
   };
   return {
     name: "financial-planner-seo",
-    transformIndexHtml(html) {
+    transformIndexHtml(html, ctx) {
       const replacements = buildIndexHtmlReplacements(seoSiteUrl(), jsonLdOptions);
-      return Object.entries(replacements).reduce(
-        (next, [token, value]) => next.replaceAll(token, value),
+      let next = Object.entries(replacements).reduce(
+        (acc, [token, value]) => acc.replaceAll(token, value),
         html,
       );
+      const cspPlaceholder = "__CSP_META__";
+      if (ctx.server) {
+        next = next.replace(cspPlaceholder, "");
+      } else {
+        next = next.replace(cspPlaceholder, cspMetaTag(readContentSecurityPolicy()));
+      }
+      return next;
     },
     closeBundle() {
       const siteUrl = seoSiteUrl();

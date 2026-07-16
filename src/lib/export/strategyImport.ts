@@ -1,9 +1,34 @@
 import { z } from "zod";
 import type { Locale } from "../locale/types";
+import { DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT } from "../pf/constants";
+
+const strategyInputsImportSchema = z.object({
+  principal_inr: z.coerce.number().positive(),
+  annual_interest_rate: z.coerce.number().min(0).max(50),
+  tenure_months: z.coerce.number().int().positive().max(600),
+  cash_inr: z.coerce.number().min(0).optional().default(0),
+  pf_corpus_inr: z.coerce.number().min(0).optional().default(0),
+  pf_annual_interest_rate_pct: z.coerce
+    .number()
+    .min(0)
+    .max(50)
+    .optional()
+    .default(DEFAULT_PF_ANNUAL_INTEREST_RATE_PCT),
+  monthly_pf_addition_inr: z.coerce.number().min(0).optional().default(0),
+  monthly_take_home_inr: z.coerce.number().min(0).optional().default(0),
+  monthly_living_expense_inr: z.coerce.number().min(0).optional().default(0),
+  extra_monthly_income_inr: z.coerce.number().min(0).optional().default(0),
+  emergency_months_buffer: z.coerce.number().min(0).optional().default(0),
+  expected_equity_return_pct: z.coerce.number().min(0).max(100).optional().default(12),
+  horizon_months: z.coerce.number().int().positive().max(600),
+  repayment_pct_of_take_home: z.coerce.number().min(0).max(100).optional(),
+  extra_income_post_tax: z.coerce.boolean().optional().default(false),
+  marginal_tax_rate_pct: z.coerce.number().min(0).max(100).optional().default(0),
+});
 
 const strategyImportSchema = z.object({
   locale: z.enum(["IN", "US", "UK"]).optional(),
-  inputs: z.record(z.unknown()),
+  inputs: strategyInputsImportSchema,
 });
 
 export type StrategyImportFormState = {
@@ -29,10 +54,8 @@ export type StrategyImportOutcome =
   | ({ success: true; form: StrategyImportFormState })
   | { success: false; message: string };
 
-function strField(raw: Record<string, unknown>, key: string): string {
-  const v = raw[key];
-  if (v === undefined || v === null) return "";
-  return String(v);
+function toFormField(value: number): string {
+  return String(value);
 }
 
 export function parseStrategyImportJson(
@@ -66,42 +89,28 @@ export function parseStrategyImportJson(
   }
 
   const i = envelope.data.inputs;
-  const principal = Number(i.principal_inr);
-  const rate = Number(i.annual_interest_rate);
-  const tenure = Number(i.tenure_months);
-  const horizon = Number(i.horizon_months);
-  if (
-    !Number.isFinite(principal) ||
-    principal <= 0 ||
-    !Number.isFinite(rate) ||
-    !Number.isFinite(tenure) ||
-    tenure <= 0 ||
-    !Number.isFinite(horizon) ||
-    horizon <= 0
-  ) {
-    return { success: false, message: "Strategy inputs failed validation." };
-  }
-
   return {
     success: true,
     form: {
-      principal_inr: strField(i, "principal_inr"),
-      annual_interest_rate: strField(i, "annual_interest_rate"),
-      tenure_months: strField(i, "tenure_months"),
-      cash_inr: strField(i, "cash_inr"),
-      pf_corpus_inr: strField(i, "pf_corpus_inr"),
-      pf_annual_interest_rate_pct: strField(i, "pf_annual_interest_rate_pct"),
-      monthly_pf_addition_inr: strField(i, "monthly_pf_addition_inr"),
-      monthly_take_home_inr: strField(i, "monthly_take_home_inr"),
-      monthly_living_expense_inr: strField(i, "monthly_living_expense_inr"),
-      extra_monthly_income_inr: strField(i, "extra_monthly_income_inr"),
-      emergency_months_buffer: strField(i, "emergency_months_buffer"),
-      expected_equity_return_pct: strField(i, "expected_equity_return_pct"),
-      horizon_months: strField(i, "horizon_months"),
-      repayment_pct_of_take_home: strField(i, "repayment_pct_of_take_home"),
-      extra_income_post_tax:
-        typeof i.extra_income_post_tax === "boolean" ? i.extra_income_post_tax : null,
-      marginal_tax_rate_pct: strField(i, "marginal_tax_rate_pct"),
+      principal_inr: toFormField(i.principal_inr),
+      annual_interest_rate: toFormField(i.annual_interest_rate),
+      tenure_months: toFormField(i.tenure_months),
+      cash_inr: toFormField(i.cash_inr),
+      pf_corpus_inr: toFormField(i.pf_corpus_inr),
+      pf_annual_interest_rate_pct: toFormField(i.pf_annual_interest_rate_pct),
+      monthly_pf_addition_inr: toFormField(i.monthly_pf_addition_inr),
+      monthly_take_home_inr: toFormField(i.monthly_take_home_inr),
+      monthly_living_expense_inr: toFormField(i.monthly_living_expense_inr),
+      extra_monthly_income_inr: toFormField(i.extra_monthly_income_inr),
+      emergency_months_buffer: toFormField(i.emergency_months_buffer),
+      expected_equity_return_pct: toFormField(i.expected_equity_return_pct),
+      horizon_months: toFormField(i.horizon_months),
+      repayment_pct_of_take_home:
+        i.repayment_pct_of_take_home === undefined
+          ? ""
+          : toFormField(i.repayment_pct_of_take_home),
+      extra_income_post_tax: i.extra_income_post_tax,
+      marginal_tax_rate_pct: toFormField(i.marginal_tax_rate_pct),
     },
   };
 }

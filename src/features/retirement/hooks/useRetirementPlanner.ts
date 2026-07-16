@@ -8,9 +8,11 @@ import {
 } from "../../../lib/retirement/index";
 import {
   downloadTextFile,
+  ImportFileTooLargeError,
+  parseRetirementImportJson,
+  readImportTextFile,
   retirementResultToJson,
   retirementTimelineToCsv,
-  parseRetirementImportJson,
 } from "../../../lib/export";
 import {
   readRetirementFormState,
@@ -167,8 +169,7 @@ export function useRetirementPlanner() {
 
   function importRetirementJson(file: File): void {
     setImportError(null);
-    void file
-      .text()
+    void readImportTextFile(file)
       .then((text) => {
         const outcome = parseRetirementImportJson(text, locale);
         if (!outcome.success) {
@@ -179,8 +180,12 @@ export function useRetirementPlanner() {
         setRetirementInputs(form);
         setSelectedRetirementScenario(scenario);
       })
-      .catch(() => {
-        setImportError("Could not read the selected file.");
+      .catch((error: unknown) => {
+        setImportError(
+          error instanceof ImportFileTooLargeError
+            ? error.message
+            : "Could not read the selected file.",
+        );
       });
   }
 

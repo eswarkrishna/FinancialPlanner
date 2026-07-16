@@ -26,9 +26,11 @@ import {
 } from "../../../lib/analytics";
 import {
   downloadTextFile,
+  ImportFileTooLargeError,
+  parseStrategyImportJson,
+  readImportTextFile,
   strategyComparisonToCsv,
   strategyResultToJson,
-  parseStrategyImportJson,
 } from "../../../lib/export";
 import {
   readStrategyFormState,
@@ -217,8 +219,7 @@ export function useStrategyPlanner() {
 
   function importStrategyJson(file: File): void {
     setImportError(null);
-    void file
-      .text()
+    void readImportTextFile(file)
       .then((text) => {
         const outcome = parseStrategyImportJson(text, locale);
         if (!outcome.success) {
@@ -227,8 +228,12 @@ export function useStrategyPlanner() {
         }
         setForm(outcome.form);
       })
-      .catch(() => {
-        setImportError("Could not read the selected file.");
+      .catch((error: unknown) => {
+        setImportError(
+          error instanceof ImportFileTooLargeError
+            ? error.message
+            : "Could not read the selected file.",
+        );
       });
   }
 

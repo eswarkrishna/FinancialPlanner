@@ -37,6 +37,11 @@ resource "aws_cloudfront_response_headers_policy" "security" {
       preload                    = true
       override                   = true
     }
+
+    content_security_policy {
+      content_security_policy = trimspace(file("${path.module}/../../security/content-security-policy.txt"))
+      override                = true
+    }
   }
 }
 

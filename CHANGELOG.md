@@ -31,11 +31,13 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 - **Android app (Capacitor)** — native shell wrapping the SPA (`android/`, `npm run cap:sync`, `npm run android:assemble`); §5.2 spec + §10.34–36 acceptance checks.
 - Platform helper (`src/lib/platform.ts`) disables web-only release notifications in the native shell.
 
+### Security
+
+- **Pen-test remediations** — Content-Security-Policy (meta tag on production build + CloudFront header); CSV formula-prefix neutralization on export; 5 MB cap on JSON imports; full Zod validation for strategy imports; analytics consent banner before GA4 loads (web only); `localStorage` sensitivity documented in footer terms; upgraded `vite` / `vitest` dev dependencies.
+
 ### Changed
 
-- **Production demo online** — GitHub Pages and Deploy workflows restored; SPA is served again at the public demo URL.
-- **SEO (SPEC §8)** — keyword-first per-tab titles (e.g. “Loan EMI Calculator with Prepayment | FinancialPlanner”), tuned 120–160-char descriptions, richer JSON-LD (`WebApplication` feature list + `BreadcrumbList` per tab + publisher `sameAs`), robots/theme-color/OG head tags, and sitemap `<lastmod>`; patterns from [`docs/research/2026-07-financial-sites-seo.md`](docs/research/2026-07-financial-sites-seo.md).
-- **Analytics (§5.1.2)** — when GA is enabled, capture events on load with **no consent banner**; footer terms still disclose GA and link to Google’s opt-out add-on.
+- **Analytics (§5.1.2)** — web app shows accept/decline consent strip before loading GA4; choice persisted in `localStorage`. Native shell still auto-inits when GA is enabled.
 
 ### Fixed
 

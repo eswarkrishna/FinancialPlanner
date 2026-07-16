@@ -157,17 +157,25 @@ export function AppFooter({
               performance is not indicative of future results.
             </li>
             <li>
-              <strong>Privacy (typical use).</strong> In the standard setup, inputs
-              stay in your browser; we do not receive your data unless you choose to
-              share or export it elsewhere. If a hosted or connected version is used,
-              its privacy policy applies additionally.
+              <strong>Browser storage.</strong> Form inputs (loan amounts, salaries, debt
+              balances, budget lines, and similar) are saved in your browser&apos;s{" "}
+              <code>localStorage</code> so they survive refresh. This data stays on your
+              device and is not encrypted; anyone with access to your browser profile or a
+              malicious script on this site could read it. Clear site data in your browser
+              settings to remove it.
             </li>
             <li>
-              <strong>Analytics.</strong> The public site may use Google Analytics 4 to
-              collect anonymous usage (e.g. which tab you open, exports, and named
-              control actions). No loan amounts or personal data are sent. You can
-              block this with a browser extension or
-              opt out via{" "}
+              <strong>Privacy (typical use).</strong> We do not receive your calculator
+              inputs on our servers unless you choose to share or export them elsewhere.
+              If a hosted or connected version is used, its privacy policy applies
+              additionally.
+            </li>
+            <li>
+              <strong>Analytics.</strong> The public site may ask for consent before loading
+              Google Analytics 4. When enabled, it collects anonymous usage (e.g. which tab
+              you open, exports, and named control actions). No loan amounts or personal data
+              are sent. You can decline in the consent strip, block tracking with a browser
+              extension, or opt out via{" "}
               <a
                 href="https://tools.google.com/dlpage/gaoptout"
                 target="_blank"

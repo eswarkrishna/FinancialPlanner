@@ -34,6 +34,20 @@ describe("scheduleToCsv (SPEC §4.9)", () => {
     expect(csv).toContain("1,5000000");
   });
 
+  it("neutralizes formula-like focus labels in debt CSV", () => {
+    const csv = debtTimelineToCsv([
+      {
+        month: 1,
+        opening_total_inr: 100_000,
+        interest_inr: 500,
+        payment_inr: 5_000,
+        closing_total_inr: 95_500,
+        focus_debt_name: "=HYPERLINK(\"http://evil\")",
+      },
+    ]);
+    expect(csv).toContain("'=HYPERLINK");
+  });
+
   it("adds calendar_date column when start date provided", () => {
     const csv = scheduleToCsv(sampleRows, { startDateIso: "2026-01-15" });
     expect(csv.split("\n")[0]).toContain("calendar_date");

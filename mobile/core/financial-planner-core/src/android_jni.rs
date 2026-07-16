@@ -65,3 +65,28 @@ pub extern "system" fn Java_com_eswar_financialplanner_mobile_core_NativeCore_ba
         Err(_) => std::ptr::null_mut(),
     }
 }
+
+#[no_mangle]
+pub extern "system" fn Java_com_eswar_financialplanner_mobile_core_NativeCore_simulateLoanJson(
+    mut env: JNIEnv,
+    _class: JClass,
+    request_json: JString,
+) -> jstring {
+    let req: String = match env.get_string(&request_json) {
+        Ok(s) => s.into(),
+        Err(e) => {
+            return env
+                .new_string(format!(r#"{{"error":"{}"}}"#, e))
+                .map(|s| s.into_raw())
+                .unwrap_or(std::ptr::null_mut());
+        }
+    };
+    let json = match crate::simulate::simulate_loan_json(&req) {
+        Ok(s) => s,
+        Err(e) => format!(r#"{{"error":"{}"}}"#, e.replace('"', "\\\"")),
+    };
+    match env.new_string(json) {
+        Ok(s) => s.into_raw(),
+        Err(_) => std::ptr::null_mut(),
+    }
+}

@@ -27,8 +27,10 @@ Install: `android/app/build/outputs/apk/debug/app-debug.apk`
 ## MVP features
 
 - Loan inputs: principal, rate, tenure
-- Live EMI + totals via Rust JNI
-- DataStore persistence of last inputs (offline)
+- **One-time prepayment** — month + amount, policy compare (reduce EMI vs reduce tenure)
+- **PF unemployment → loan** — SPEC §4.7 tranches at months 1 and 12
+- Live totals via Rust `simulateLoanJson` JNI
+- DataStore persistence (offline)
 - SPEC §14 disclaimer in UI
 
 ## Module map

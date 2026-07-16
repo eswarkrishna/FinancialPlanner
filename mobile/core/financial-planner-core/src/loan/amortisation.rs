@@ -192,6 +192,67 @@ pub fn schedule_prepay_keep_tenure(
     }
 }
 
+/// Fixed EMI from original loan; prepay after EMI on `prepay_month`. Run until closed. SPEC §4.4 policy 1.
+pub fn schedule_prepay_keep_emi(
+    principal_inr: f64,
+    annual_percent: f64,
+    tenure_months: u32,
+    prepay_month: u32,
+    prepayment_inr: f64,
+) -> BaselineScheduleResult {
+    let emi0 = compute_emi(principal_inr, annual_percent, tenure_months);
+    let r = nominal_monthly_rate_from_annual_percent(annual_percent);
+    let mut rows = Vec::new();
+    let mut balance = round_inr(principal_inr);
+    let mut total_interest = 0.0;
+    let mut total_paid = 0.0;
+    let mut total_prepay = 0.0;
+    let mut m = 0u32;
+    let cap = tenure_months * 4;
+
+    while balance > BALANCE_EPSILON_INR && m < cap {
+        m += 1;
+        let opening = balance;
+        let interest = round_inr(opening * r);
+        let principal = round_inr(opening.min(emi0 - interest));
+        let mut prepay = 0.0;
+
+        balance = round_inr(opening - principal);
+        if m == prepay_month && prepayment_inr > 0.0 {
+            prepay = round_inr(prepayment_inr.min(balance));
+            balance = round_inr(balance - prepay);
+            total_prepay += prepay;
+        }
+
+        push_row(
+            &mut rows,
+            m,
+            opening,
+            interest,
+            principal,
+            prepay,
+            balance,
+            emi0,
+        );
+        total_interest += interest;
+        total_paid += round_inr(interest + principal + prepay);
+        if balance <= BALANCE_EPSILON_INR {
+            break;
+        }
+    }
+
+    BaselineScheduleResult {
+        emi_inr: emi0,
+        rows,
+        totals: ScheduleTotals {
+            total_paid_inr: round_inr(total_paid),
+            total_interest_inr: round_inr(total_interest),
+            total_prepayments_inr: round_inr(total_prepay),
+            payoff_month: m,
+        },
+    }
+}
+
 /// Fixed baseline EMI with timed prepayments after EMI each month. SPEC §4.4 / §4.7.
 pub fn schedule_timed_prepays_keep_emi(
     principal_inr: f64,

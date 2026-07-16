@@ -4,8 +4,9 @@ pub mod emi;
 use crate::rates::nominal_monthly_rate_from_annual_percent;
 
 pub use amortisation::{
-    baseline_schedule, schedule_prepay_keep_tenure, schedule_timed_prepays_keep_emi,
-    BaselineScheduleResult, ScheduleRow, ScheduleTotals, TimedPrepaymentEvent,
+    baseline_schedule, schedule_prepay_keep_emi, schedule_prepay_keep_tenure,
+    schedule_timed_prepays_keep_emi, BaselineScheduleResult, ScheduleRow, ScheduleTotals,
+    TimedPrepaymentEvent,
 };
 pub use emi::compute_emi;
 

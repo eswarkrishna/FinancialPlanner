@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financialplanner.local/schema/loan-simulate-request.json",
+  "title": "LoanSimulateRequest",
+  "description": "Mobile loan simulation request (India MVP). Maps to Rust simulate_loan.",
+  "type": "object",
+  "required": ["principal_inr", "annual_interest_rate", "tenure_months"],
+  "properties": {
+    "principal_inr": { "type": "number", "exclusiveMinimum": 0 },
+    "annual_interest_rate": { "type": "number", "minimum": 0, "maximum": 50 },
+    "tenure_months": { "type": "integer", "minimum": 1, "maximum": 600 },
+    "one_time_prepay": {
+      "type": "object",
+      "required": ["month", "amount_inr"],
+      "properties": {
+        "month": { "type": "integer", "minimum": 1 },
+        "amount_inr": { "type": "number", "minimum": 0 }
+      }
+    },
+    "pf_unemployment": {
+      "type": "object",
+      "required": ["pf_corpus_inr"],
+      "properties": {
+        "pf_corpus_inr": { "type": "number", "minimum": 0 },
+        "pf_annual_interest_rate_pct": { "type": "number", "minimum": 0, "default": 8.25 },
+        "monthly_pf_addition_inr": { "type": "number", "minimum": 0, "default": 0 }
+      }
+    }
+  }
+}

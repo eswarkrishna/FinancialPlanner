@@ -73,5 +73,5 @@ Android JNI: `NativeCore.kt` ↔ `android_jni.rs`
 ## Next steps
 
 - [ ] iOS xcframework build script + FFI wiring
-- [ ] Android prepayment UI (cash / PF scenarios)
+- [ ] Android staged prepayments editor (multi-row §4.6)
 - [ ] Expand Rust core for strategies, debt, retirement (phased)

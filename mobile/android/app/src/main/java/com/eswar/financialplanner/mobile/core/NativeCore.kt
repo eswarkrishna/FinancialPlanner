@@ -23,4 +23,8 @@ object NativeCore {
         annualPercent: Double,
         tenureMonths: Int,
     ): String
+
+    /** Full loan simulation with optional prepay / PF unemployment (JSON in/out). */
+    @JvmStatic
+    external fun simulateLoanJson(requestJson: String): String
 }

@@ -4,8 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.eswar.financialplanner.mobile.core.LoanInputs
-import com.eswar.financialplanner.mobile.core.LoanSummary
-import com.eswar.financialplanner.mobile.core.computeLoanSummary
+import com.eswar.financialplanner.mobile.core.LoanSimulation
+import com.eswar.financialplanner.mobile.core.PrepayPolicy
+import com.eswar.financialplanner.mobile.core.computeLoanSimulation
 import com.eswar.financialplanner.mobile.data.LoanPreferencesRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,13 +23,13 @@ class LoanViewModel(
 ) : ViewModel() {
     private val draft = MutableStateFlow(LoanInputs())
 
-    val summary: StateFlow<LoanSummary> = draft
+    val simulation: StateFlow<LoanSimulation> = draft
         .debounce(200)
-        .map(::computeLoanSummary)
+        .map(::computeLoanSimulation)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
-            LoanSummary(LoanInputs(), null),
+            computeLoanSimulation(LoanInputs()),
         )
 
     init {
@@ -37,16 +38,53 @@ class LoanViewModel(
         }
     }
 
+    private fun update(block: (LoanInputs) -> LoanInputs) {
+        draft.value = block(draft.value)
+    }
+
     fun onPrincipalChange(value: String) {
-        value.toDoubleOrNull()?.let { draft.value = draft.value.copy(principalInr = it) }
+        value.toDoubleOrNull()?.let { v -> update { it.copy(principalInr = v) } }
     }
 
     fun onRateChange(value: String) {
-        value.toDoubleOrNull()?.let { draft.value = draft.value.copy(annualInterestRate = it) }
+        value.toDoubleOrNull()?.let { v -> update { it.copy(annualInterestRate = v) } }
     }
 
     fun onTenureChange(value: String) {
-        value.toIntOrNull()?.let { draft.value = draft.value.copy(tenureMonths = it) }
+        value.toIntOrNull()?.let { v -> update { it.copy(tenureMonths = v) } }
+    }
+
+    fun onPrepayEnabledChange(enabled: Boolean) {
+        update { it.copy(prepayEnabled = enabled) }
+    }
+
+    fun onPrepayMonthChange(value: String) {
+        value.toIntOrNull()?.let { v -> update { it.copy(prepayMonth = v) } }
+    }
+
+    fun onPrepayAmountChange(value: String) {
+        value.toDoubleOrNull()?.let { v -> update { it.copy(prepayAmountInr = v) } }
+    }
+
+    fun onPrepayPolicySelect(policy: PrepayPolicy) {
+        update { it.copy(selectedPolicy = policy, pfUnemploymentEnabled = false) }
+    }
+
+    fun onPfUnemploymentEnabledChange(enabled: Boolean) {
+        update {
+            it.copy(
+                pfUnemploymentEnabled = enabled,
+                prepayEnabled = if (enabled) false else it.prepayEnabled,
+            )
+        }
+    }
+
+    fun onPfCorpusChange(value: String) {
+        value.toDoubleOrNull()?.let { v -> update { it.copy(pfCorpusInr = v) } }
+    }
+
+    fun onPfRateChange(value: String) {
+        value.toDoubleOrNull()?.let { v -> update { it.copy(pfAnnualRatePct = v) } }
     }
 
     fun persist() {

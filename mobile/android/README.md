@@ -1,22 +1,41 @@
-# Android shell (pending)
+# Android shell — Jetpack Compose
 
-Kotlin + Jetpack Compose UI will live here. It will load `libfinancial_planner_core.so` from the Rust crate and call the C FFI in `core/financial-planner-core/include/financial_planner_core.h`.
+Native Compose UI for the India loan MVP. Loads `libfinancial_planner_core.so` from the Rust crate via JNI.
 
-**Blocked on:** Decisions 2 (UI), 3 (scope), 4 (storage), 6 (Capacitor relationship).
+## Build
 
-## Planned layout
-
-```
-android/
-├── app/                 # Compose application module
-├── core-bindings/       # JNI / Kotlin wrappers over fp_* FFI
-└── build.gradle.kts
-```
-
-## Build (future)
+1. **Rust native libs** (requires Android NDK):
 
 ```bash
-cd mobile
-cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 build --release
-# then Gradle assembles APK with bundled .so
+export ANDROID_NDK_HOME=...   # e.g. $ANDROID_HOME/ndk/<version>
+mobile/scripts/build-android-core.sh
 ```
+
+2. **APK**:
+
+```bash
+cd mobile/android
+./gradlew assembleDebug
+```
+
+Install: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+## Package
+
+`com.eswar.financialplanner.mobile` — separate from the Capacitor WebView app (`com.eswar.financialplanner`).
+
+## MVP features
+
+- Loan inputs: principal, rate, tenure
+- Live EMI + totals via Rust JNI
+- DataStore persistence of last inputs (offline)
+- SPEC §14 disclaimer in UI
+
+## Module map
+
+| Path | Role |
+|------|------|
+| `core/NativeCore.kt` | JNI to Rust |
+| `core/LoanSummary.kt` | Parse schedule JSON |
+| `data/LoanPreferencesRepository.kt` | DataStore |
+| `ui/loan/LoanScreen.kt` | Compose form + KPI card |

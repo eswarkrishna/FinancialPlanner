@@ -70,3 +70,29 @@ fn golden_prepay_cash_25l_tenure_matches_web() {
     ));
     assert_eq!(actual, expected);
 }
+
+#[test]
+fn golden_ue_pf_to_loan_matches_web() {
+    use financial_planner_core::pf::compute_pf_unemployment_withdrawal_plan;
+    use financial_planner_core::loan::{schedule_timed_prepays_keep_emi, TimedPrepaymentEvent};
+
+    let expected = load_golden("UE_PF_TO_LOAN");
+    let pf = compute_pf_unemployment_withdrawal_plan(2_500_000.0, 8.25, 0.0);
+    let actual = compact(&schedule_timed_prepays_keep_emi(
+        PRINCIPAL,
+        RATE,
+        TENURE,
+        &[
+            TimedPrepaymentEvent {
+                month: 1,
+                amount_inr: pf.tranche1_inr,
+            },
+            TimedPrepaymentEvent {
+                month: 12,
+                amount_inr: pf.tranche2_inr,
+            },
+        ],
+        0.0,
+    ));
+    assert_eq!(actual, expected);
+}

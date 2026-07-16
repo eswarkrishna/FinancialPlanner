@@ -1,24 +1,42 @@
-# iOS shell (pending)
+# iOS shell — SwiftUI (scaffold)
 
-Swift + SwiftUI UI will live here. It will link `FinancialPlannerCore.xcframework` built from the Rust crate and call the C FFI in `core/financial-planner-core/include/financial_planner_core.h`.
+Native SwiftUI app calling the Rust core via `FinancialPlannerCore.xcframework` (built on macOS).
 
-**Blocked on:** Decisions 2 (UI), 3 (scope), 4 (storage), 5 (Xcode / CI).
+## Locked decisions
 
-## Planned layout
+| # | Choice |
+|---|--------|
+| 2 | Native UI (SwiftUI) |
+| 3 | MVP — Loan / India |
+| 4 | Persist last inputs (UserDefaults) |
+| 5 | **Scaffold only** — build on Mac with Xcode |
+| 6 | Keep Capacitor `android/` WebView shell alongside |
+| 7 | Offline-only, no analytics |
+
+## Files
 
 ```
-ios/
-├── FinancialPlanner/       # SwiftUI app target
-├── FinancialPlannerCore/   # Swift package wrapping C FFI
-└── FinancialPlanner.xcodeproj
+ios/FinancialPlanner/
+├── FinancialPlannerApp.swift   # @main entry
+├── LoanView.swift              # MVP loan form
+└── LoanInputStore.swift        # UserDefaults + NativeCore stub
 ```
 
-## Build (future)
+## Create Xcode project (on Mac)
+
+1. File → New → App → SwiftUI, bundle ID `com.eswar.financialplanner.mobile`
+2. Add the three Swift files above (replace generated content)
+3. Build Rust xcframework:
 
 ```bash
-cd mobile/core/financial-planner-core
-cargo build --release --target aarch64-apple-ios
-# xcodebuild packages xcframework
+cd mobile
+rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+cargo build --release --target aarch64-apple-ios -p financial-planner-core
+# Package with xcodebuild / scripts/build-ios-core.sh (TODO)
 ```
 
-Requires macOS with Xcode for device/simulator builds.
+4. Link `financial_planner_core.h` and replace `NativeCore` stub with C FFI calls
+
+## Note
+
+`LoanInputStore.swift` includes a temporary EMI helper so the UI previews work without the xcframework. Remove once FFI is wired.

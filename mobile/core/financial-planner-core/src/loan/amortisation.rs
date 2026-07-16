@@ -19,6 +19,12 @@ pub struct ScheduleRow {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TimedPrepaymentEvent {
+    pub month: u32,
+    pub amount_inr: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ScheduleTotals {
     pub total_paid_inr: f64,
     pub total_interest_inr: f64,
@@ -182,6 +188,86 @@ pub fn schedule_prepay_keep_tenure(
             total_interest_inr: round_inr(total_interest),
             total_prepayments_inr: round_inr(total_prepay),
             payoff_month: tenure_months,
+        },
+    }
+}
+
+/// Fixed baseline EMI with timed prepayments after EMI each month. SPEC §4.4 / §4.7.
+pub fn schedule_timed_prepays_keep_emi(
+    principal_inr: f64,
+    annual_percent: f64,
+    tenure_months: u32,
+    prepayment_events: &[TimedPrepaymentEvent],
+    monthly_extra_inr: f64,
+) -> BaselineScheduleResult {
+    let emi0 = compute_emi(principal_inr, annual_percent, tenure_months);
+    let r = nominal_monthly_rate_from_annual_percent(annual_percent);
+    let mut rows = Vec::new();
+    let mut balance = round_inr(principal_inr);
+    let mut total_interest = 0.0;
+    let mut total_paid = 0.0;
+    let mut total_prepay = 0.0;
+    let mut m = 0u32;
+    let cap = tenure_months * 8;
+    let monthly_extra = monthly_extra_inr.max(0.0);
+
+    let mut monthly_prepay: std::collections::HashMap<u32, f64> = std::collections::HashMap::new();
+    for event in prepayment_events {
+        if event.month < 1 || event.amount_inr <= 0.0 {
+            continue;
+        }
+        let existing = monthly_prepay.get(&event.month).copied().unwrap_or(0.0);
+        monthly_prepay.insert(event.month, round_inr(existing + event.amount_inr));
+    }
+
+    while balance > BALANCE_EPSILON_INR && m < cap {
+        m += 1;
+        let opening = balance;
+        let interest = round_inr(opening * r);
+        let principal = round_inr(opening.min(emi0 - interest));
+        balance = round_inr(opening - principal);
+
+        let mut prepay = 0.0;
+        let configured = monthly_prepay.get(&m).copied().unwrap_or(0.0);
+        if configured > 0.0 && balance > BALANCE_EPSILON_INR {
+            prepay = round_inr(configured.min(balance));
+            balance = round_inr(balance - prepay);
+            total_prepay += prepay;
+        }
+
+        let mut month_extra = 0.0;
+        if monthly_extra > 0.0 && balance > BALANCE_EPSILON_INR {
+            month_extra = round_inr(monthly_extra.min(balance));
+            balance = round_inr(balance - month_extra);
+            total_prepay += month_extra;
+        }
+
+        let prepay_shown = round_inr(prepay + month_extra);
+        push_row(
+            &mut rows,
+            m,
+            opening,
+            interest,
+            principal,
+            prepay_shown,
+            balance,
+            emi0,
+        );
+        total_interest += interest;
+        total_paid += round_inr(interest + principal + prepay_shown);
+        if balance <= BALANCE_EPSILON_INR {
+            break;
+        }
+    }
+
+    BaselineScheduleResult {
+        emi_inr: emi0,
+        rows,
+        totals: ScheduleTotals {
+            total_paid_inr: round_inr(total_paid),
+            total_interest_inr: round_inr(total_interest),
+            total_prepayments_inr: round_inr(total_prepay),
+            payoff_month: m,
         },
     }
 }

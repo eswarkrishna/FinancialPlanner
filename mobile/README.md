@@ -1,66 +1,77 @@
 # FinancialPlanner — Mobile (Android & iOS)
 
-Native mobile rewrite in a **separate folder** from the web SPA. The web app (`/`) is unchanged.
+Native mobile rewrite in a **separate folder** from the web SPA. The web app (`/`) and Capacitor shell (`/android`) are unchanged.
 
 ## Architecture (locked)
 
+| # | Decision | Choice |
+|---|----------|--------|
+| 1 | Shared core | **Rust native library** (`core/financial-planner-core`) |
+| 2 | UI | **Native** — Jetpack Compose (Android) + SwiftUI (iOS) |
+| 3 | Scope | **MVP** — Loan tab, India locale |
+| 4 | Storage | **Persist last inputs** — DataStore (Android) / UserDefaults (iOS) |
+| 5 | iOS build | **Scaffold only** — Xcode project on Mac |
+| 6 | Capacitor | **Keep both** — WebView shell + native `mobile/` |
+| 7 | Analytics | **Offline-only** — no network calls |
+
 | Layer | Technology | Role |
 |-------|------------|--------|
-| **Core** | **Rust** (`core/financial-planner-core`) | Language-agnostic finance engine; compiled to `.so` (Android) and `.xcframework` (iOS) |
-| **Contract** | JSON Schema (`core/schema/`) | Stable input/output shapes; validated against web golden fixtures |
-| **Android** | Kotlin + Jetpack Compose *(pending decision)* | Thin UI shell calling core via FFI |
-| **iOS** | Swift + SwiftUI *(pending decision)* | Thin UI shell calling core via FFI |
+| **Core** | Rust | Language-agnostic engine → `.so` / `.xcframework` |
+| **Contract** | JSON Schema (`core/schema/`) | Stable I/O; validated against web goldens |
+| **Android** | Kotlin + Compose + JNI | Thin shell in `android/` |
+| **iOS** | Swift + SwiftUI | Thin shell in `ios/` (scaffold) |
 
-**Source of truth:** `docs/SPEC.md` (and locale variants). Golden fixtures live in `src/test/fixtures/` at repo root; mobile tests load the same JSON.
+**Source of truth:** `docs/SPEC.md`. Golden fixtures: `src/test/fixtures/goldens/`.
 
 ## Folder layout
 
 ```
 mobile/
-├── Cargo.toml                  # Rust workspace
-├── core/
-│   ├── financial-planner-core/ # Rust engine crate
-│   ├── schema/                 # JSON Schema for I/O
-│   └── fixtures/               # Symlinks to web golden JSON (read-only parity checks)
-├── android/                    # Kotlin shell (scaffold pending)
-└── ios/                        # Swift shell (scaffold pending)
+├── Cargo.toml
+├── core/financial-planner-core/   # Rust engine + FFI + Android JNI
+├── core/schema/
+├── scripts/build-android-core.sh
+├── android/                       # Compose app
+└── ios/FinancialPlanner/          # SwiftUI scaffold
 ```
 
 ## Build & test (core)
 
 ```bash
 cd mobile
-cargo test
+cargo test          # 6 tests — all 3 web loan goldens + unit tests
 cargo build --release
 ```
 
-Golden parity tests compare Rust output to `src/test/fixtures/goldens/*.json`.
+### Golden parity (Rust ↔ web)
 
-## FFI (planned)
+| Golden | SPEC | Status |
+|--------|------|--------|
+| `BASE` | §4.3 baseline EMI | ✓ |
+| `PREPAY_CASH_25L_TENURE` | §4.4 prepay keep tenure | ✓ |
+| `UE_PF_TO_LOAN` | §4.7 PF tranches + timed prepay | ✓ |
 
-The core exposes a C ABI (`fp_*` functions) for Kotlin (`JNI`) and Swift. Bindings are generated with `cbindgen`. Android packages `libfinancial_planner_core.so`; iOS ships `FinancialPlannerCore.xcframework`.
+## Android
 
-## Pending decisions
+```bash
+export ANDROID_NDK_HOME=...
+./scripts/build-android-core.sh
+cd android && ./gradlew assembleDebug
+```
 
-Please confirm before UI work begins:
+See [`android/README.md`](android/README.md).
 
-| # | Topic | Options |
-|---|--------|---------|
-| 2 | **UI** | Native (Compose + SwiftUI) · Flutter · React Native |
-| 3 | **Scope** | MVP (Loan / India) · Phased · Full parity |
-| 4 | **Storage** | In-memory · Persist last inputs · SQLite + export |
-| 5 | **iOS build** | Scaffold only · Local Mac · CI macOS runner |
-| 6 | **Capacitor** | Keep `android/` WebView shell · Deprecate · Replace |
-| 7 | **Analytics** | Offline-only · Opt-in GA · No network |
+## iOS
 
-## Implementation phases
+Scaffold only — create Xcode project on Mac and link xcframework. See [`ios/README.md`](ios/README.md).
 
-1. **Core (in progress)** — EMI, baseline schedule, prepayment (India); golden tests
-2. **PF / cashflow** — unemployment tranches, timed prepays (`UE_PF_TO_LOAN` golden)
-3. **Android shell** — Compose UI, JNI/FFI wiring
-4. **iOS shell** — SwiftUI, xcframework integration
-5. **Locales & tabs** — US/UK, strategies, debt, retirement, budget
+## FFI
 
-## Relationship to web Capacitor shell
+C header: `core/financial-planner-core/include/financial_planner_core.h`  
+Android JNI: `NativeCore.kt` ↔ `android_jni.rs`
 
-The repo root still has `android/` + Capacitor (WebView wrapping the React SPA). This `mobile/` tree is the **native rewrite** and does not replace Capacitor until you decide (Decision 6).
+## Next steps
+
+- [ ] iOS xcframework build script + FFI wiring
+- [ ] Android prepayment UI (cash / PF scenarios)
+- [ ] Expand Rust core for strategies, debt, retirement (phased)

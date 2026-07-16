@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Financial Planner</string>
+    <string name="disclaimer">Illustrative numbers only. Not legal, tax, or EPFO advice.</string>
+</resources>

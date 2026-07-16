@@ -55,11 +55,20 @@ cargo build --release
 
 ```bash
 export ANDROID_NDK_HOME=...
-./scripts/build-android-core.sh
-cd android && ./gradlew assembleDebug
+./mobile/scripts/build-android-core.sh    # debug / dev
+cd mobile/android && ./gradlew assembleDebug
 ```
 
-See [`android/README.md`](android/README.md).
+**Play Store release:**
+
+```bash
+cp mobile/android/keystore.properties.example mobile/android/keystore.properties
+# edit keystore paths, then:
+./mobile/scripts/build-android-release.sh        # → app-release.aab
+./mobile/scripts/build-android-release.sh --apk  # → app-release.apk
+```
+
+See [`android/README.md`](android/README.md) for full deploy steps.
 
 ## iOS
 

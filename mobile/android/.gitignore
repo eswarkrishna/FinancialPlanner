@@ -5,3 +5,7 @@ local.properties
 .idea/
 .cxx/
 app/build/
+keystore.properties
+*.keystore
+*.jks
+

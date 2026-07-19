@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState, Suspense, type KeyboardEvent } from "react";
 import { trackPageView, trackTabSelect } from "./lib/analytics";
 import {
   getTabFromLocation,
@@ -20,13 +20,8 @@ import { NewVersionBanner } from "./components/NewVersionBanner";
 import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
 import { useAnalyticsBootstrap } from "./hooks/useAnalyticsBootstrap";
 import { useAnalyticsLifecycle } from "./hooks/useAnalyticsLifecycle";
-import { DebtSection } from "./features/debt/DebtSection";
-import { GameSection } from "./features/game/GameSection";
+import { TabCalculatorSection, TabSectionLoading } from "./components/TabCalculatorSection";
 import { useLocale } from "./features/locale/LocaleContext";
-import { LoanSection } from "./features/loan/LoanSection";
-import { RetirementSection } from "./features/retirement/RetirementSection";
-import { BudgetSection } from "./features/budget/BudgetSection";
-import { StrategySection } from "./features/strategy/StrategySection";
 import type { Locale } from "./lib/locale/types";
 import { useReleaseNotifications } from "./lib/notifications/useReleaseNotifications";
 
@@ -204,12 +199,9 @@ export function App() {
                     <TabExplainer tabId={tab.id} />
                     <RelatedCalculators tabId={tab.id} onSelectTab={selectTab} />
                     <FeedbackHelpful tabId={tab.id} locale={locale} />
-                    {tab.id === "loan" && <LoanSection />}
-                    {tab.id === "debt" && <DebtSection />}
-                    {tab.id === "retirement" && <RetirementSection />}
-                    {tab.id === "strategies" && <StrategySection />}
-                    {tab.id === "strategic" && <GameSection />}
-                    {tab.id === "budget" && <BudgetSection />}
+                    <Suspense fallback={<TabSectionLoading />}>
+                      <TabCalculatorSection tabId={tab.id} />
+                    </Suspense>
                   </>
                 ) : null}
               </div>

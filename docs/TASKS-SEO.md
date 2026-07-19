@@ -32,7 +32,7 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 | 7 | Alt text & ARIA | 2.3 | — | **Done** |
 | 8 | Internal linking | 2.4 | 2, 6 | **Done** |
 | 9 | Explainer content | 3.1 | 6 | **Done** |
-| 10 | Page speed & Core Web Vitals | 2.5 | — | **Partial** — sampling only |
+| 10 | Page speed & Core Web Vitals | 2.5 | — | **Done** |
 | 11 | Automated verification | §10 | 2–10 | **Partial** |
 | 12 | Feature sign-off | — | 11 | Not started |
 | 13 | Ship & authority (manual) | 3.2 | 12 | Not started |
@@ -203,9 +203,9 @@ flowchart LR
 | Done | Task |
 |:----:|------|
 | [x] | **10.1** Runtime `web-vitals` sampling to GA4 (§5.1.2). |
-| [ ] | **10.2** Run Lighthouse mobile audit on production URL; record LCP, CLS, INP baseline. |
-| [ ] | **10.3** If LCP ≥ 2.5s or CLS ≥ 0.1: font subsetting, lazy-load heavy tabs, or code-split `GameSection` / charts. |
-| [ ] | **10.4** *(Stretch)* CI script: fail build if Lighthouse scores regress. |
+| [x] | **10.2** Run Lighthouse mobile audit on production URL; record LCP, CLS, INP baseline. |
+| [x] | **10.3** If LCP ≥ 2.5s or CLS ≥ 0.1: font subsetting, lazy-load heavy tabs, or code-split `GameSection` / charts. *(Lazy-loaded non-loan tabs via `TabCalculatorSection`.)* |
+| [x] | **10.4** *(Stretch)* CI script: fail build if Lighthouse scores regress. |
 
 ---
 

@@ -92,3 +92,4 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [2026-07-uk-employee-benefits-mapping.md](research/2026-07-uk-employee-benefits-mapping.md) | UK locale spike: NMPA lock, redundancy/JSA/SMI bridge, ISA/GIA, auto-enrolment, ERC |
 | [2026-07-financial-sites-seo.md](research/2026-07-financial-sites-seo.md) | SEO patterns of famous financial sites → §8 SEO metadata (titles, JSON-LD, sitemap) |
 | [2026-07-seo-routes-noscript.md](research/2026-07-seo-routes-noscript.md) | SEO path routes, per-route HTML shells, noscript fallback (Phase 0 spike) |
+| [2026-07-core-web-vitals-baseline.md](research/2026-07-core-web-vitals-baseline.md) | SEO Phase 10: mobile Lighthouse CWV baseline, lazy tab code-split |

@@ -18,7 +18,7 @@ describe("app shell", () => {
     await gotoApp(session.page);
 
     const title = await session.page.$eval("h1", (element) => element.textContent?.trim());
-    assert.equal(title, "FinancialPlanner");
+    assert.equal(title, "Loan EMI Calculator with Prepayment");
 
     const disclaimer = await session.page.evaluate(() =>
       document.body.textContent?.includes("Educational planning only"),

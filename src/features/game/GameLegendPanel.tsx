@@ -33,9 +33,9 @@ export function GameLegendPanel({ locale }: { locale: Locale }) {
         <div className="game-legend-grid">
           {VISIBLE_CATEGORIES.map((category) => (
             <div key={category} className="game-legend-group">
-              <h3 className="game-legend-group-title">
+              <p className="game-legend-group-title">
                 {LEGEND_CATEGORY_TITLES[category]}
-              </h3>
+              </p>
               <dl className="game-legend-list">
                 {LEGEND_BY_CATEGORY[category].map((entry) => (
                   <div key={entry.code} className="game-legend-item">

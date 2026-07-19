@@ -11,6 +11,7 @@ import {
   getTabFromPathname,
   getTabFromSearch,
   pageDescription,
+  pageHeading,
   pageTitle,
   PLANNER_TABS,
   redirectLegacyTabQuery,
@@ -77,8 +78,10 @@ describe("seo", () => {
     expect(html).toContain("Enable JavaScript");
   });
 
-  it("builds page title and description", () => {
+  it("builds page title, heading, and description", () => {
     expect(pageTitle("loan")).toBe("Loan EMI Calculator with Prepayment | FinancialPlanner");
+    expect(pageHeading("loan")).toBe("Loan EMI Calculator with Prepayment");
+    expect(pageHeading("debt")).toBe("Debt Avalanche vs Snowball Calculator");
     expect(pageDescription("retirement")).toMatch(/retirement corpus/i);
   });
 

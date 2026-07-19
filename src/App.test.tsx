@@ -26,7 +26,10 @@ describe("App shell composition", () => {
   it("renders tab navigation and shows only the loan planner by default", () => {
     renderWithLocale(<App />);
 
-    expect(screen.getByRole("heading", { name: "FinancialPlanner" })).toBeInTheDocument();
+    expect(document.querySelector(".app-brand-name")).toHaveTextContent("FinancialPlanner");
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Loan EMI Calculator with Prepayment" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Loan" })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -39,6 +42,27 @@ describe("App shell composition", () => {
       screen.getByText(/Educational planning only\. EPF withdrawal eligibility/),
     ).toBeInTheDocument();
     expect(screen.getByText("Terms and conditions")).toBeInTheDocument();
+  });
+
+  it("has exactly one h1 matching the active tab keyword (§10.56)", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<App />);
+
+    const tabHeadings: Array<{ tab: string; h1: string }> = [
+      { tab: "Loan", h1: "Loan EMI Calculator with Prepayment" },
+      { tab: "Multi-debt", h1: "Debt Avalanche vs Snowball Calculator" },
+      { tab: "Retirement", h1: "Retirement Corpus & SIP Calculator" },
+      { tab: "Strategies", h1: "Loan Repayment Strategy Comparison" },
+      { tab: "Strategic", h1: "Loan Payoff Game Theory Explorer" },
+      { tab: "Budget", h1: "Budget Planner with 50/30/20 Rule" },
+    ];
+
+    for (const { tab, h1 } of tabHeadings) {
+      await user.click(screen.getByRole("tab", { name: tab }));
+      const headings = screen.getAllByRole("heading", { level: 1 });
+      expect(headings).toHaveLength(1);
+      expect(headings[0]).toHaveTextContent(h1);
+    }
   });
 
   it("switches planners via tabs", async () => {

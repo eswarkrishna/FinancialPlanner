@@ -232,12 +232,21 @@ body {
   padding: 1rem 1.25rem 0.75rem;
 }
 
-.app-brand h1 {
+.app-brand-name {
   margin: 0;
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text);
+}
+
+.tab-page-heading {
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.25;
 }
 
 .app-brand-row {

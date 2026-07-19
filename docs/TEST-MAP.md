@@ -39,6 +39,8 @@ manual smoke checks.
 | 10.56 | One keyword `<h1>` per active tab panel | `src/App.test.tsx`, `e2e/specs/app-shell.spec.ts` |
 | 10.57 | ≥1 contextual internal `<a href>` per tab | `src/lib/tabPageContent.test.ts`, `src/App.test.tsx` |
 | 10.58 | Explainer copy 100–200 words per tab | `src/lib/tabPageContent.test.ts`, `src/App.test.tsx` |
+| 10.52–58 (E2E) | Path smoke: title, h1, JSON-LD, noscript (JS off) per route | `e2e/specs/seo-signoff.spec.ts` |
+| 10.52–55 (build) | Per-shell title, noscript, JSON-LD in `dist/` | `scripts/verify-seo-signoff.ts` (`npm run verify:seo`) |
 | 10.48–50 | Prepayment fee flat/%/none → gross & net savings (§4.4.1) | `src/lib/loan/prepaymentFee.test.ts`, `src/features/loan/hooks/buildComparisonRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |
 | 10.51 | Reduce EMI vs Reduce Tenure panel selects schedule (§4.4.2) | `src/features/loan/hooks/buildComparisonRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |
 | 10.23 | Tier 2 analytics consent gate | `src/hooks/useAnalyticsBootstrap.test.ts` |
@@ -79,3 +81,15 @@ Run `npm run dev` and verify:
 5. Footer shows **Latest push** with commit date and linked short SHA (§8 deploy metadata).
 6. **Release notifications (§4.15):** consent strip appears on first visit; **No thanks** hides it; after simulating a new deploy (`lastSeen` ≠ build sha) the update banner shows **Reload**.
 7. **Production smoke (optional):** `npm run verify:production` — fetches live `version.json` and `sw.js`.
+
+## SEO sign-off (Phases 12–13)
+
+See [`docs/SEO-SIGNOFF.md`](SEO-SIGNOFF.md).
+
+| Step | Command / action |
+|------|------------------|
+| Static SEO shells | `npm run verify:seo` |
+| Browser path + noscript smoke | `npm run test:e2e` (`seo-signoff.spec.ts`) |
+| Rich Results (manual) | [Google Rich Results Test](https://search.google.com/test/rich-results) on live `/` and `/debt/` |
+| CWV regression | `npm run audit:lighthouse` |
+| A11y regression | `npm run audit:a11y` |

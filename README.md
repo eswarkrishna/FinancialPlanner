@@ -1,5 +1,7 @@
 # FinancialPlanner
 
+**Live demo:** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/) — free loan, debt, retirement, and budget calculators (India, US, UK).
+
 India-focused **loan payoff simulator** planning tool: reducing-balance loans, prepayment strategies, optional unemployment + staged PF withdrawals, and scenario comparison. Behaviour is defined in **`docs/SPEC.md`** (spec-driven development).
 
 ## Quick start
@@ -38,6 +40,8 @@ Mobile builds use `VITE_BASE=./` so asset paths work inside the WebView. Release
 | [docs/SPEC.md](docs/SPEC.md) | Full product & engineering specification |
 | [CHANGELOG.md](CHANGELOG.md) | User-facing release history (update on every ship) |
 | [docs/TASKS.md](docs/TASKS.md) | Feature delivery checklist (mark tasks done) |
+| [docs/TASKS-SEO.md](docs/TASKS-SEO.md) | SEO gap-fill phased checklist |
+| [docs/SEO-SIGNOFF.md](docs/SEO-SIGNOFF.md) | SEO sign-off & ship (Phases 12–13) |
 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
 | [docs/research/](docs/research/) | Spikes and research notes |

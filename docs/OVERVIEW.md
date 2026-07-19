@@ -73,6 +73,9 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [SPEC-US.md](SPEC-US.md) | US locale product & engineering specification |
 | [SPEC-UK.md](SPEC-UK.md) | UK locale product & engineering specification |
 | [TASKS.md](TASKS.md) | Feature delivery checklist (`[ ]` → `[x]`) |
+| [TASKS-SEO.md](TASKS-SEO.md) | SEO gap-fill phased checklist |
+| [SEO-SIGNOFF.md](SEO-SIGNOFF.md) | SEO sign-off & ship (Phases 12–13) |
+| [TEST-MAP.md](TEST-MAP.md) | §10 acceptance → tests mapping |
 | [FEATURE-ROADMAP.md](FEATURE-ROADMAP.md) | Backlog of candidate features beyond current ship |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (Keep a Changelog) |
 | [LEARNINGS.md](LEARNINGS.md) | Dated post-feature notes |

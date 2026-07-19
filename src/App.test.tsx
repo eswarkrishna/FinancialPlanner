@@ -110,7 +110,6 @@ describe("App shell composition", () => {
 
     await user.click(screen.getByRole("tab", { name: "Multi-debt" }));
     expect(await screen.findByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/debt");
     expect(document.title).toBe("Debt Avalanche vs Snowball Calculator | FinancialPlanner");
 

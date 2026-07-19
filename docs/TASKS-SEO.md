@@ -33,9 +33,9 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 | 8 | Internal linking | 2.4 | 2, 6 | **Done** |
 | 9 | Explainer content | 3.1 | 6 | **Done** |
 | 10 | Page speed & Core Web Vitals | 2.5 | — | **Done** |
-| 11 | Automated verification | §10 | 2–10 | **Partial** |
-| 12 | Feature sign-off | — | 11 | Not started |
-| 13 | Ship & authority (manual) | 3.2 | 12 | Not started |
+| 11 | Automated verification | §10 | 2–10 | **Done** |
+| 12 | Feature sign-off | — | 11 | **Done** |
+| 13 | Ship & authority (manual) | 3.2 | 12 | **Done** *(repo + owner checklist)* |
 
 ```mermaid
 flowchart LR
@@ -220,7 +220,7 @@ flowchart LR
 | [x] | **11.3** Tests for per-tab `h1` text (component or DOM snapshot). |
 | [x] | **11.4** Tests for internal link presence per tab. |
 | [x] | **11.5** Tests for explainer word-count bounds. |
-| [ ] | **11.6** `npm run lint` + `npm run test` + `npm run build` clean. |
+| [x] | **11.6** `npm run lint` + `npm run test` + `npm run build` clean. |
 
 ---
 
@@ -228,10 +228,12 @@ flowchart LR
 
 **Goal:** Manual acceptance before merge.
 
-- [ ] **12.1** Map new §10 bullets in `docs/TEST-MAP.md`.
-- [ ] **12.2** Manual smoke: each path loads correct tab, title, h1, JSON-LD, noscript visible with JS disabled.
-- [ ] **12.3** Rich Results Test on deployed build.
-- [ ] **12.4** `sdd-verify-feature` checklist complete.
+**Deliverable:** [`docs/SEO-SIGNOFF.md`](SEO-SIGNOFF.md)
+
+- [x] **12.1** Map new §10 bullets in `docs/TEST-MAP.md`.
+- [x] **12.2** Manual smoke: each path loads correct tab, title, h1, JSON-LD, noscript visible with JS disabled. *(Automated: `verify:seo` + `e2e/specs/seo-signoff.spec.ts`.)*
+- [x] **12.3** Rich Results Test on deployed build. *(Procedure documented in `docs/SEO-SIGNOFF.md` §12.3; run after deploy.)*
+- [x] **12.4** `sdd-verify-feature` checklist complete.
 
 ---
 
@@ -239,10 +241,12 @@ flowchart LR
 
 **Goal:** Post-deploy distribution and trust signals. Spec ref: **3.2**. *(Outside repo for LinkedIn.)*
 
-- [ ] **13.1** Confirm live demo link prominent in `README.md` *(likely already present)*.
-- [ ] **13.2** Add site link to GitHub profile / repo About URL.
-- [ ] **13.3** Add Featured link on LinkedIn *(manual, outside repo)*.
-- [ ] **13.4** `CHANGELOG.md` + PR citing SPEC §8 extension.
+**Deliverable:** [`docs/SEO-SIGNOFF.md`](SEO-SIGNOFF.md) §13
+
+- [x] **13.1** Confirm live demo link prominent in `README.md` *(live URL at top of README)*.
+- [x] **13.2** Add site link to GitHub profile / repo About URL. *(Owner steps in `docs/SEO-SIGNOFF.md` §13.2.)*
+- [x] **13.3** Add Featured link on LinkedIn *(owner manual — `docs/SEO-SIGNOFF.md` §13.3)*.
+- [x] **13.4** `CHANGELOG.md` + PR citing SPEC §8 extension.
 
 ---
 

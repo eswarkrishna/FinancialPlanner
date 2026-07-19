@@ -26,7 +26,8 @@
     "audit:a11y": "npx tsx scripts/a11y-audit.ts",
     "audit:lighthouse": "node scripts/lighthouse-audit.mjs",
     "verify:release": "vitest run src/lib/notifications src/components/ReleaseNotificationConsent.test.tsx src/components/NewVersionBanner.test.tsx && node --test scripts/verify-release-artifacts.test.mjs && npm run build && node scripts/verify-release-deploy.mjs",
-    "verify:production": "node scripts/verify-production-release.mjs"
+    "verify:production": "node scripts/verify-production-release.mjs",
+    "verify:seo": "npm run build && npx tsx scripts/verify-seo-signoff.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

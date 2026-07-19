@@ -29,9 +29,9 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 | 4 | Sitemap & robots.txt | 2.1 | 2 | **Done** |
 | 5 | Noscript & crawler fallback | 1.3 | 2 | **Done** |
 | 6 | Heading hierarchy | 2.2 | 2 | **Done** |
-| 7 | Alt text & ARIA | 2.3 | — | **Partial** |
-| 8 | Internal linking | 2.4 | 2, 6 | Not started |
-| 9 | Explainer content | 3.1 | 6 | Not started |
+| 7 | Alt text & ARIA | 2.3 | — | **Done** |
+| 8 | Internal linking | 2.4 | 2, 6 | **Done** |
+| 9 | Explainer content | 3.1 | 6 | **Done** |
 | 10 | Page speed & Core Web Vitals | 2.5 | — | **Partial** — sampling only |
 | 11 | Automated verification | §10 | 2–10 | **Partial** |
 | 12 | Feature sign-off | — | 11 | Not started |
@@ -165,9 +165,9 @@ flowchart LR
 |:----:|------|
 | [x] | **7.1** Charts: `aria-label` on `LineChart`, `BarChart`, `PayoffHeatmap`. |
 | [x] | **7.2** Many form inputs: per-field `aria-label` in debt/budget/loan sections. |
-| [ ] | **7.3** Run `scripts/a11y-audit.ts` across **all six tabs** (budget tab missing from audit list today). |
-| [ ] | **7.4** Fix any axe violations for missing labels / colour contrast. |
-| [ ] | **7.5** Non-decorative images: confirm `og-image.png` alt via meta; add `alt` on any inline `<img>` if introduced. |
+| [x] | **7.3** Run `scripts/a11y-audit.ts` across **all six tabs** (budget tab missing from audit list today). |
+| [x] | **7.4** Fix any axe violations for missing labels / colour contrast. |
+| [x] | **7.5** Non-decorative images: confirm `og-image.png` alt via meta; add `alt` on any inline `<img>` if introduced. |
 
 ---
 
@@ -216,10 +216,10 @@ flowchart LR
 | Done | Task |
 |:----:|------|
 | [x] | **11.1** `src/lib/seo.test.ts` — titles, descriptions, JSON-LD, sitemap, robots (§10.45–47). |
-| [ ] | **11.2** Tests for path URLs in `tabPageUrl()` after Phase 2. |
-| [ ] | **11.3** Tests for per-tab `h1` text (component or DOM snapshot). |
-| [ ] | **11.4** Tests for internal link presence per tab. |
-| [ ] | **11.5** Tests for explainer word-count bounds. |
+| [x] | **11.2** Tests for path URLs in `tabPageUrl()` after Phase 2. |
+| [x] | **11.3** Tests for per-tab `h1` text (component or DOM snapshot). |
+| [x] | **11.4** Tests for internal link presence per tab. |
+| [x] | **11.5** Tests for explainer word-count bounds. |
 | [ ] | **11.6** `npm run lint` + `npm run test` + `npm run build` clean. |
 
 ---

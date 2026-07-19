@@ -40,6 +40,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 ### Changed
 
 - **SEO per-tab `<h1>` (SPEC v2.6 §8 / §10.56)** — calculator keyword heading per tab via `TabPageHeading`; site brand is styled text in the header, not `<h1>`.
+- **SEO on-page content (§10.57–58)** — `TabExplainer` (100–200 words per tab) and `RelatedCalculators` with crawlable path links.
 - **Analytics (§5.1.2)** — web app shows accept/decline consent strip before loading GA4; choice persisted in `localStorage`. Native shell still auto-inits when GA is enabled.
 
 ### Fixed

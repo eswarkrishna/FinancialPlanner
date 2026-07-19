@@ -175,9 +175,11 @@ flowchart LR
 
 **Goal:** Contextual cross-links between calculators for crawl equity and session depth. Spec ref: **2.4**. *(Requires Phase 2 path URLs.)*
 
-- [ ] **8.1** Add contextual "Related calculators" block per tab (e.g. loan → retirement, debt → budget).
-- [ ] **8.2** Use real `<a href>` path URLs for crawlability; tab switch via router on same-origin navigation.
-- [ ] **8.3** At least one contextual internal link per calculator page (acceptance).
+| Done | Task |
+|:----:|------|
+| [x] | **8.1** `RelatedCalculators` block per tab with intent-based blurbs (`src/lib/tabPageContent.ts`). |
+| [x] | **8.2** Real `<a href>` path URLs via `tabPathname()`; SPA `onSelectTab` on click. |
+| [x] | **8.3** ≥1 contextual internal link per calculator page — tested in `App.test.tsx` + `tabPageContent.test.ts`. |
 
 ---
 
@@ -185,10 +187,12 @@ flowchart LR
 
 **Goal:** 100–200 words of unique, indexable copy per calculator. Spec ref: **3.1**. *(Requires Phase 6 h1 structure.)*
 
-- [ ] **9.1** Add 100–200 words unique explanatory copy per tab: formula summary + example walkthrough.
-- [ ] **9.2** Place below KPI strip or above inputs (aligns with noscript fallback in Phase 5).
-- [ ] **9.3** Locale-aware variants optional (IN/US/UK) — start with `en` generic if scope is tight.
-- [ ] **9.4** Test: word count per tab within 100–200 range.
+| Done | Task |
+|:----:|------|
+| [x] | **9.1** `TAB_EXPLAINERS` in `src/lib/tabPageContent.ts` — formula summary + example per tab. |
+| [x] | **9.2** `TabExplainer` below `<h1>`, above calculator inputs (in `App.tsx`). |
+| [x] | **9.3** English generic copy (locale variants deferred). |
+| [x] | **9.4** `tabPageContent.test.ts` — word count 100–200, uniqueness. |
 
 ---
 

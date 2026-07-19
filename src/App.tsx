@@ -14,6 +14,8 @@ import { AppFooter } from "./components/AppFooter";
 import { FeedbackHelpful } from "./components/FeedbackHelpful";
 import { LocaleSegment } from "./components/LocaleSegment";
 import { TabPageHeading } from "./components/TabPageHeading";
+import { TabExplainer } from "./components/TabExplainer";
+import { RelatedCalculators } from "./components/RelatedCalculators";
 import { NewVersionBanner } from "./components/NewVersionBanner";
 import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
 import { useAnalyticsBootstrap } from "./hooks/useAnalyticsBootstrap";
@@ -199,6 +201,8 @@ export function App() {
                 {activeTab === tab.id ? (
                   <>
                     <TabPageHeading tabId={tab.id} />
+                    <TabExplainer tabId={tab.id} />
+                    <RelatedCalculators tabId={tab.id} onSelectTab={selectTab} />
                     <FeedbackHelpful tabId={tab.id} locale={locale} />
                     {tab.id === "loan" && <LoanSection />}
                     {tab.id === "debt" && <DebtSection />}

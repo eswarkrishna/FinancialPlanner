@@ -9,6 +9,8 @@ import {
   RELEASE_NOTIFICATION_CONSENT_KEY,
 } from "./lib/notifications/constants";
 import * as buildInfo from "./lib/buildInfo";
+import { countWords, getTabExplainer } from "./lib/tabPageContent";
+import { PLANNER_TABS, tabPathname } from "./lib/seo";
 
 function mockNotificationApi() {
   class MockNotification {
@@ -63,6 +65,43 @@ describe("App shell composition", () => {
       expect(headings).toHaveLength(1);
       expect(headings[0]).toHaveTextContent(h1);
     }
+  });
+
+  it("renders explainer copy and related calculator links per tab (§10.57–58)", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<App />);
+
+    for (const tab of PLANNER_TABS) {
+      await user.click(screen.getByRole("tab", { name: tab.label }));
+
+      const explainer = document.querySelector(".tab-explainer p");
+      expect(explainer?.textContent).toBe(getTabExplainer(tab.id));
+      expect(countWords(explainer?.textContent ?? "")).toBeGreaterThanOrEqual(100);
+
+      const related = screen.getByRole("complementary", { name: "Related calculators" });
+      const links = related.querySelectorAll("a[href]");
+      expect(links.length).toBeGreaterThanOrEqual(1);
+      for (const anchor of links) {
+        expect(anchor.getAttribute("href")).toMatch(/^\//);
+      }
+    }
+  });
+
+  it("navigates via related calculator link without full reload", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<App />);
+
+    const retirementLink = screen.getByRole("link", {
+      name: "Retirement Corpus & SIP Calculator",
+    });
+    expect(retirementLink).toHaveAttribute("href", tabPathname("retirement"));
+    await user.click(retirementLink);
+
+    expect(window.location.pathname).toBe("/retirement");
+    expect(screen.getByRole("tab", { name: "Retirement" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   it("switches planners via tabs", async () => {

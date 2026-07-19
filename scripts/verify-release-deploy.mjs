@@ -8,6 +8,7 @@ import path from "node:path";
 import {
   reportFailures,
   validateIndexHtml,
+  validateSeoBuildArtifacts,
   validateServiceWorkerSource,
   validateVersionManifest,
 } from "./verify-release-artifacts.mjs";
@@ -54,7 +55,12 @@ if (!fs.existsSync(distDir)) {
   } else {
     const html = fs.readFileSync(indexPath, "utf8");
     failures.push(...validateIndexHtml(html, "dist/index.html"));
+    if (!html.includes("<noscript>")) {
+      failures.push("dist/index.html: missing <noscript> fallback");
+    }
   }
+
+  failures.push(...validateSeoBuildArtifacts(fs, distDir));
 }
 
 reportFailures(failures, "Release notification deploy verification failed:");

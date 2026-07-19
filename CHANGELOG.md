@@ -19,6 +19,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **SEO path routes (SPEC v2.6 §8 / §10.52–55)** — per-calculator path URLs (`/debt`, `/retirement`, …), legacy `/?tab=` redirect, build-time HTML shells with `<noscript>` fallback, and updated sitemap canonicals.
 - **SEO spec extension (SPEC v2.6, §8 / §10.52–58)** — path-slug canonical URLs, per-route HTML build shells, `<noscript>` fallback, per-tab `<h1>`, internal calculator links, and 100–200 word explainer copy per tab; research in [`docs/research/2026-07-seo-routes-noscript.md`](docs/research/2026-07-seo-routes-noscript.md).
 - **Gap-fill backlog** — [`docs/research/2026-07-gap-fill-competitors.md`](docs/research/2026-07-gap-fill-competitors.md) competitor parity list; SPEC v2.5 ships first slice.
 - **Prepayment fee modeling (§4.4.1)** — loan-tab fee type (`none` / flat / % of prepaid principal) with **gross interest saved** and **net savings after fee** on comparison + KPIs.

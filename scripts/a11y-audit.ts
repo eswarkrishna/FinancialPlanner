@@ -18,7 +18,7 @@ async function auditTab(
   tab: string,
   dark = false,
 ) {
-  const url = tab === "loan" ? "http://localhost:5173/" : `http://localhost:5173/?tab=${tab}`;
+  const url = tab === "loan" ? "http://localhost:5173/" : `http://localhost:5173/${tab}`;
   await page.emulateMediaFeatures([
     { name: "prefers-color-scheme", value: dark ? "dark" : "light" },
   ]);

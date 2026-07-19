@@ -6,10 +6,9 @@ describe("shareUrl (§5.1.1)", () => {
     const url = new URL(buildShareTabUrl("debt", { source: "share", medium: "copy" }));
     expect(url.searchParams.get("utm_source")).toBe("share");
     expect(url.searchParams.get("utm_medium")).toBe("copy");
-    expect(url.searchParams.get("tab")).toBe("debt");
-    expect([...url.searchParams.keys()].every((k) => k === "tab" || k.startsWith("utm_"))).toBe(
-      true,
-    );
+    expect(url.pathname.endsWith("/debt")).toBe(true);
+    expect(url.searchParams.has("tab")).toBe(false);
+    expect([...url.searchParams.keys()].every((k) => k.startsWith("utm_"))).toBe(true);
   });
 
   it("buildFacebookShareUrl wraps tab URL in Facebook sharer (§10.20a)", () => {

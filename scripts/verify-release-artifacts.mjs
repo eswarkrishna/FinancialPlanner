@@ -69,6 +69,39 @@ export function validateIndexHtml(html, label = "index.html") {
   return failures;
 }
 
+const SEO_ROUTE_SLUGS = ["debt", "retirement", "strategies", "strategic", "budget"];
+
+/**
+ * SPEC §8 / §10.54–55 — per-route HTML shells and noscript fallback.
+ * @param {import("node:fs")} fs
+ * @param {string} distDir
+ * @returns {string[]}
+ */
+export function validateSeoBuildArtifacts(fs, distDir) {
+  const failures = [];
+  const notFoundPath = `${distDir}/404.html`;
+  if (!fs.existsSync(notFoundPath)) {
+    failures.push("dist/404.html missing");
+  } else {
+    failures.push(...validateIndexHtml(fs.readFileSync(notFoundPath, "utf8"), "dist/404.html"));
+  }
+
+  for (const slug of SEO_ROUTE_SLUGS) {
+    const shellPath = `${distDir}/${slug}/index.html`;
+    if (!fs.existsSync(shellPath)) {
+      failures.push(`dist/${slug}/index.html missing`);
+      continue;
+    }
+    const html = fs.readFileSync(shellPath, "utf8");
+    failures.push(...validateIndexHtml(html, `dist/${slug}/index.html`));
+    if (!html.includes("<noscript>")) {
+      failures.push(`dist/${slug}/index.html: missing <noscript> fallback`);
+    }
+  }
+
+  return failures;
+}
+
 /**
  * @param {string[]} failures
  * @param {string} heading

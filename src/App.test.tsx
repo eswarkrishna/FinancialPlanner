@@ -47,12 +47,12 @@ describe("App shell composition", () => {
 
     await user.click(screen.getByRole("tab", { name: "Multi-debt" }));
     expect(screen.getByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();
-    expect(window.location.search).toBe("?tab=debt");
+    expect(window.location.pathname).toBe("/debt");
     expect(document.title).toBe("Debt Avalanche vs Snowball Calculator | FinancialPlanner");
 
     await user.click(screen.getByRole("tab", { name: "Retirement" }));
     expect(screen.getByRole("heading", { name: "Retirement planner" })).toBeInTheDocument();
-    expect(window.location.search).toBe("?tab=retirement");
+    expect(window.location.pathname).toBe("/retirement");
 
     await user.click(screen.getByRole("tab", { name: "Strategies" }));
     expect(screen.getByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
@@ -63,12 +63,12 @@ describe("App shell composition", () => {
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Loan" }));
-    expect(window.location.search).toBe("");
+    expect(window.location.pathname).toBe("/");
     expect(document.title).toBe("Loan EMI Calculator with Prepayment | FinancialPlanner");
   });
 
-  it("opens the tab from the URL query param", () => {
-    window.history.replaceState({}, "", "/?tab=strategies");
+  it("opens the tab from a path URL", () => {
+    window.history.replaceState({}, "", "/strategies");
     renderWithLocale(<App />);
 
     expect(screen.getByRole("tab", { name: "Strategies" })).toHaveAttribute(
@@ -78,7 +78,19 @@ describe("App shell composition", () => {
     expect(screen.getByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
   });
 
-  it("normalizes ?tab=loan to the canonical loan URL", () => {
+  it("redirects legacy ?tab= query to path slug", () => {
+    window.history.replaceState({}, "", "/?tab=strategies&utm_source=legacy");
+    renderWithLocale(<App />);
+
+    expect(screen.getByRole("tab", { name: "Strategies" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(window.location.pathname).toBe("/strategies");
+    expect(window.location.search).toBe("?utm_source=legacy");
+  });
+
+  it("normalizes ?tab=loan to the canonical home URL", () => {
     window.history.replaceState({}, "", "/?tab=loan");
     renderWithLocale(<App />);
 
@@ -86,6 +98,7 @@ describe("App shell composition", () => {
       "aria-selected",
       "true",
     );
+    expect(window.location.pathname).toBe("/");
     expect(window.location.search).toBe("");
   });
 
@@ -102,7 +115,7 @@ describe("App shell composition", () => {
       "aria-selected",
       "true",
     );
-    expect(window.location.search).toBe("?tab=debt");
+    expect(window.location.pathname).toBe("/debt");
   });
 });
 

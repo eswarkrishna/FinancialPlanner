@@ -1,6 +1,6 @@
 # Research: SEO path routes, noscript fallback, and pre-render
 
-**Date:** 2026-07-19 · **Status:** concluded · **Feeds:** `docs/TASKS-SEO.md` Phase 0, `docs/SPEC.md` §8 (Phase 1), Phase 2 implementation
+**Date:** 2026-07-19 · **Status:** concluded · **Feeds:** `docs/TASKS-SEO.md` Phase 0–1, `docs/SPEC.md` §8 (v2.6), §10.52–58
 
 **Parent note:** extends [`2026-07-financial-sites-seo.md`](2026-07-financial-sites-seo.md) (Option A shipped; this spike covers remaining gaps from the uploaded SEO Improvement Spec).
 

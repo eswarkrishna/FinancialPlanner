@@ -8,13 +8,14 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.5  
+**Version:** 2.6  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9).
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9).  
+**SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
 
@@ -1046,16 +1047,46 @@ Engineers must add unit tests for off-by-one with an example: `U=1` → tranche2
 
 ### SEO metadata
 
-Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-07-financial-sites-seo.md) (survey of NerdWallet/Bankrate/EMI-calculator page conventions).
+Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-07-financial-sites-seo.md) (survey of NerdWallet/Bankrate/EMI-calculator page conventions). Path routes and crawler fallback follow [`docs/research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md).
 
 - **Titles:** keyword-first per tab, brand suffix last — `{Keyword phrase} | FinancialPlanner`, target ≤ ~65 characters (e.g. “Loan EMI Calculator with Prepayment | FinancialPlanner”). The loan tab doubles as the home/canonical `/` title.
 - **Descriptions:** unique per tab, **120–160 characters**, lead with the tool’s benefit; “Free” allowed, no keyword stuffing.
+- **Canonical URLs (path slugs):** each planner tab has a **path slug** under `VITE_BASE` (not query-param tabs):
+
+  | Tab id | Path slug | Example (GitHub Pages) |
+  |--------|-----------|-------------------------|
+  | `loan` | `/` | `…/FinancialPlanner/` |
+  | `debt` | `/debt` | `…/FinancialPlanner/debt` |
+  | `retirement` | `/retirement` | `…/FinancialPlanner/retirement` |
+  | `strategies` | `/strategies` | `…/FinancialPlanner/strategies` |
+  | `strategic` | `/strategic` | `…/FinancialPlanner/strategic` |
+  | `budget` | `/budget` | `…/FinancialPlanner/budget` |
+
+  `tabPageUrl(tabId)` returns the full absolute URL with the path slug. **Legacy** `/?tab={id}` URLs **redirect** to the path slug on load (`history.replaceState`); query params other than `tab` (e.g. UTM) are preserved. Capacitor / `VITE_BASE=./` mobile builds are exempt — they load `./index.html` only (web deploy targets carry path routing).
+
+- **Build output (web):** production `vite build` emits:
+  - `dist/index.html` — loan/home shell;
+  - `dist/{slug}/index.html` for each non-loan tab (`debt`, `retirement`, `strategies`, `strategic`, `budget`);
+  - `dist/404.html` — copy of the home shell (safety net for unmatched paths).
+  Each shell has tab-specific `<title>`, description, canonical, OG/Twitter tags, and JSON-LD baked at build time (same token injection as home).
+
+- **`<noscript>` fallback:** each HTML shell includes a `<noscript>` block **before** `#root` with:
+  - ≥ **2 sentences** of plain-text describing **that** calculator’s purpose (source: tab `description` or dedicated copy);
+  - `<a href>` links to every other calculator path slug (relative to `VITE_BASE`).
+  Enables crawlers and users without JavaScript to see meaningful content in the first HTML response.
+
+- **Heading hierarchy:** exactly **one `<h1>` per tab view** — the calculator keyword phrase (e.g. “Loan EMI Calculator with Prepayment”), not the site brand. The brand “FinancialPlanner” appears in the header as styled text (not `<h1>`). Section headings use `<h2>` / `<h3>` without skipped levels.
+
+- **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
+
+- **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) above or beside the calculator inputs. Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
+
 - **JSON-LD (per tab, updated on tab change):**
   - `WebApplication` — `applicationCategory: FinanceApplication`, `featureList` (one entry per planner tab), `isAccessibleForFree: true`, `inLanguage` (`en-IN`, `en-US`, `en-GB`), `offers` price 0, `dateModified` from build commit date, `publisher` `Organization` with GitHub `sameAs`.
   - `BreadcrumbList` — `Home → {tab label}` for non-loan tabs; omitted on the loan/home tab.
   - No `FAQPage` markup unless matching visible Q&A content exists (Google deprecated FAQ rich results May 2026).
 - **Head hygiene (static in `index.html`):** `robots` meta `index, follow, max-image-preview:large`, `og:site_name`, `og:locale`, `og:image:alt`, `theme-color` (teal accent `#0d9488`). Production builds inject a **Content-Security-Policy** meta tag from `security/content-security-policy.txt`; CloudFront deploys add the same policy as an HTTP response header.
-- **Sitemap:** every tab URL with `<lastmod>` set to the build commit date (ISO 8601 date); omit `<lastmod>` when git metadata is unavailable.
+- **Sitemap:** every tab path URL with `<lastmod>` set to the build commit date (ISO 8601 date); omit `<lastmod>` when git metadata is unavailable. Sitemap uses path slugs, not `?tab=` query strings.
 - Existing rules stay: canonical per tab, OG/Twitter tags mirrored, `robots.txt` + `sitemap.xml` generated on build, no user data in URLs (§5.1).
 
 ### Analytics UI (§5.1 Tier 1–2)
@@ -1196,6 +1227,16 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 46. **Descriptions:** every tab description is 120–160 characters and unique across tabs.
 47. **JSON-LD:** switching to a non-loan tab injects `WebApplication` (with `featureList`, `isAccessibleForFree`, `publisher.sameAs`) and `BreadcrumbList` (`Home → tab`) into the head; the loan tab omits `BreadcrumbList`; sitemap entries include `<lastmod>` when a build commit date exists.
 
+### SEO path routes & on-page content (§8 extension)
+
+52. **Path URLs:** `tabPageUrl(tabId)` returns path-slug canonicals (`/debt`, not `/?tab=debt`); `getTabFromLocation` resolves tab id from `pathname` relative to `VITE_BASE`; sitemap `<loc>` values use path slugs only.  
+53. **Legacy redirect:** loading `/?tab=debt` (with or without other query params) replaces the URL with `/debt` preserving non-`tab` params.  
+54. **Build shells:** after `npm run build`, `dist/debt/index.html` (and each non-loan slug) exists with tab-specific `<title>`; `dist/404.html` exists.  
+55. **Noscript:** each built HTML shell contains a `<noscript>` block with ≥ 2 sentences describing that calculator and `<a href>` links to all other calculator paths.  
+56. **Per-tab h1:** active tab panel has exactly one `<h1>` matching the tab keyword phrase; site brand is not `<h1>`.  
+57. **Internal links:** each tab panel renders ≥ 1 contextual `<a href>` to another calculator path slug.  
+58. **Explainer copy:** each tab’s visible explainer paragraph is **100–200 words**, unique across tabs (word-count helper or test).
+
 ### Prepayment fee & strategy comparison (§4.4.1–§4.4.2)
 
 48. **Flat fee:** reference loan, ₹25L month-1 prepay, `prepayment_fee_type = flat`, `prepayment_fee_inr = 25_000` → `prepayment_fees_inr = 25_000` and `net_savings_after_fee_inr = gross_interest_saved_inr − 25_000` for both keep-EMI and keep-tenure policies.  
@@ -1214,11 +1255,13 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Machine-learned** or historical lender models; opponents use user-selected discrete actions only.  
 - Legal settlement / IBC negotiation outcomes.  
 - **Analytics:** third-party ad pixels (Meta, LinkedIn, etc.), fingerprinting, storing full `document.referrer` URLs with query strings, or encoding user financial inputs in share/UTM links (§5.1).
+- **SEO campaigns:** paid link building, guest-posting for backlinks, or meta-description A/B testing (§8 covers on-page SEO only).
+- **Multi-language SEO:** `hreflang` tags or translated calculator pages (English-only UI for now).
 - **Server-side push:** FCM/APNs campaigns or per-user push backends (§4.15 uses browser notifications + `version.json` polling only).
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation. Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
 
 **In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 

@@ -27,8 +27,8 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 | 2 | Per-calculator routes & URLs | 1.2 | 1 | **Done** |
 | 3 | Structured data (JSON-LD) | 1.1 | 2 | **Done** |
 | 4 | Sitemap & robots.txt | 2.1 | 2 | **Done** |
-| 5 | Noscript & crawler fallback | 1.3 | 2 | **Partial** — build shells only |
-| 6 | Heading hierarchy | 2.2 | 2 | Not started |
+| 5 | Noscript & crawler fallback | 1.3 | 2 | **Done** |
+| 6 | Heading hierarchy | 2.2 | 2 | **Done** |
 | 7 | Alt text & ARIA | 2.3 | — | **Partial** |
 | 8 | Internal linking | 2.4 | 2, 6 | Not started |
 | 9 | Explainer content | 3.1 | 6 | Not started |
@@ -114,7 +114,7 @@ flowchart LR
 | [x] | **3.1** `WebApplication` JSON-LD: `name`, `applicationCategory: FinanceApplication`, `offers` price 0, `description`, `featureList`, `publisher.sameAs`. |
 | [x] | **3.2** `BreadcrumbList` on non-home tabs. |
 | [x] | **3.3** Injected in `<head>` at build (loan tab) and updated on tab change. |
-| [ ] | **3.4** Re-verify JSON-LD URLs after path-route migration (Phase 2). |
+| [x] | **3.4** JSON-LD `url` fields use path-slug canonicals after Phase 2. |
 | [ ] | **3.5** Manual smoke: pass [Google Rich Results Test](https://search.google.com/test/rich-results) for home + one sub-tab on deployed build. |
 
 ---
@@ -127,7 +127,7 @@ flowchart LR
 |:----:|------|
 | [x] | **4.1** `robots.txt` generated at build — `Allow: /`, sitemap pointer. |
 | [x] | **4.2** `sitemap.xml` lists every tab URL with `<lastmod>` from git commit date. |
-| [ ] | **4.3** Update sitemap entries to path URLs after Phase 2. |
+| [x] | **4.3** Sitemap entries use path URLs (no `?tab=`). |
 | [ ] | **4.4** Submit updated sitemap in Google Search Console *(manual, post-deploy)*. |
 
 ---
@@ -148,10 +148,12 @@ flowchart LR
 
 **Goal:** One calculator-specific `<h1>` per page; no skipped levels. Spec ref: **2.2**.
 
-- [ ] **6.1** One `<h1>` per tab view — e.g. "Loan EMI Calculator", "Debt Avalanche vs Snowball Calculator" (use `PLANNER_TABS[].seoTitle` or dedicated `h1` field).
-- [ ] **6.2** Demote current site-wide `<h1>FinancialPlanner</h1>` in `App.tsx` to `<p>` or branded `<span>` (logo text).
-- [ ] **6.3** Audit section headings: no skipped levels (`h1` → `h2` → `h3`); fix any `h3` under missing `h2`.
-- [ ] **6.4** Unit or a11y test: exactly one `h1` per tab panel.
+| Done | Task |
+|:----:|------|
+| [x] | **6.1** One `<h1>` per tab view via `TabPageHeading` + `pageHeading()` (`PLANNER_TABS[].seoTitle`). |
+| [x] | **6.2** Site brand demoted to `<p class="app-brand-name">` in header (not `<h1>`). |
+| [x] | **6.3** Game legend category titles demoted from `<h3>` to `<p>` (no skipped level under `<summary>`). |
+| [x] | **6.4** `App.test.tsx` — exactly one `h1` per tab; `e2e/app-shell.spec.ts` updated. |
 
 ---
 

@@ -209,6 +209,11 @@ export function pageTitle(tabId: TabId): string {
   return `${tab.seoTitle} | ${SITE_NAME}`;
 }
 
+/** Visible `<h1>` copy per tab (keyword phrase, no brand suffix — §8, §10.56). */
+export function pageHeading(tabId: TabId): string {
+  return PLANNER_TABS.find((entry) => entry.id === tabId)?.seoTitle ?? PLANNER_TABS[0]!.seoTitle;
+}
+
 export function pageDescription(tabId: TabId): string {
   return PLANNER_TABS.find((tab) => tab.id === tabId)?.description ?? DEFAULT_DESCRIPTION;
 }

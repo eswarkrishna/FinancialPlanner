@@ -13,6 +13,7 @@ import { AnalyticsConsent } from "./components/AnalyticsConsent";
 import { AppFooter } from "./components/AppFooter";
 import { FeedbackHelpful } from "./components/FeedbackHelpful";
 import { LocaleSegment } from "./components/LocaleSegment";
+import { TabPageHeading } from "./components/TabPageHeading";
 import { NewVersionBanner } from "./components/NewVersionBanner";
 import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
 import { useAnalyticsBootstrap } from "./hooks/useAnalyticsBootstrap";
@@ -148,7 +149,7 @@ export function App() {
           <header className="app-header">
             <div className="app-header-inner app-brand">
               <div className="app-brand-row">
-                <h1>FinancialPlanner</h1>
+                <p className="app-brand-name">FinancialPlanner</p>
                 <LocaleSegment value={locale} onChange={onLocaleChange} />
               </div>
               <p className="lede">
@@ -191,12 +192,13 @@ export function App() {
                 key={tab.id}
                 id={`panel-${tab.id}`}
                 role="tabpanel"
-                aria-labelledby={`tab-${tab.id}`}
+                aria-labelledby={`heading-${tab.id}`}
                 hidden={activeTab !== tab.id}
                 tabIndex={activeTab === tab.id ? 0 : undefined}
               >
                 {activeTab === tab.id ? (
                   <>
+                    <TabPageHeading tabId={tab.id} />
                     <FeedbackHelpful tabId={tab.id} locale={locale} />
                     {tab.id === "loan" && <LoanSection />}
                     {tab.id === "debt" && <DebtSection />}

@@ -10,6 +10,7 @@ import {
   updatePageSeo,
 } from "./lib/seo";
 import { AnalyticsConsent } from "./components/AnalyticsConsent";
+import { LogoMark } from "./components/LogoMark";
 import { AppFooter } from "./components/AppFooter";
 import { FeedbackHelpful } from "./components/FeedbackHelpful";
 import { LocaleSegment } from "./components/LocaleSegment";
@@ -123,7 +124,10 @@ export function App() {
       <div className="app-body">
         <aside className="app-sidebar" aria-label="Planner sections">
           <div className="app-sidebar-brand">
-            <span className="app-sidebar-title">FinancialPlanner</span>
+            <div className="app-brand-lockup">
+              <LogoMark className="app-brand-logo" size={28} />
+              <span className="app-sidebar-title">FinancialPlanner</span>
+            </div>
           </div>
           <nav className="app-sidebar-nav">
             {PLANNER_TABS.map((tab) => (
@@ -146,7 +150,10 @@ export function App() {
           <header className="app-header">
             <div className="app-header-inner app-brand">
               <div className="app-brand-row">
-                <p className="app-brand-name">FinancialPlanner</p>
+                <div className="app-brand-lockup">
+                  <LogoMark className="app-brand-logo" size={36} />
+                  <p className="app-brand-name">FinancialPlanner</p>
+                </div>
                 <LocaleSegment value={locale} onChange={onLocaleChange} />
               </div>
               <p className="lede">

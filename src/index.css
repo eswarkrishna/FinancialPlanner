@@ -249,6 +249,56 @@ body {
   line-height: 1.25;
 }
 
+.tab-explainer {
+  margin: 0 0 1rem;
+  max-width: 48rem;
+}
+
+.tab-explainer p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.related-calculators {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  max-width: 48rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+
+.related-calculators-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.related-calculators-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.related-calculators-list a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.related-calculators-list a:hover {
+  text-decoration: underline;
+}
+
+.related-calculators-blurb {
+  color: var(--text-muted);
+}
+
 .app-brand-row {
   display: flex;
   flex-wrap: wrap;

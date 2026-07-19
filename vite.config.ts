@@ -8,7 +8,10 @@ import {
   buildIndexHtmlReplacements,
   buildRobotsTxt,
   buildSitemapXml,
+  patchIndexHtmlSeo,
+  PLANNER_TABS,
   resolveSiteUrl,
+  SEO_ROUTE_SLUGS,
 } from "./src/lib/seo";
 
 /** GitHub Pages serves from /{repo}/; AWS/CloudFront uses root `/`. */
@@ -37,7 +40,11 @@ function seoPlugin(): Plugin {
   return {
     name: "financial-planner-seo",
     transformIndexHtml(html, ctx) {
-      const replacements = buildIndexHtmlReplacements(seoSiteUrl(), jsonLdOptions);
+      const replacements = buildIndexHtmlReplacements(seoSiteUrl(), {
+        ...jsonLdOptions,
+        tabId: "loan",
+        routerBase: base,
+      });
       let next = Object.entries(replacements).reduce(
         (acc, [token, value]) => acc.replaceAll(token, value),
         html,
@@ -50,9 +57,15 @@ function seoPlugin(): Plugin {
       }
       return next;
     },
-    closeBundle() {
+    writeBundle() {
       const siteUrl = seoSiteUrl();
       const outDir = path.resolve("dist");
+      const indexPath = path.join(outDir, "index.html");
+      if (!fs.existsSync(indexPath)) {
+        return;
+      }
+      const homeHtml = fs.readFileSync(indexPath, "utf8");
+
       fs.writeFileSync(path.join(outDir, "robots.txt"), buildRobotsTxt(siteUrl));
       fs.writeFileSync(
         path.join(outDir, "sitemap.xml"),
@@ -62,6 +75,20 @@ function seoPlugin(): Plugin {
         path.join(outDir, "version.json"),
         versionManifestJson(gitBuildInfo),
       );
+      fs.writeFileSync(path.join(outDir, "404.html"), homeHtml);
+
+      const shellOptions = {
+        ...jsonLdOptions,
+        routerBase: base,
+      };
+      for (const slug of SEO_ROUTE_SLUGS) {
+        const tab = PLANNER_TABS.find((entry) => entry.id === slug);
+        if (!tab) continue;
+        const shellHtml = patchIndexHtmlSeo(homeHtml, siteUrl, tab.id, shellOptions);
+        const slugDir = path.join(outDir, slug);
+        fs.mkdirSync(slugDir, { recursive: true });
+        fs.writeFileSync(path.join(slugDir, "index.html"), shellHtml);
+      }
     },
   };
 }

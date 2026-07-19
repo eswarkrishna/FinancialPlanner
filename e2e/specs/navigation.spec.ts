@@ -35,11 +35,11 @@ describe("planner navigation", () => {
 
     await clickTab(session.page, "debt");
     const debtUrl = session.page.url();
-    assert.match(debtUrl, /[?&]tab=debt/);
+    assert.match(debtUrl, /\/debt\/?(\?|$|#)/);
 
     await clickTab(session.page, "loan");
     const loanUrl = session.page.url();
-    assert.doesNotMatch(loanUrl, /[?&]tab=loan/);
+    assert.doesNotMatch(loanUrl, /\/debt/);
   });
 
   it("moves focus with arrow keys on the tab list", async () => {

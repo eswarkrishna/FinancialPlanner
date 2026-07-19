@@ -32,10 +32,10 @@ manual smoke checks.
 | 10.45 | Keyword-first unique tab titles ≤ 70 chars (§8) | `src/lib/seo.test.ts` |
 | 10.46 | Unique 120–160-char tab descriptions (§8) | `src/lib/seo.test.ts` |
 | 10.47 | JSON-LD WebApplication + BreadcrumbList, sitemap lastmod (§8) | `src/lib/seo.test.ts`, `src/App.test.tsx` |
-| 10.52 | Path-slug canonical URLs (`tabPageUrl`, `getTabFromLocation`) | *Phase 2 — `src/lib/seo.test.ts`* |
-| 10.53 | Legacy `/?tab=` redirect preserves other query params | *Phase 2 — `src/lib/seo.test.ts` or `src/App.test.tsx`* |
-| 10.54 | Build emits per-slug `index.html` + `404.html` | *Phase 2 — `scripts/verify-release-artifacts.test.mjs` or build test* |
-| 10.55 | Per-shell `<noscript>` with calculator copy + sibling links | *Phase 2/5 — build artifact test* |
+| 10.52 | Path-slug canonical URLs (`tabPageUrl`, `getTabFromLocation`) | `src/lib/seo.test.ts` |
+| 10.53 | Legacy `/?tab=` redirect preserves other query params | `src/lib/seo.test.ts`, `src/App.test.tsx` |
+| 10.54 | Build emits per-slug `index.html` + `404.html` | `scripts/verify-release-deploy.mjs`, `scripts/verify-release-artifacts.test.mjs` |
+| 10.55 | Per-shell `<noscript>` with calculator copy + sibling links | `src/lib/seo.test.ts`, `scripts/verify-release-deploy.mjs` |
 | 10.56 | One keyword `<h1>` per active tab panel | *Phase 6 — `src/App.test.tsx` or a11y test* |
 | 10.57 | ≥1 contextual internal `<a href>` per tab | *Phase 8 — component test* |
 | 10.58 | Explainer copy 100–200 words per tab | *Phase 9 — unit test* |

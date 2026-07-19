@@ -56,6 +56,16 @@ export const PLANNER_TABS: PlannerTab[] = [
   },
 ];
 
+/** Path segment per tab id (loan = home). SPEC §8 path slugs. */
+export const TAB_PATH_SLUG: Record<TabId, string> = {
+  loan: "",
+  debt: "debt",
+  retirement: "retirement",
+  strategies: "strategies",
+  strategic: "strategic",
+  budget: "budget",
+};
+
 export const DEFAULT_SITE_URL = "https://eswarkrishna.github.io/FinancialPlanner";
 
 export const SITE_NAME = "FinancialPlanner";
@@ -82,21 +92,115 @@ export function getSiteUrl(): string {
   return resolveSiteUrl(import.meta.env.VITE_SITE_URL);
 }
 
+/** Normalize Vite `base` / `import.meta.env.BASE_URL` for pathname routing. */
+export function normalizeRouterBase(base: string): string {
+  if (!base || base === "./") return "/";
+  const withoutTrailing = base.replace(/\/+$/, "");
+  return withoutTrailing === "" || withoutTrailing === "." ? "/" : withoutTrailing;
+}
+
+export function getRouterBasePath(): string {
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    const base = import.meta.env.BASE_URL;
+    if (typeof base === "string") {
+      return normalizeRouterBase(base);
+    }
+  }
+  return "/";
+}
+
 export function getTabFromSearch(search: string): TabId {
   const param = new URLSearchParams(search).get("tab");
   return isTabId(param) ? param : "loan";
 }
 
-export function getTabFromLocation(locationLike?: Pick<Location, "search">): TabId {
-  return getTabFromSearch(locationLike?.search ?? "");
+/** Resolve tab from URL pathname (§8 path slugs). Unknown segments default to loan. */
+export function getTabFromPathname(pathname: string, routerBase = getRouterBasePath()): TabId {
+  const base = normalizeRouterBase(routerBase);
+  let rest = pathname;
+
+  if (base !== "/") {
+    if (rest === base || rest === `${base}/`) {
+      return "loan";
+    }
+    if (rest.startsWith(`${base}/`)) {
+      rest = rest.slice(base.length);
+    }
+  }
+
+  rest = rest.replace(/^\/+|\/+$/g, "");
+  if (!rest) {
+    return "loan";
+  }
+
+  const segment = rest.split("/")[0]!.toLowerCase();
+  for (const tab of PLANNER_TABS) {
+    if (TAB_PATH_SLUG[tab.id] === segment) {
+      return tab.id;
+    }
+  }
+
+  return "loan";
 }
 
-export function tabPageUrl(tabId: TabId, siteUrl = getSiteUrl()): string {
+export function getTabFromLocation(
+  locationLike?: Pick<Location, "pathname" | "search">,
+): TabId {
+  const pathname = locationLike?.pathname ?? "";
+  const search = locationLike?.search ?? "";
+  const fromPath = getTabFromPathname(pathname);
+  if (fromPath !== "loan" || !search.includes("tab=")) {
+    return fromPath;
+  }
+  return getTabFromSearch(search);
+}
+
+/** Client pathname for a tab under `routerBase` (§8). */
+export function tabPathname(tabId: TabId, routerBase = getRouterBasePath()): string {
+  const slug = TAB_PATH_SLUG[tabId];
+  const base = normalizeRouterBase(routerBase);
+
+  if (!slug) {
+    return base === "/" ? "/" : `${base}/`;
+  }
+  if (base === "/") {
+    return `/${slug}`;
+  }
+  return `${base}/${slug}`;
+}
+
+export function tabPageUrl(
+  tabId: TabId,
+  siteUrl = getSiteUrl(),
+  routerBase?: string,
+): string {
   const base = resolveSiteUrl(siteUrl);
-  if (tabId === "loan") {
+  const path = tabPathname(tabId, routerBase ?? getRouterBasePath());
+  if (path === "/") {
     return `${base}/`;
   }
-  return `${base}/?tab=${tabId}`;
+  return `${base}${path}`;
+}
+
+/** Legacy `/?tab=` → path slug; preserves other query params (§10.53). */
+export function redirectLegacyTabQuery(
+  locationLike: Pick<Location, "href" | "pathname" | "search"> = window.location,
+): TabId {
+  if (typeof window === "undefined") {
+    return getTabFromLocation(locationLike);
+  }
+
+  const url = new URL(locationLike.href);
+  const tabParam = url.searchParams.get("tab");
+  if (!isTabId(tabParam)) {
+    return getTabFromLocation(locationLike);
+  }
+
+  const tabId = tabParam;
+  url.searchParams.delete("tab");
+  url.pathname = tabPathname(tabId);
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  return tabId;
 }
 
 /** Keyword-first title with brand suffix (§8 SEO metadata, §10.45). */
@@ -114,17 +218,39 @@ export function setTabInUrl(tabId: TabId, options?: { push?: boolean }): void {
     return;
   }
   const url = new URL(window.location.href);
-  if (tabId === "loan") {
-    url.searchParams.delete("tab");
-  } else {
-    url.searchParams.set("tab", tabId);
-  }
+  url.pathname = tabPathname(tabId);
+  url.searchParams.delete("tab");
   const next = `${url.pathname}${url.search}${url.hash}`;
   if (options?.push) {
     window.history.pushState(null, "", next);
   } else {
     window.history.replaceState(null, "", next);
   }
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Plain-text crawler fallback per route shell (§8, §10.55). */
+export function buildNoscriptHtml(tabId: TabId, routerBase = "/"): string {
+  const tab = PLANNER_TABS.find((entry) => entry.id === tabId) ?? PLANNER_TABS[0]!;
+  const links = PLANNER_TABS.filter((entry) => entry.id !== tabId)
+    .map((entry) => {
+      const href = tabPathname(entry.id, routerBase);
+      return `<a href="${escapeHtml(href)}">${escapeHtml(entry.label)}</a>`;
+    })
+    .join(" · ");
+
+  return `<noscript>
+    <p><strong>${escapeHtml(tab.seoTitle)}</strong> — ${escapeHtml(tab.description)}</p>
+    <p>Other calculators: ${links}</p>
+    <p>Enable JavaScript to use the interactive calculator.</p>
+  </noscript>`;
 }
 
 function upsertMeta(
@@ -241,6 +367,8 @@ export type JsonLdOptions = {
   dateModified?: string;
   /** `owner/repo` slug for publisher sameAs; defaults to the canonical repo. */
   githubRepo?: string;
+  /** Vite `base` for noscript relative links in build shells. */
+  routerBase?: string;
 };
 
 /** WebApplication entity per §8 SEO metadata (calculator schema used by finance sites). */
@@ -321,19 +449,85 @@ export function serializeJsonLd(entities: Array<Record<string, unknown>>): strin
 
 export function buildIndexHtmlReplacements(
   siteUrl: string,
-  options: Omit<JsonLdOptions, "tabId"> = {},
+  options: JsonLdOptions = {},
 ): Record<string, string> {
+  const tabId = options.tabId ?? "loan";
   const base = resolveSiteUrl(siteUrl);
   const image = `${base}/og-image.png`;
-  const title = pageTitle("loan");
-  const jsonLd = serializeJsonLd(buildStructuredData(base, { ...options, tabId: "loan" }));
+  const title = pageTitle(tabId);
+  const description = pageDescription(tabId);
+  const routerBase = normalizeRouterBase(options.routerBase ?? "/");
+  const canonical = tabPageUrl(tabId, base, routerBase);
+  const jsonLd = serializeJsonLd(buildStructuredData(base, { ...options, tabId }));
 
   return {
     __SEO_SITE_URL__: base,
     __SEO_TITLE__: title,
-    __SEO_DESCRIPTION__: DEFAULT_DESCRIPTION,
-    __SEO_CANONICAL__: `${base}/`,
+    __SEO_DESCRIPTION__: description,
+    __SEO_CANONICAL__: canonical,
     __SEO_OG_IMAGE__: image,
     __SEO_JSON_LD__: jsonLd,
+    __SEO_NOSCRIPT__: buildNoscriptHtml(tabId, routerBase),
   };
 }
+
+/** Patch a built `index.html` shell for a non-home tab (§8 build output). */
+export function patchIndexHtmlSeo(
+  html: string,
+  siteUrl: string,
+  tabId: TabId,
+  options: Omit<JsonLdOptions, "tabId"> = {},
+): string {
+  const title = pageTitle(tabId);
+  const description = pageDescription(tabId);
+  const routerBase = normalizeRouterBase(options.routerBase ?? "/");
+  const canonical = tabPageUrl(tabId, siteUrl, routerBase);
+  const jsonLd = serializeJsonLd(buildStructuredData(siteUrl, { ...options, tabId }));
+  const noscript = buildNoscriptHtml(tabId, routerBase);
+
+  let next = html;
+  next = next.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
+  next = next.replace(
+    /<meta name="description" content="[^"]*"/,
+    `<meta name="description" content="${escapeHtml(description)}"`,
+  );
+  next = next.replace(
+    /<link rel="canonical" href="[^"]*"/,
+    `<link rel="canonical" href="${escapeHtml(canonical)}"`,
+  );
+  next = next.replace(
+    /<meta property="og:title" content="[^"]*"/,
+    `<meta property="og:title" content="${escapeHtml(title)}"`,
+  );
+  next = next.replace(
+    /<meta property="og:description" content="[^"]*"/,
+    `<meta property="og:description" content="${escapeHtml(description)}"`,
+  );
+  next = next.replace(
+    /<meta property="og:url" content="[^"]*"/,
+    `<meta property="og:url" content="${escapeHtml(canonical)}"`,
+  );
+  next = next.replace(
+    /<meta name="twitter:title" content="[^"]*"/,
+    `<meta name="twitter:title" content="${escapeHtml(title)}"`,
+  );
+  next = next.replace(
+    /<meta name="twitter:description" content="[^"]*"/,
+    `<meta name="twitter:description" content="${escapeHtml(description)}"`,
+  );
+  next = next.replace(
+    /<script type="application\/ld\+json" id="seo-structured-data">[\s\S]*?<\/script>/,
+    `<script type="application/ld+json" id="seo-structured-data">${jsonLd}</script>`,
+  );
+  if (/<noscript>[\s\S]*?<\/noscript>/.test(next)) {
+    next = next.replace(/<noscript>[\s\S]*?<\/noscript>/, noscript);
+  } else {
+    next = next.replace("<div id=\"root\">", `${noscript}\n    <div id="root">`);
+  }
+  return next;
+}
+
+/** Slug directories emitted under `dist/` for non-home tabs (§8, §10.54). */
+export const SEO_ROUTE_SLUGS = PLANNER_TABS.map((tab) => tab.id).filter(
+  (id): id is Exclude<TabId, "loan"> => id !== "loan",
+);

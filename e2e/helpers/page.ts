@@ -36,7 +36,7 @@ export async function clickAriaLabel(page: Page, label: string): Promise<void> {
 
 export async function gotoApp(page: Page, tab: PlannerTabId = "loan"): Promise<void> {
   const base = getBaseUrl();
-  const url = tab === "loan" ? `${base}/` : `${base}/?tab=${tab}`;
+  const url = tab === "loan" ? `${base}/` : `${base}/${tab}`;
   await page.goto(url, { waitUntil: "networkidle0" });
   await dismissConsentBanners(page);
   await page.waitForSelector("h1", { timeout: 10_000 });

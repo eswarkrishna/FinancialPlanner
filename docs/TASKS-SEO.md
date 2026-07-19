@@ -24,10 +24,10 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 |------:|------|----------|------------|--------|
 | 0 | Intake & research | — | — | **Done** |
 | 1 | Requirements (SPEC) | — | 0 | **Done** |
-| 2 | Per-calculator routes & URLs | 1.2 | 1 | **Partial** — meta done, paths not |
-| 3 | Structured data (JSON-LD) | 1.1 | 2 | **Mostly done** |
-| 4 | Sitemap & robots.txt | 2.1 | 2 | **Mostly done** |
-| 5 | Noscript & crawler fallback | 1.3 | 2 | Not started |
+| 2 | Per-calculator routes & URLs | 1.2 | 1 | **Done** |
+| 3 | Structured data (JSON-LD) | 1.1 | 2 | **Done** |
+| 4 | Sitemap & robots.txt | 2.1 | 2 | **Done** |
+| 5 | Noscript & crawler fallback | 1.3 | 2 | **Partial** — build shells only |
 | 6 | Heading hierarchy | 2.2 | 2 | Not started |
 | 7 | Alt text & ARIA | 2.3 | — | **Partial** |
 | 8 | Internal linking | 2.4 | 2, 6 | Not started |
@@ -98,10 +98,10 @@ flowchart LR
 |:----:|------|
 | [x] | **2.1** Unique `<title>` and `<meta name="description">` per tab — `pageTitle()`, `pageDescription()`, `updatePageSeo()`. |
 | [x] | **2.2** Canonical + OG/Twitter tags update on tab change. |
-| [ ] | **2.3** Introduce **path routes** (e.g. `/`, `/debt`, `/retirement`, `/strategies`, `/strategic`, `/budget`) with client-side router (or Vite MPA shells). |
-| [ ] | **2.4** GitHub Pages SPA fallback: `404.html` → `index.html` rewrite preserves path; update `tabPageUrl()` + sitemap URLs. |
-| [ ] | **2.5** Redirect or canonicalise legacy `/?tab=` URLs to new paths (301 via meta refresh or router `replaceState`). |
-| [ ] | **2.6** E2E: direct navigation to each path loads correct tab + correct `document.title`. |
+| [x] | **2.3** Path routes (`/`, `/debt`, `/retirement`, `/strategies`, `/strategic`, `/budget`) via `getTabFromPathname` / `setTabInUrl`. |
+| [x] | **2.4** Build emits `dist/{slug}/index.html` + `dist/404.html`; verified by `verify-release-deploy.mjs`. |
+| [x] | **2.5** Legacy `/?tab=` redirects via `redirectLegacyTabQuery()` (UTM params preserved). |
+| [x] | **2.6** E2E: `navigation.spec.ts` + `e2e/helpers/page.ts` use path URLs. |
 
 ---
 
@@ -136,9 +136,11 @@ flowchart LR
 
 **Goal:** Plain-text content visible to non-JS crawlers. Spec ref: **1.3**.
 
-- [ ] **5.1** Add `<noscript>` block in `index.html` (or per-route HTML shells) with plain-text description of each calculator's purpose.
-- [ ] **5.2** Noscript copy unique per tab if using path shells; otherwise aggregate all calculators on home noscript block.
-- [ ] **5.3** *(Optional spike)* Evaluate build-time static HTML pre-render for landing + tab shells; document go/no-go in research note. *(Deferred unless 5.1–5.2 insufficient.)*
+| Done | Task |
+|:----:|------|
+| [x] | **5.1** `<noscript>` block in each HTML shell with plain-text calculator description. |
+| [x] | **5.2** Per-route noscript copy + sibling calculator links (build-time shells). |
+| [ ] | **5.3** *(Optional spike)* Evaluate build-time static HTML pre-render; document go/no-go if indexing gaps persist. *(Deferred per Phase 0.)* |
 
 ---
 

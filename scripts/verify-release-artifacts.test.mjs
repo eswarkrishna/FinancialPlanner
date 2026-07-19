@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   validateIndexHtml,
+  validateSeoBuildArtifacts,
   validateServiceWorkerSource,
   validateVersionManifest,
 } from "./verify-release-artifacts.mjs";
@@ -43,5 +44,24 @@ describe("verify-release-artifacts (§4.15)", () => {
   it("validates index.html root mount", () => {
     assert.deepEqual(validateIndexHtml('<div id="root"></div>'), []);
     assert.ok(validateIndexHtml("<div></div>").length > 0);
+  });
+
+  it("validates SEO route shells (§10.54–55)", () => {
+    const tmp = fs.mkdtempSync(path.join(path.dirname(__dirname), "seo-dist-"));
+    try {
+      const home = '<div id="root"></div><noscript>home</noscript>';
+      fs.writeFileSync(path.join(tmp, "index.html"), home);
+      fs.writeFileSync(path.join(tmp, "404.html"), home);
+      for (const slug of ["debt", "retirement", "strategies", "strategic", "budget"]) {
+        const dir = path.join(tmp, slug);
+        fs.mkdirSync(dir);
+        fs.writeFileSync(path.join(dir, "index.html"), `<div id="root"></div><noscript>${slug}</noscript>`);
+      }
+      assert.deepEqual(validateSeoBuildArtifacts(fs, tmp), []);
+      fs.rmSync(path.join(tmp, "debt", "index.html"));
+      assert.ok(validateSeoBuildArtifacts(fs, tmp).some((m) => m.includes("debt/index.html")));
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });

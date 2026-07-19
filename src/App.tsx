@@ -4,6 +4,7 @@ import {
   getTabFromLocation,
   pageTitle,
   PLANNER_TABS,
+  redirectLegacyTabQuery,
   setTabInUrl,
   type TabId,
   updatePageSeo,
@@ -63,7 +64,7 @@ function handleTabKeyDown(
 }
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<TabId>(() => getTabFromLocation(window.location));
+  const [activeTab, setActiveTab] = useState<TabId>(() => redirectLegacyTabQuery());
   const { locale, switchLocale } = useLocale();
   const {
     showConsent,

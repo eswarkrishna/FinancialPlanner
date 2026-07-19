@@ -23,7 +23,7 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 | Phase | Name | Spec ref | Depends on | Status |
 |------:|------|----------|------------|--------|
 | 0 | Intake & research | — | — | **Done** |
-| 1 | Requirements (SPEC) | — | 0 | Not started |
+| 1 | Requirements (SPEC) | — | 0 | **Done** |
 | 2 | Per-calculator routes & URLs | 1.2 | 1 | **Partial** — meta done, paths not |
 | 3 | Structured data (JSON-LD) | 1.1 | 2 | **Mostly done** |
 | 4 | Sitemap & robots.txt | 2.1 | 2 | **Mostly done** |
@@ -77,14 +77,16 @@ flowchart LR
 
 **Goal:** Encode new SEO behaviours in the spec before implementation.
 
-- [ ] **1.1** Extend §8 **SEO metadata** with:
-  - Path-based tab URLs (or explicit acceptance of query-param canonicals).
+**Deliverable:** `docs/SPEC.md` v2.6 — §8 extended, §10.52–58, §11 SEO non-goals
+
+- [x] **1.1** Extend §8 **SEO metadata** with:
+  - Path-based tab URLs (`/`, `/debt`, `/retirement`, `/strategies`, `/strategic`, `/budget`).
   - `<noscript>` fallback block requirements (plain-text per calculator).
   - Per-tab `<h1>` rule (calculator name, not site brand).
   - Internal linking requirement (≥1 contextual link per tab).
   - Explainer content requirement (100–200 unique words per tab).
-- [ ] **1.2** Add §10 acceptance tests for new SEO behaviours (noscript present, h1 per tab, internal links, explainer word count).
-- [ ] **1.3** Confirm §11 non-goals unchanged (no paid link building, no hreflang, no meta A/B).
+- [x] **1.2** Add §10 acceptance tests **52–58** for path URLs, legacy redirect, build shells, noscript, h1, internal links, explainer word count.
+- [x] **1.3** Confirm §11 non-goals: paid link building, hreflang, meta A/B, full SSR prerender deferred.
 
 ---
 

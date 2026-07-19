@@ -302,6 +302,12 @@ body {
   color: var(--text-muted);
 }
 
+.tab-section-loading {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
 .app-brand-row {
   display: flex;
   flex-wrap: wrap;

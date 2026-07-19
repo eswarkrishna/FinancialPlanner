@@ -25,7 +25,7 @@ function mockNotificationApi() {
 }
 
 describe("App shell composition", () => {
-  it("renders tab navigation and shows only the loan planner by default", () => {
+  it("renders tab navigation and shows only the loan planner by default", async () => {
     renderWithLocale(<App />);
 
     expect(document.querySelector(".app-brand-name")).toHaveTextContent("FinancialPlanner");
@@ -36,7 +36,7 @@ describe("App shell composition", () => {
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("heading", { name: "Loan & assets" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Loan & assets" })).toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "Debt payoff planner" }),
     ).not.toBeInTheDocument();
@@ -109,20 +109,21 @@ describe("App shell composition", () => {
     renderWithLocale(<App />);
 
     await user.click(screen.getByRole("tab", { name: "Multi-debt" }));
+    expect(await screen.findByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Debt payoff planner" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/debt");
     expect(document.title).toBe("Debt Avalanche vs Snowball Calculator | FinancialPlanner");
 
     await user.click(screen.getByRole("tab", { name: "Retirement" }));
-    expect(screen.getByRole("heading", { name: "Retirement planner" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Retirement planner" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/retirement");
 
     await user.click(screen.getByRole("tab", { name: "Strategies" }));
-    expect(screen.getByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Strategic" }));
     expect(
-      screen.getByRole("heading", { name: "Strategic scenarios" }),
+      await screen.findByRole("heading", { name: "Strategic scenarios" }),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Loan" }));
@@ -130,7 +131,7 @@ describe("App shell composition", () => {
     expect(document.title).toBe("Loan EMI Calculator with Prepayment | FinancialPlanner");
   });
 
-  it("opens the tab from a path URL", () => {
+  it("opens the tab from a path URL", async () => {
     window.history.replaceState({}, "", "/strategies");
     renderWithLocale(<App />);
 
@@ -138,7 +139,7 @@ describe("App shell composition", () => {
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
   });
 
   it("redirects legacy ?tab= query to path slug", () => {

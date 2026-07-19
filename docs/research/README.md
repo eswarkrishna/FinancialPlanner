@@ -12,6 +12,7 @@ Spikes, options analysis, and external desk research live here as **Markdown** f
 |------|-------|
 | [2026-07-gap-fill-competitors.md](2026-07-gap-fill-competitors.md) | Competitor parity gap-fill (EMI fees, India instruments, inflation, …) |
 | [2026-07-financial-sites-seo.md](2026-07-financial-sites-seo.md) | SEO patterns from financial calculator sites |
+| [2026-07-seo-routes-noscript.md](2026-07-seo-routes-noscript.md) | SEO Phase 0: path routes, noscript shells, GH Pages deploy |
 | [2026-07-personal-budgeting-app.md](2026-07-personal-budgeting-app.md) | Personal budget tab spike |
 
 ## Workflow

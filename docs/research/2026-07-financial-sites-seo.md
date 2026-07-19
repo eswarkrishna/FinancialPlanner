@@ -45,3 +45,21 @@ Do **Option A** now. Revisit prerendering (Option B) as a separate spike if sear
 - JSON-LD: `WebApplication` (featureList, isAccessibleForFree, inLanguage, offers, dateModified) + `BreadcrumbList` (Home → tab) + publisher `Organization` with GitHub `sameAs`; updated on tab change.
 - Head hygiene: `robots` meta, `og:site_name`, `og:locale`, `og:image:alt`, `theme-color`.
 - Sitemap `<lastmod>` from build commit date.
+
+## 8. Follow-up: path routes & noscript (2026-07-19)
+
+Option A (meta/JSON-LD) is **shipped**. Remaining SEO gaps (per uploaded SEO Improvement Spec) are covered in a dedicated spike:
+
+→ **[`2026-07-seo-routes-noscript.md`](2026-07-seo-routes-noscript.md)**
+
+**Decisions (Phase 0 concluded):**
+
+| Topic | Decision |
+|-------|----------|
+| URL scheme | Path slugs (`/debt`, `/retirement`, …); `/` = loan |
+| GitHub Pages | Build-time `dist/{slug}/index.html` shells (HTTP 200) + `404.html` copy |
+| Noscript | Per-route `<noscript>` in HTML shells — not a single aggregate block |
+| Full prerender | **Deferred** — revisit only if GSC indexing stays flat post-ship |
+| Router | Extend existing History API helpers; no `react-router` |
+
+Next step: **Phase 1** — encode §8 spec delta from the follow-up doc, then **Phase 2** implementation.

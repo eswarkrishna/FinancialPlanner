@@ -12,8 +12,9 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 |-------|-------|
 | **Feature name** | SEO gap-fill (routes, noscript, content, CWV audit) |
 | **SPEC sections** | §8 (extend), new §10 acceptance bullets |
-| **Branch / PR** | *(not started)* |
+| **Branch / PR** | `cursor/seo-tasks-checklist-1325` / #55 |
 | **Started** | 2026-07-19 |
+| **Phase 0 research** | [`docs/research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) |
 
 ---
 
@@ -21,7 +22,7 @@ Tasks derived from the **SEO Improvement Spec** (uploaded 2026-07-19). Cross-ref
 
 | Phase | Name | Spec ref | Depends on | Status |
 |------:|------|----------|------------|--------|
-| 0 | Intake & research | — | — | Not started |
+| 0 | Intake & research | — | — | **Done** |
 | 1 | Requirements (SPEC) | — | 0 | Not started |
 | 2 | Per-calculator routes & URLs | 1.2 | 1 | **Partial** — meta done, paths not |
 | 3 | Structured data (JSON-LD) | 1.1 | 2 | **Mostly done** |
@@ -63,10 +64,12 @@ flowchart LR
 
 **Goal:** Lock routing and pre-render decisions before coding.
 
-- [ ] **0.1** Confirm **user outcome**: each calculator is discoverable individually in search with rich results and crawlable fallback content.
-- [ ] **0.2** Decide **routing strategy**: path routes (`/`, `/debt`, `/retirement`, `/strategies`, `/strategic`, `/budget`) vs keep `/?tab=` (spec allows hash routes; query params already in sitemap). Document trade-off for GitHub Pages SPA (`404.html` fallback).
-- [ ] **0.3** Spike if needed: **static pre-render per tab** (`vite-plugin-ssr`, `vite-ssg`, or build-time HTML shells) — research doc Option B; only if noscript is insufficient.
-- [ ] **0.4** Extend [`docs/research/2026-07-financial-sites-seo.md`](research/2026-07-financial-sites-seo.md) with path-route + noscript decision.
+**Deliverable:** [`docs/research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md)
+
+- [x] **0.1** Confirm **user outcome**: each calculator is discoverable individually in search with rich results and crawlable fallback content.
+- [x] **0.2** Decide **routing strategy**: **path slugs** (`/`, `/debt`, `/retirement`, `/strategies`, `/strategic`, `/budget`); legacy `/?tab=` redirects; build-time `dist/{slug}/index.html` for GitHub Pages HTTP 200.
+- [x] **0.3** Spike **static pre-render**: **deferred** — per-route HTML shells + `<noscript>` instead of vite-ssg/SSR; revisit if GSC indexing flat post-ship.
+- [x] **0.4** Extend [`docs/research/2026-07-financial-sites-seo.md`](research/2026-07-financial-sites-seo.md) §8 with path-route + noscript decision; new spike doc linked from research index + `OVERVIEW.md`.
 
 ---
 

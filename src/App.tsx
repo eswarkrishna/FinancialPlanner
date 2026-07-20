@@ -125,7 +125,7 @@ export function App() {
         <aside className="app-sidebar" aria-label="Planner sections">
           <div className="app-sidebar-brand">
             <div className="app-brand-lockup">
-              <LogoMark className="app-brand-logo" size={28} />
+              <LogoMark className="app-brand-logo" size={32} />
               <span className="app-sidebar-title">FinancialPlanner</span>
             </div>
           </div>
@@ -151,7 +151,7 @@ export function App() {
             <div className="app-header-inner app-brand">
               <div className="app-brand-row">
                 <div className="app-brand-lockup">
-                  <LogoMark className="app-brand-logo" size={36} />
+                  <LogoMark className="app-brand-logo" size={40} />
                   <p className="app-brand-name">FinancialPlanner</p>
                 </div>
                 <LocaleSegment value={locale} onChange={onLocaleChange} />

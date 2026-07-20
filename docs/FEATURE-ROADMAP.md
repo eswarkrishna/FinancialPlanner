@@ -9,7 +9,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 - Items marked **§11** need an explicit non-goals revision before implementation.
 - Prefer one feature slice per branch/PR; cite SPEC § in commits.
 
-**Sources:** [`SPEC.md`](SPEC.md) §4 / §11 / §13 · [`SPEC-US.md`](SPEC-US.md) · [`SPEC-UK.md`](SPEC-UK.md) · [`research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) · [`OVERVIEW.md`](OVERVIEW.md)
+**Sources:** [`SPEC.md`](SPEC.md) §4 / §11 / §13 · [`SPEC-US.md`](SPEC-US.md) · [`SPEC-UK.md`](SPEC-UK.md) · [`research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) · [`research/2026-07-architecture-review-roadmap.md`](research/2026-07-architecture-review-roadmap.md) · [`OVERVIEW.md`](OVERVIEW.md)
 
 ---
 

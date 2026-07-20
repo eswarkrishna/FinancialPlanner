@@ -77,6 +77,7 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [SEO-SIGNOFF.md](SEO-SIGNOFF.md) | SEO sign-off & ship (Phases 12–13) |
 | [TEST-MAP.md](TEST-MAP.md) | §10 acceptance → tests mapping |
 | [FEATURE-ROADMAP.md](FEATURE-ROADMAP.md) | Backlog of candidate features beyond current ship |
+| [research/2026-07-architecture-review-roadmap.md](research/2026-07-architecture-review-roadmap.md) | Chief-architect review: trust-breakers, cut list, mobile UX, wedge strategy |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (Keep a Changelog) |
 | [LEARNINGS.md](LEARNINGS.md) | Dated post-feature notes |
 | [research/README.md](research/README.md) | Spike and research index |

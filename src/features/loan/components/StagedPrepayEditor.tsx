@@ -20,8 +20,8 @@ export function StagedPrepayEditor({
     <div className="staged-prepay">
       <h3>Custom staged prepayments</h3>
       <p className="hint">
-        Add one or more lump-sum prepayments at specific months (SPEC §4.6{" "}
-        <code>STAGED_PREPAY</code>). Policy: keep original EMI.
+        Add lump-sum prepayments on specific months. Your EMI stays the same; the
+        loan ends sooner.
       </p>
       {entries.length === 0 ? (
         <p className="hint">No staged prepayments yet.</p>

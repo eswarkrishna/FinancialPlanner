@@ -60,6 +60,28 @@ describe("seo", () => {
     expect(tabPathname("budget", "/FinancialPlanner")).toBe("/FinancialPlanner/budget");
   });
 
+  it("canonical, sitemap, and build shells share one URL per tab (§10.59)", () => {
+    const site = "https://eswarkrishna.github.io/FinancialPlanner";
+    const routerBase = "/FinancialPlanner";
+    const sitemap = buildSitemapXml(site);
+
+    for (const tab of PLANNER_TABS) {
+      const canonical = tabPageUrl(tab.id, site);
+      expect(sitemap).toContain(`<loc>${canonical}</loc>`);
+      expect(canonical).not.toContain("/FinancialPlanner/FinancialPlanner");
+
+      const shell = buildIndexHtmlReplacements(site, {
+        tabId: tab.id,
+        routerBase,
+      });
+      expect(shell.__SEO_CANONICAL__).toBe(canonical);
+    }
+
+    expect(tabPageUrl("debt", site)).toBe(
+      "https://eswarkrishna.github.io/FinancialPlanner/debt",
+    );
+  });
+
   it("lists non-home route slugs for build shells (§10.54)", () => {
     expect(SEO_ROUTE_SLUGS).toEqual([
       "debt",

@@ -26,9 +26,8 @@ export function GameLegendPanel({ locale }: { locale: Locale }) {
           Legend — what the abbreviations mean
         </summary>
         <p className="hint game-legend-intro">
-          Tables and recommendations use short internal codes (e.g.{" "}
-          <code>B_PREPAY_25</code>). Below is the plain-English meaning. Payoff
-          amounts are in {currencyLabel}.
+          The codes column uses short labels for compact tables. Below is the
+          plain-English meaning. Payoff amounts are in {currencyLabel}.
         </p>
         <div className="game-legend-grid">
           {VISIBLE_CATEGORIES.map((category) => (

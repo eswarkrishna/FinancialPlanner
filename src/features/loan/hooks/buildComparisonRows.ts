@@ -68,7 +68,7 @@ export function buildComparisonRows(
   const rows: ComparisonRow[] = [
     row(
       "BASE",
-      "BASE",
+      "Baseline",
       models.base.totals.payoff_month,
       models.base.totals.total_interest_inr,
       models.base.totals.total_paid_inr,
@@ -255,7 +255,7 @@ export function buildPrepayStrategyCompare(
   return [
     {
       id: "PREPAY_EMI",
-      policyLabel: "Reduce tenure (keep EMI)",
+      policyLabel: "Keep your EMI — loan ends sooner",
       newEmi: baseEmi,
       newTenureMonths: models.prepayEmi.totals.payoff_month,
       totalInterest: models.prepayEmi.totals.total_interest_inr,
@@ -265,7 +265,7 @@ export function buildPrepayStrategyCompare(
     },
     {
       id: "PREPAY_TENURE",
-      policyLabel: "Reduce EMI (keep tenure)",
+      policyLabel: "Keep loan length — lower monthly payment",
       newEmi: reducedEmi,
       newTenureMonths: models.prepayTenure.totals.payoff_month,
       totalInterest: models.prepayTenure.totals.total_interest_inr,

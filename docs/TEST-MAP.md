@@ -39,6 +39,7 @@ manual smoke checks.
 | 10.56 | One keyword `<h1>` per active tab panel | `src/App.test.tsx`, `e2e/specs/app-shell.spec.ts` |
 | 10.57 | ≥1 contextual internal `<a href>` per tab | `src/lib/tabPageContent.test.ts`, `src/App.test.tsx` |
 | 10.58 | Explainer copy 100–200 words per tab | `src/lib/tabPageContent.test.ts`, `src/App.test.tsx` |
+| 10.59 | Canonical === sitemap `<loc>` === build shell; no doubled deploy base | `src/lib/seo.test.ts`, `scripts/verify-seo-signoff.ts` |
 | 10.52–58 (E2E) | Path smoke: title, h1, JSON-LD, noscript (JS off) per route | `e2e/specs/seo-signoff.spec.ts` |
 | 10.52–55 (build) | Per-shell title, noscript, JSON-LD in `dist/` | `scripts/verify-seo-signoff.ts` (`npm run verify:seo`) |
 | 10.48–50 | Prepayment fee flat/%/none → gross & net savings (§4.4.1) | `src/lib/loan/prepaymentFee.test.ts`, `src/features/loan/hooks/buildComparisonRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |

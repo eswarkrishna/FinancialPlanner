@@ -96,8 +96,10 @@ export function App() {
 
   useEffect(() => {
     updatePageSeo(activeTab);
-    trackPageView(`tab/${activeTab}`, pageTitle(activeTab));
-  }, [activeTab]);
+    if (analyticsActive) {
+      trackPageView(`tab/${activeTab}`, pageTitle(activeTab));
+    }
+  }, [activeTab, analyticsActive]);
 
   useEffect(() => {
     const lang = locale === "US" ? "en-US" : locale === "UK" ? "en-GB" : "en-IN";

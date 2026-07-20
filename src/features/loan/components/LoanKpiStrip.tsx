@@ -32,6 +32,8 @@ export function LoanKpiStrip({
   const activeRow = findRow(comparisonRows, scenarioView) ?? comparisonRows[0];
   if (!activeRow) return null;
 
+  const isBaseline = scenarioView === "BASE";
+
   const items: KpiItem[] = [
     {
       id: "emi",
@@ -48,16 +50,19 @@ export function LoanKpiStrip({
       label: "Total interest",
       value: money(activeRow.totalInterest),
     },
-    {
+  ];
+
+  if (!isBaseline) {
+    items.push({
       id: "delta",
-      label: "Δ vs BASE",
+      label: "Interest saved vs baseline",
       value:
         activeRow.deltaInterestVsBase === 0
           ? "—"
           : money(activeRow.deltaInterestVsBase),
       tone: activeRow.deltaInterestVsBase > 0 ? "positive" : "default",
-    },
-  ];
+    });
+  }
 
   if (
     activeRow.grossInterestSaved !== 0 ||

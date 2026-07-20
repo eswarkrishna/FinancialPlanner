@@ -10,6 +10,8 @@ import {
 } from "./lib/notifications/constants";
 import * as buildInfo from "./lib/buildInfo";
 import { countWords, getTabExplainer } from "./lib/tabPageContent";
+import { ANALYTICS_CONSENT_LEAD, ANALYTICS_CONSENT_KEY } from "./lib/analytics/consent";
+import { isAnalyticsInitialized } from "./lib/analytics";
 import { PLANNER_TABS, tabPathname } from "./lib/seo";
 
 function mockNotificationApi() {
@@ -179,6 +181,31 @@ describe("App shell composition", () => {
       "true",
     );
     expect(window.location.pathname).toBe("/debt");
+  });
+});
+
+describe("analytics consent (§5.1.2 / §10.23)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.stubEnv("VITE_GA_MEASUREMENT_ID", "G-TEST123");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("shows analytics consent before GA loads and inits only after accept", async () => {
+    const user = userEvent.setup();
+    renderWithLocale(<App />);
+
+    expect(screen.getByText(ANALYTICS_CONSENT_LEAD)).toBeInTheDocument();
+    expect(isAnalyticsInitialized()).toBe(false);
+
+    await user.click(screen.getByRole("button", { name: /accept/i }));
+
+    expect(screen.queryByText(ANALYTICS_CONSENT_LEAD)).not.toBeInTheDocument();
+    expect(localStorage.getItem(ANALYTICS_CONSENT_KEY)).toBe("accept");
+    expect(isAnalyticsInitialized()).toBe(true);
   });
 });
 

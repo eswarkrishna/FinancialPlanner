@@ -26,8 +26,8 @@ export function GameLegendPanel({ locale }: { locale: Locale }) {
           Legend — what the abbreviations mean
         </summary>
         <p className="hint game-legend-intro">
-          The codes column uses short labels for compact tables. Below is the
-          plain-English meaning. Payoff amounts are in {currencyLabel}.
+          Short labels in the tables map to plain-English meanings below. Payoff
+          amounts are in {currencyLabel}.
         </p>
         <div className="game-legend-grid">
           {VISIBLE_CATEGORIES.map((category) => (
@@ -39,7 +39,6 @@ export function GameLegendPanel({ locale }: { locale: Locale }) {
                 {LEGEND_BY_CATEGORY[category].map((entry) => (
                   <div key={entry.code} className="game-legend-item">
                     <dt>
-                      <code className="game-legend-code">{entry.code}</code>
                       <span className="game-legend-label">{entry.label}</span>
                     </dt>
                     <dd>{entry.meaning}</dd>

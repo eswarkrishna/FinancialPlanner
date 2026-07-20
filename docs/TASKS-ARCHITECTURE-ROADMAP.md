@@ -15,7 +15,7 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 | **Initiative** | Architecture review remediation + wedge focus |
 | **Source** | [`research/2026-07-architecture-review-roadmap.md`](research/2026-07-architecture-review-roadmap.md) |
 | **SPEC sections** | §4.4, §4.6, §4.12–§4.15, §5.1.2, §5.2, §8, §10 (new acceptance bullets) |
-| **Branch / PR** | *(assign per phase)* |
+| **Branch / PR** | `cursor/phase-1-trust-breakers-d414` / #68 |
 | **Started** | 2026-07-21 |
 
 ---
@@ -59,7 +59,7 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 
 - [x] **1.4.1** Delete `google20d8c3662a3fd5d2 (1).html` (duplicate verification file).
 - [x] **1.4.2** Remove README “Connect to GitHub” boilerplate section.
-- [ ] **1.4.3** Merge or close stale open PRs (target: ≤ 1 open non-draft PR).
+- [ ] **1.4.3** Merge or close stale open PRs (target: ≤ 1 open non-draft PR). *Agent lacks permission to close #10, #25, #49, #52, #54 — repo owner action required.*
 
 ### Phase 1 sign-off
 

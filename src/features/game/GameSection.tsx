@@ -115,23 +115,17 @@ export function GameSection() {
               <table>
                 <thead>
                   <tr>
-                    <th>Actions (plain English)</th>
-                    <th>Codes</th>
-                    <th>Borrower (B)</th>
-                    <th>Other (L or H)</th>
+                    <th>Actions</th>
+                    <th>Borrower payoff</th>
+                    <th>Other player payoff</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.payoff_matrix.map((cell) => {
-                    const { readable, codes } = formatProfileWithCodes(
-                      cell.action_profile,
-                    );
+                    const { readable } = formatProfileWithCodes(cell.action_profile);
                     return (
                       <tr key={cell.cell_key}>
                         <td>{readable}</td>
-                        <td className="game-codes-cell">
-                          <code className="game-codes">{codes || "—"}</code>
-                        </td>
                         <td>{money(cell.payoffs.B ?? 0)}</td>
                         <td>
                           {cell.payoffs.L !== undefined
@@ -152,14 +146,12 @@ export function GameSection() {
             <h2>Recommendation</h2>
             <p className="hint">
               Stable outcomes (equilibrium) or best cautious move (max-min) for this
-              profile. See the legend above for code meanings.
+              profile.
             </p>
             {result.equilibria.length > 0 ? (
               <ul className="game-recommendation-list">
                 {result.equilibria.map((eq) => {
-                  const { readable, codes } = formatProfileWithCodes(
-                    eq.action_profile,
-                  );
+                  const { readable } = formatProfileWithCodes(eq.action_profile);
                   const key = eq.action_profile
                     ? JSON.stringify(eq.action_profile)
                     : readable;
@@ -168,15 +160,9 @@ export function GameSection() {
                       <span className="game-rec-readable">{readable}</span>
                       <span className="game-rec-meta">
                         {" "}
-                        — B: {money(eq.payoffs.B ?? 0)}
+                        — Borrower: {money(eq.payoffs.B ?? 0)}
                         {eq.payoffs.L !== undefined &&
-                          ` · L: ${money(eq.payoffs.L)}`}
-                        {codes ? (
-                          <>
-                            {" "}
-                            <code className="game-codes">({codes})</code>
-                          </>
-                        ) : null}
+                          ` · Lender: ${money(eq.payoffs.L)}`}
                       </span>
                     </li>
                   );
@@ -189,17 +175,6 @@ export function GameSection() {
               <p className="game-suggested">
                 <strong>Suggested borrower move:</strong>{" "}
                 {formatProfileReadable(result.recommended_b_action)}
-                {(() => {
-                  const { codes } = formatProfileWithCodes(
-                    result.recommended_b_action,
-                  );
-                  return codes ? (
-                    <>
-                      {" "}
-                      <code className="game-codes">({codes})</code>
-                    </>
-                  ) : null;
-                })()}
               </p>
             )}
           </section>

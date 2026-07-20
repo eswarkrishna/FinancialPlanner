@@ -20,11 +20,19 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
-## 2026-07-10 — Analytics without consent banner
+## 2026-07-21 — Analytics consent restored (Phase 1 trust-breakers)
+
+- **Context:** Architecture review §2.2; SPEC §5.1.2 / §10.23; prior 2026-07-10 note had removed the banner.
+- **What we learned:** Consentless GA4 for UK visitors is a PECR/GDPR risk; the web app must gate `initAnalytics()` behind accept and persist `financial-planner-analytics-consent`.
+- **Action:** Keep the accept/decline strip in web; native shell still auto-inits. README and LEARNINGS must stay aligned with SPEC.
+
+---
+
+## 2026-07-10 — Analytics without consent banner (superseded)
 
 - **Context:** SPEC §5.1.2 / §8 / §10.23 — product owner asked to capture GA without an in-app permission prompt.
 - **What we learned:** Consent was only a UI gate around `initAnalytics()`; Tier 1–2 events already fire once initialized. Removing the banner means bootstrap on load when `VITE_GA_MEASUREMENT_ID` is set; footer opt-out disclosure remains the user control.
-- **Action:** Ignore legacy `financial-planner-analytics-consent` localStorage; do not reintroduce an accept/reject strip without a SPEC revision.
+- **Action:** ~~Ignore legacy `financial-planner-analytics-consent` localStorage; do not reintroduce an accept/reject strip without a SPEC revision.~~ **Superseded 2026-07-21** — consent strip restored per SPEC §5.1.2.
 
 ---
 

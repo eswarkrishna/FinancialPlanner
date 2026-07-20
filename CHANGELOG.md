@@ -25,6 +25,8 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 ### Changed
 
 - **README** — removed “Connect to GitHub” boilerplate; analytics section documents the web consent strip before GA4 loads (§5.1.2).
+- **Loan & game UI copy** — baseline wording, removed internal codes from game payoff matrix, hide comparison KPI on baseline view.
+- **Analytics** — virtual page views fire only after consent accept (`App.tsx`).
 
 ### Added
 

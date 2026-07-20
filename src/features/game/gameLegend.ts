@@ -221,7 +221,7 @@ export const LEGEND_BY_CATEGORY: Record<LegendCategory, LegendEntry[]> = {
     {
       code: "N_UE_M1",
       label: "Unemployment at month 1",
-      meaning: "Job loss starts at month 1; PF tranches follow §4.7 rules.",
+      meaning: "Job loss starts at month 1; PF withdrawals follow the unemployment rules.",
     },
     {
       code: "N_UE_M12",
@@ -236,7 +236,7 @@ export const LEGEND_BY_CATEGORY: Record<LegendCategory, LegendEntry[]> = {
     {
       code: "N_PF_LOAN",
       label: "PF → loan",
-      meaning: "Both PF tranches applied as loan prepayment (UE_PF_TO_LOAN style).",
+      meaning: "Both PF tranches applied as loan prepayment during job loss.",
     },
     {
       code: "N_PF_BRIDGE",

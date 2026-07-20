@@ -78,7 +78,7 @@ export function buildComparisonRows(
     rows.push(
       row(
         "BASE_SALARY_SWEEP",
-        `BASE + ${formatMoney(models.salaryRecurring, locale)}/mo salary sweep`,
+        `Baseline + ${formatMoney(models.salaryRecurring, locale)}/mo salary sweep`,
         models.baseSalarySweep.totals.payoff_month,
         models.baseSalarySweep.totals.total_interest_inr,
         models.baseSalarySweep.totals.total_paid_inr,
@@ -89,7 +89,7 @@ export function buildComparisonRows(
     rows.push(
       row(
         "BASE_INFLOW",
-        `BASE + ${formatMoney(models.monthlyExtra, locale)}/mo to loan`,
+        `Baseline + ${formatMoney(models.monthlyExtra, locale)}/mo to loan`,
         models.baseInflow.totals.payoff_month,
         models.baseInflow.totals.total_interest_inr,
         models.baseInflow.totals.total_paid_inr,
@@ -176,8 +176,8 @@ export function buildComparisonRows(
       row(
         "UE_PF_BRIDGE",
         locale === "US"
-          ? "JL 401(k) bridge (tranche 1 → cash, tranche 2 split)"
-          : "UE PF bridge (tranche 1 → cash, tranche 2 split)",
+          ? "Job loss: 401(k) bridge (tranche 1 → cash, tranche 2 split)"
+          : "Job loss: PF bridge (tranche 1 → cash, tranche 2 split)",
         models.uePfBridge.totals.payoff_month,
         models.uePfBridge.totals.total_interest_inr,
         models.uePfBridge.totals.total_paid_inr,
@@ -190,8 +190,8 @@ export function buildComparisonRows(
       row(
         "UE_DELAY_PREPAY",
         locale === "US"
-          ? "JL delay prepay (tranche 1 → cash, tranche 2 → loan)"
-          : "UE delay prepay (tranche 1 → cash, tranche 2 → loan)",
+          ? "Job loss: delay prepay (tranche 1 → cash, tranche 2 → loan)"
+          : "Job loss: delay prepay (tranche 1 → cash, tranche 2 → loan)",
         models.ueDelayPrepay.totals.payoff_month,
         models.ueDelayPrepay.totals.total_interest_inr,
         models.ueDelayPrepay.totals.total_paid_inr,

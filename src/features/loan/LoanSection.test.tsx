@@ -107,7 +107,7 @@ describe("LoanSection", () => {
       .querySelector("tbody")!;
     const baseRow = comparisonTable.querySelector("tr")!;
     expect(baseRow).toHaveTextContent("168");
-    expect(screen.getByText(/BASE \+ .*salary sweep/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Baseline \+ .*salary sweep/i).length).toBeGreaterThan(0);
     expect(
       screen.getByRole("radio", { name: /Salary sweep: Baseline \+ monthly salary sweep/i }),
     ).toBeInTheDocument();

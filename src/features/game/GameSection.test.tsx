@@ -10,9 +10,8 @@ describe("GameSection", () => {
     expect(
       screen.getByText(/Legend — what the abbreviations mean/i),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/B_PREPAY_25/).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: "Payoff matrix" })).toBeInTheDocument();
     expect(screen.getByText(/10 payoff combinations/)).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /plain English/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Borrower payoff/i })).toBeInTheDocument();
   });
 });

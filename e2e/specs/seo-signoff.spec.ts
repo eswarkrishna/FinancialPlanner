@@ -74,6 +74,26 @@ describe("SEO sign-off (§10.52–58, Phase 12.2)", () => {
         const breadcrumb = entities.find((entry) => entry["@type"] === "BreadcrumbList");
         assert.ok(breadcrumb, "expected BreadcrumbList JSON-LD on sub-tab");
       }
+
+      const canonical = await session.page.$eval('link[rel="canonical"]', (element) =>
+        element.getAttribute("href"),
+      );
+      assert.ok(canonical, "expected canonical link");
+      assert.ok(!canonical.includes("/FinancialPlanner/FinancialPlanner"));
+      if (tabId === "loan") {
+        assert.match(canonical, /\/(?:FinancialPlanner\/)?$/);
+      } else {
+        assert.ok(canonical.endsWith(`/${tabId}`), `canonical should end with /${tabId}`);
+      }
+
+      const previewPath = pathForTab(tabId);
+      const previewUrl = `${getBaseUrl()}${previewPath === "/" ? "/" : previewPath}`;
+      const previewResponse = await fetch(previewUrl);
+      assert.equal(
+        previewResponse.status,
+        200,
+        `preview route should return HTTP 200: ${previewUrl}`,
+      );
     });
   }
 

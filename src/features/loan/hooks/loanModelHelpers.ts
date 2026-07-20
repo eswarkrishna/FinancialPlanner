@@ -160,7 +160,7 @@ export function usPfTrancheLabel(startMonth: number): string {
 
 export function inPfTrancheLabel(startMonth: number): string {
   const { tranche1Month, tranche2Month } = trancheMonthsFromStart(startMonth);
-  return `UE PF to loan (75% m${tranche1Month} + 25%+interest m${tranche2Month})`;
+  return `Job loss: PF to loan (75% m${tranche1Month} + 25%+interest m${tranche2Month})`;
 }
 
 export function pfTrancheToLoanLabel(

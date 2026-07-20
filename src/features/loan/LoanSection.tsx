@@ -608,8 +608,7 @@ export function LoanSection() {
           <strong>extra principal</strong> after each month&apos;s scheduled EMI (used in
           monthly-inflow scenarios only).{" "}
           <strong>Monthly salary</strong> is routed as extra principal in salary-sweep
-          and prepay scenarios, but <strong>not</strong> in the baseline{" "}
-          <strong>BASE</strong> row.{" "}
+          and prepay scenarios, but <strong>not</strong> in the baseline row.{" "}
           <strong>{isUk ? "ISA/GIA" : isUs ? "Brokerage liquid" : "Gold liquid"}</strong> can be the
           one-time prepay source{!isUk && "; enable haircut to model liquidation discount"}.
           {!isUk && goldHaircutOn && models && (
@@ -713,7 +712,7 @@ export function LoanSection() {
                   <tr>
                     <th>Scenario</th>
                     <th>Payoff (months)</th>
-                    <th>Faster vs BASE</th>
+                    <th>Months saved vs baseline</th>
                     <th>Total interest</th>
                     <th>Gross interest saved</th>
                     <th>Fees</th>

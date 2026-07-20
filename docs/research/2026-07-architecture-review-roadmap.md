@@ -2,7 +2,7 @@
 
 **Source:** Chief-architect review of `eswarkrishna/FinancialPlanner` (live site, repo, `index.html`, `vite.config.ts`, SPEC v2.6, mobile screenshots)
 **Date:** 2026-07-21
-**Status:** Proposed — fold accepted items into `docs/SPEC.md` / `docs/TASKS.md`
+**Status:** Proposed — fold accepted items into `docs/SPEC.md` / [`TASKS-ARCHITECTURE-ROADMAP.md`](../TASKS-ARCHITECTURE-ROADMAP.md)
 
 ---
 

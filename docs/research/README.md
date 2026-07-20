@@ -11,6 +11,7 @@ Spikes, options analysis, and external desk research live here as **Markdown** f
 | Note | Topic |
 |------|-------|
 | [2026-07-architecture-review-roadmap.md](2026-07-architecture-review-roadmap.md) | Chief-architect review: trust-breakers, cut list, mobile UX, wedge strategy |
+| [../TASKS-ARCHITECTURE-ROADMAP.md](../TASKS-ARCHITECTURE-ROADMAP.md) | Actionable checklist derived from architecture review |
 | [2026-07-gap-fill-competitors.md](2026-07-gap-fill-competitors.md) | Competitor parity gap-fill (EMI fees, India instruments, inflation, …) |
 | [2026-07-financial-sites-seo.md](2026-07-financial-sites-seo.md) | SEO patterns from financial calculator sites |
 | [2026-07-seo-routes-noscript.md](2026-07-seo-routes-noscript.md) | SEO Phase 0: path routes, noscript shells, GH Pages deploy |

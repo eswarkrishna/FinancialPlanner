@@ -48,7 +48,7 @@ export function GameSection() {
                 const meta = describeGameProfile(id);
                 return (
                   <option key={id} value={id}>
-                    {meta ? `${meta.label} (${id})` : id}
+                    {meta ? meta.label : id}
                   </option>
                 );
               })}
@@ -108,8 +108,7 @@ export function GameSection() {
               </div>
             </div>
             <p className="hint">
-              {result.payoff_matrix.length} cells · underlying scenarios:{" "}
-              {result.underlying_scenario_ids.join(", ")}
+              {result.payoff_matrix.length} payoff combinations in this matrix.
             </p>
             <PayoffHeatmap cells={result.payoff_matrix} locale={locale} />
             <TableWrap label="Strategic payoff matrix" className="comparison">

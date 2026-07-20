@@ -36,35 +36,35 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 
 ### 1.1 Canonical URL double-composition
 
-- [ ] **1.1.1** Reproduce bug: built-shell `<link rel="canonical">` and `og:url` show doubled `/FinancialPlanner/FinancialPlanner/{slug}`.
-- [ ] **1.1.2** Fix URL composition in `resolveSiteUrl` / `tabPageUrl` so canonical, sitemap `<loc>`, and `buildIndexHtmlReplacements` share one source of truth (do not append `routerBase` when `VITE_SITE_URL` already includes it).
-- [ ] **1.1.3** Add §10 acceptance test: for every tab slug, built-shell canonical === sitemap `<loc>` === `tabPageUrl(tabId)`.
-- [ ] **1.1.4** Verify deployed canonical URLs return HTTP 200 (manual or E2E).
+- [x] **1.1.1** Reproduce bug: built-shell `<link rel="canonical">` and `og:url` show doubled `/FinancialPlanner/FinancialPlanner/{slug}`.
+- [x] **1.1.2** Fix URL composition in `resolveSiteUrl` / `tabPageUrl` so canonical, sitemap `<loc>`, and `buildIndexHtmlReplacements` share one source of truth (do not append `routerBase` when `VITE_SITE_URL` already includes it).
+- [x] **1.1.3** Add §10 acceptance test: for every tab slug, built-shell canonical === sitemap `<loc>` === `tabPageUrl(tabId)`.
+- [x] **1.1.4** Verify deployed canonical URLs return HTTP 200 (manual or E2E).
 
 ### 1.2 Analytics consent (SPEC §5.1.2)
 
-- [ ] **1.2.1** Ship Tier 2 consent strip (`financial-planner-analytics-consent`); load `gtag.js` only after user **accept**.
-- [ ] **1.2.2** Persist consent choice; honour decline on subsequent visits.
-- [ ] **1.2.3** Update `README.md` to match SPEC (remove “loads without consent prompt” wording).
-- [ ] **1.2.4** Add or extend automated test that GA init does not run before accept.
+- [x] **1.2.1** Ship Tier 2 consent strip (`financial-planner-analytics-consent`); load `gtag.js` only after user **accept**.
+- [x] **1.2.2** Persist consent choice; honour decline on subsequent visits.
+- [x] **1.2.3** Update `README.md` to match SPEC (remove “loads without consent prompt” wording).
+- [x] **1.2.4** Add or extend automated test that GA init does not run before accept.
 
 ### 1.3 User-facing copy audit
 
-- [ ] **1.3.1** Remove spec references from UI (e.g. staged-prepayments “SPEC §4.6 `STAGED_PREPAY`”).
-- [ ] **1.3.2** Replace engineer-speak with user language (e.g. “Policy: keep original EMI” → “Your EMI stays the same; the loan ends sooner”).
-- [ ] **1.3.3** Grep codebase for visible strings containing `SPEC`, scenario IDs, and internal enum names; fix all hits.
-- [ ] **1.3.4** Spot-check all six calculator tabs on mobile and desktop.
+- [x] **1.3.1** Remove spec references from UI (e.g. staged-prepayments “SPEC §4.6 `STAGED_PREPAY`”).
+- [x] **1.3.2** Replace engineer-speak with user language (e.g. “Policy: keep original EMI” → “Your EMI stays the same; the loan ends sooner”).
+- [x] **1.3.3** Grep codebase for visible strings containing `SPEC`, scenario IDs, and internal enum names; fix all hits.
+- [x] **1.3.4** Spot-check all six calculator tabs on mobile and desktop.
 
 ### 1.4 Repo hygiene
 
-- [ ] **1.4.1** Delete `google20d8c3662a3fd5d2 (1).html` (duplicate verification file).
-- [ ] **1.4.2** Remove README “Connect to GitHub” boilerplate section.
+- [x] **1.4.1** Delete `google20d8c3662a3fd5d2 (1).html` (duplicate verification file).
+- [x] **1.4.2** Remove README “Connect to GitHub” boilerplate section.
 - [ ] **1.4.3** Merge or close stale open PRs (target: ≤ 1 open non-draft PR).
 
 ### Phase 1 sign-off
 
-- [ ] **1.5** `npm run lint`, `npm run test`, `npm run build` green.
-- [ ] **1.6** Map new §10 bullets in `docs/TEST-MAP.md`.
+- [x] **1.5** `npm run lint`, `npm run test`, `npm run build` green.
+- [x] **1.6** Map new §10 bullets in `docs/TEST-MAP.md`.
 
 ---
 

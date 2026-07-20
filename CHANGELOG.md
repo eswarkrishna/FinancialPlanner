@@ -17,6 +17,15 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Canonical URL double-composition (§10.59)** — built-shell `<link rel="canonical">` and `og:url` no longer duplicate the deploy base (`…/FinancialPlanner/FinancialPlanner/…`); sitemap `<loc>` values match `tabPageUrl()` for every tab.
+- **User-facing copy** — removed spec references and internal scenario IDs from loan, retirement, and game UI; comparison table shows “Baseline” instead of “BASE”; prepay strategy cards use plain-language labels.
+
+### Changed
+
+- **README** — removed “Connect to GitHub” boilerplate; analytics section documents the web consent strip before GA4 loads (§5.1.2).
+
 ### Added
 
 - **SEO verification (`npm run verify:seo`)** — post-build check of per-route HTML shells (title, noscript, JSON-LD); browser smoke in `e2e/specs/seo-signoff.spec.ts`; ship checklist [`docs/SEO-SIGNOFF.md`](docs/SEO-SIGNOFF.md).

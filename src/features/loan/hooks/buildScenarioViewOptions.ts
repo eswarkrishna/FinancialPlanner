@@ -17,7 +17,6 @@ export function buildScenarioViewOptions(
   unemploymentStartMonth: number,
 ): ScenarioViewOption[] {
   const isUs = locale === "US";
-  const isUk = locale === "UK";
   const sourceLabel = prepaySourceScheduleLabel(prepaySource, locale);
   const options: ScenarioViewOption[] = [
     {
@@ -81,7 +80,7 @@ export function buildScenarioViewOptions(
   if (models.uePfToLoan) {
     options.push({
       value: "UE_PF_TO_LOAN",
-      label: isUk ? "Job loss → loan" : isUs ? "Job loss → loan" : "UE → loan",
+      label: "Job loss → loan",
       subtitle: pfTrancheToLoanLabel(locale, unemploymentStartMonth, unemploymentOn),
     });
   }

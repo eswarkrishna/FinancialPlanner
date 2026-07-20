@@ -56,28 +56,6 @@ EMI and schedule amounts use **2 decimal places** (paise), **half-up** rounding 
 
 Educational software only. EPF rules, lender charges, and taxes vary — see §14 in `docs/SPEC.md`.
 
-## Connect to GitHub
-
-`gh` is not required. Use an empty remote repository (no README, no `.gitignore`, no license on GitHub) if you are pushing this history for the first time.
-
-1. On GitHub: **[Create a new repository](https://github.com/new)** → owner **eswarkrishna** → name **`FinancialPlanner`** → **Create repository** (leave “Add a README” unchecked if you already have commits here).
-2. This repo is already set up for **`https://github.com/eswarkrishna/FinancialPlanner`**. After the empty repo exists on GitHub, run:
-
-```bash
-git push -u origin main
-```
-
-**SSH** (if you use SSH keys with GitHub), set the remote once:
-
-```bash
-git remote set-url origin git@github.com:eswarkrishna/FinancialPlanner.git
-git push -u origin main
-```
-
-If GitHub created a default branch with a commit already, either use **GitHub’s import** flow or follow GitHub’s “push an existing repository” instructions (you may need `git pull --rebase origin main` once after adding the remote).
-
-Optional: install the [GitHub CLI](https://cli.github.com/) (`winget install GitHub.cli`) for `gh repo create` and auth helpers.
-
 ## Publish on the internet
 
 ### GitHub Pages (free, **public** repository required)
@@ -114,7 +92,7 @@ The measurement ID is baked in at **build time** (or dev-server start). Defaults
 2. **Production:** update `.env.production`, or set GitHub Actions secret `VITE_GA_MEASUREMENT_ID` to override it on deploy. Redeploy by pushing to `main` or re-running the workflow.
 3. **Local:** `npm run dev` picks up `.env.development`. To override or disable, use `.env.local` (see [`.env.example`](.env.example)).
 
-The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/tab/loan`, etc.). Named interaction events (tab changes, exports, locale switches, etc.) are sent per `docs/SPEC.md` §5.1—loan inputs and personal data are not transmitted. When the measurement ID is set, analytics loads on first visit **without** an in-app consent prompt; see footer terms for the privacy note and Google’s opt-out add-on.
+The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/debt`, etc.). Named interaction events (tab changes, exports, locale switches, etc.) are sent per `docs/SPEC.md` §5.1—loan inputs and personal data are not transmitted. When the measurement ID is set, the web app shows an accept/decline consent strip before loading GA4; your choice is stored in `localStorage`. See footer terms for the privacy note and Google’s opt-out add-on.
 
 ### User feedback
 

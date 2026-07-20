@@ -141,7 +141,7 @@ export function RetirementSection() {
         )}
         <p className="hint">
           <strong>Safe withdrawal %:</strong> leave blank to use the classic{" "}
-          {DEFAULT_SAFE_WITHDRAWAL_RATE_PCT}% default (SPEC §4.11).
+          {DEFAULT_SAFE_WITHDRAWAL_RATE_PCT}% default.
           {isUs && (
             <>
               {" "}

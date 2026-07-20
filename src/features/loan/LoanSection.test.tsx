@@ -100,7 +100,7 @@ describe("LoanSection", () => {
 
     await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
 
-    expect(screen.getByText("BASE", { selector: "td" })).toBeInTheDocument();
+    expect(screen.getByText("Baseline", { selector: "td" })).toBeInTheDocument();
     const comparisonTable = screen
       .getByRole("heading", { name: "Loan scenario comparison" })
       .closest("section")!
@@ -171,7 +171,7 @@ describe("LoanSection", () => {
     await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
 
     const reduceTenure = screen.getByRole("button", {
-      name: /Reduce tenure \(keep EMI\)/i,
+      name: /Keep your EMI — loan ends sooner/i,
     });
     await user.click(reduceTenure);
     expect(reduceTenure).toHaveAttribute("aria-pressed", "true");
@@ -195,7 +195,7 @@ describe("LoanSection", () => {
     });
 
     await user.click(
-      screen.getByRole("button", { name: /Reduce tenure \(keep EMI\)/i }),
+      screen.getByRole("button", { name: /Keep your EMI — loan ends sooner/i }),
     );
 
     expect(screen.getAllByText("Net savings after fee").length).toBeGreaterThan(0);

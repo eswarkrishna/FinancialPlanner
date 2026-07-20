@@ -5,14 +5,23 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+  buildSitemapXml,
   pageTitle,
   PLANNER_TABS,
+  resolveSiteUrl,
   TAB_PATH_SLUG,
+  tabPageUrl,
   type TabId,
 } from "../src/lib/seo.ts";
 
 const distDir = path.resolve("dist");
+const siteUrl = resolveSiteUrl(process.env.VITE_SITE_URL);
 const failures: string[] = [];
+
+function readCanonical(html: string): string | null {
+  const match = html.match(/<link rel="canonical" href="([^"]*)"/i);
+  return match?.[1] ?? null;
+}
 
 function shellPath(tabId: TabId): string {
   const slug = TAB_PATH_SLUG[tabId];
@@ -68,6 +77,30 @@ for (const tab of PLANNER_TABS) {
   if (tab.id === "loan" && html.includes("BreadcrumbList")) {
     failures.push(`${label}: loan shell should not include BreadcrumbList JSON-LD`);
   }
+
+  const expectedCanonical = tabPageUrl(tab.id, siteUrl);
+  const canonical = readCanonical(html);
+  if (canonical !== expectedCanonical) {
+    failures.push(
+      `${label}: canonical "${canonical ?? ""}" !== "${expectedCanonical}"`,
+    );
+  }
+  if (canonical?.includes("/FinancialPlanner/FinancialPlanner")) {
+    failures.push(`${label}: canonical doubles deploy base path`);
+  }
+}
+
+const sitemapPath = path.join(distDir, "sitemap.xml");
+if (fs.existsSync(sitemapPath)) {
+  const sitemap = fs.readFileSync(sitemapPath, "utf8");
+  for (const tab of PLANNER_TABS) {
+    const loc = tabPageUrl(tab.id, siteUrl);
+    if (!sitemap.includes(`<loc>${loc}</loc>`)) {
+      failures.push(`sitemap.xml: missing <loc>${loc}</loc>`);
+    }
+  }
+} else {
+  failures.push("sitemap.xml: missing");
 }
 
 if (failures.length > 0) {

@@ -1236,6 +1236,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 56. **Per-tab h1:** active tab panel has exactly one `<h1>` matching the tab keyword phrase; site brand is not `<h1>`.  
 57. **Internal links:** each tab panel renders ≥ 1 contextual `<a href>` to another calculator path slug.  
 58. **Explainer copy:** each tab’s visible explainer paragraph is **100–200 words**, unique across tabs (word-count helper or test).
+59. **Canonical parity:** for every tab slug, `tabPageUrl(tabId)` equals the built-shell `<link rel="canonical">` and the matching sitemap `<loc>`; URLs must not double-compose the deploy base (e.g. `…/FinancialPlanner/FinancialPlanner/debt`).
 
 ### Prepayment fee & strategy comparison (§4.4.1–§4.4.2)
 

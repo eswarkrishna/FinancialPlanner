@@ -169,17 +169,19 @@ export function tabPathname(tabId: TabId, routerBase = getRouterBasePath()): str
   return `${base}/${slug}`;
 }
 
-export function tabPageUrl(
-  tabId: TabId,
-  siteUrl = getSiteUrl(),
-  routerBase?: string,
-): string {
+/** Path from deploy root to a tab (slug only — `siteUrl` already includes router base). */
+export function tabSlugPath(tabId: TabId): string {
+  const slug = TAB_PATH_SLUG[tabId];
+  return slug ? `/${slug}` : "/";
+}
+
+export function tabPageUrl(tabId: TabId, siteUrl = getSiteUrl()): string {
   const base = resolveSiteUrl(siteUrl);
-  const path = tabPathname(tabId, routerBase ?? getRouterBasePath());
-  if (path === "/") {
+  const slugPath = tabSlugPath(tabId);
+  if (slugPath === "/") {
     return `${base}/`;
   }
-  return `${base}${path}`;
+  return `${base}${slugPath}`;
 }
 
 /** Legacy `/?tab=` → path slug; preserves other query params (§10.53). */
@@ -462,7 +464,7 @@ export function buildIndexHtmlReplacements(
   const title = pageTitle(tabId);
   const description = pageDescription(tabId);
   const routerBase = normalizeRouterBase(options.routerBase ?? "/");
-  const canonical = tabPageUrl(tabId, base, routerBase);
+  const canonical = tabPageUrl(tabId, base);
   const jsonLd = serializeJsonLd(buildStructuredData(base, { ...options, tabId }));
 
   return {
@@ -486,7 +488,7 @@ export function patchIndexHtmlSeo(
   const title = pageTitle(tabId);
   const description = pageDescription(tabId);
   const routerBase = normalizeRouterBase(options.routerBase ?? "/");
-  const canonical = tabPageUrl(tabId, siteUrl, routerBase);
+  const canonical = tabPageUrl(tabId, siteUrl);
   const jsonLd = serializeJsonLd(buildStructuredData(siteUrl, { ...options, tabId }));
   const noscript = buildNoscriptHtml(tabId, routerBase);
 

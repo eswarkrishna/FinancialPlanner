@@ -4,6 +4,8 @@
 **Current scope:** Loan EMI calculator with prepayment, debt payoff, retirement, and budget calculators for India, US, and UK.
 **Purpose of this doc:** Define the remaining features to close the gap with established competitors (NerdWallet, Bankrate, BankBazaar, CalculatorSoup) and add India-specific depth.
 
+**Planning:** Implementation status and slice checklists live in [`FEATURE-ROADMAP.md`](../FEATURE-ROADMAP.md) §A0 and [`TASKS.md`](../TASKS.md) (Gap-fill backlog). SPEC deferred items: [`SPEC.md`](../SPEC.md) §11.
+
 ---
 
 ## 1. EMI / Loan Calculator Enhancements

@@ -9,33 +9,93 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 - Items marked **§11** need an explicit non-goals revision before implementation.
 - Prefer one feature slice per branch/PR; cite SPEC § in commits.
 
-**Sources:** [`SPEC.md`](SPEC.md) §4 / §11 / §13 · [`SPEC-US.md`](SPEC-US.md) · [`SPEC-UK.md`](SPEC-UK.md) · [`research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) · [`OVERVIEW.md`](OVERVIEW.md)
+**Sources:** [`SPEC.md`](SPEC.md) §4 / §11 / §13 · [`SPEC-US.md`](SPEC-US.md) · [`SPEC-UK.md`](SPEC-UK.md) · [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) · [`research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) · [`OVERVIEW.md`](OVERVIEW.md)
 
 ---
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **in progress**; then inflation, locale formatting, SIP/PPF, scenarios
-2. UK locale completion + game theory Tier P1  
-3. Loan engine polish (timing / EMI / deterministic rate stress)  
-4. Charts, exports, persistence UX  
-5. Canada locale **or** multi-creditor games (after SPEC bump)  
-6. Platform (iOS, PDF)
+Per gap-fill §6 and current codebase state:
+
+1. **Retirement inflation toggle** (gap-fill §2.1) — math exists; add explicit Nominal/Real UX
+2. **Currency/locale formatting** (gap-fill §5.1) — lakhs/crores for IN
+3. **SIP + PPF calculators** (gap-fill §3) — highest search-volume new tabs
+4. **Scenario save/compare** (gap-fill §5.2) — named localStorage slots
+5. **Remaining gap-fill** — drawdown, payment timing, India instruments, budget polish, tax-aware rate, PDF export
+6. UK locale completion + game theory Tier P1
+7. Loan engine polish (mid-month timing / floating stress)
+8. Charts & exports (debt/retirement/strategy charts)
+9. Canada locale **or** multi-creditor games (after SPEC bump)
+10. Platform (iOS, PDF)
 
 ---
 
 ## A0 — Competitor gap-fill (SPEC v2.5+)
 
-Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)
+Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) · Detailed tasks: [`TASKS.md`](TASKS.md) **Gap-fill backlog**
 
-- [x] Prepayment fee modeling (flat / %) + net savings (§4.4.1)
-- [x] Reduce EMI vs Reduce Tenure side-by-side (§4.4.2)
-- [ ] Retirement inflation adjustment (real vs nominal)
-- [ ] Currency/locale formatting polish (lakhs vs millions)
-- [ ] Amortisation CSV already shipped — PDF export still open
-- [ ] SIP + PPF calculators (India instruments)
-- [ ] Scenario save/compare (named localStorage slots)
-- [ ] Remaining: SSY, gratuity, lumpsum, drawdown phase, budget charts, tax-aware rate, SEO polish
+### 1. EMI / Loan calculator
+
+| ID | Feature | Status | SPEC / code |
+|----|---------|--------|-------------|
+| 1.1 | Payment timing (advance vs arrears) | ⬜ | Deferred §11 |
+| 1.2 | Prepayment fee (flat / %) + net savings | ✅ | §4.4.1, `prepaymentFee.ts` |
+| 1.3 | Reduce EMI vs Reduce Tenure compare | ✅ | §4.4.2, `PrepayStrategyCompare` |
+| 1.4 | Amortisation CSV export | ✅ | Loan tab Export CSV |
+| 1.4b | Amortisation PDF export | ⬜ | Deferred §11 |
+
+### 2. Retirement calculator
+
+| ID | Feature | Status | SPEC / code |
+|----|---------|--------|-------------|
+| 2.1 | Inflation adjustment (real vs nominal) | 🟡 | `inflation_pct` + real columns exist; **toggle UX missing** |
+| 2.2 | Withdrawal / drawdown phase | ⬜ | Post-retirement depletion model |
+
+### 3. India instrument calculators (new tabs)
+
+| ID | Calculator | Status | Priority |
+|----|------------|--------|----------|
+| 3.1 | PPF | ⬜ | P1 (with SIP) |
+| 3.2 | SIP | ⬜ | P1 |
+| 3.3 | Sukanya Samriddhi (SSY) | ⬜ | P2 |
+| 3.4 | Gratuity | ⬜ | P2 |
+| 3.5 | Lumpsum investment | ⬜ | P2 |
+
+### 4. Budget calculator
+
+| ID | Feature | Status | Notes |
+|----|---------|--------|-------|
+| 4.1 | Category monthly/yearly view + chart | 🟡 | Category bar chart exists; no M/Y toggle |
+| 4.2 | Savings rate colour bands | 🟡 | KPI + tone; no explicit &lt;10 / 10–20 / &gt;20% bands |
+
+### 5. Cross-cutting / platform
+
+| ID | Feature | Status | Notes |
+|----|---------|--------|-------|
+| 5.1 | Currency & locale formatting | 🟡 | Per-locale symbols; lakhs/crores compact TBD |
+| 5.2 | Scenario save/compare (localStorage) | 🟡 | Loan persistence only; named multi-scenario TBD |
+| 5.3 | Tax-aware effective interest rate | ⬜ | Optional post-tax rate on loan |
+| 5.4 | SEO / JSON-LD | ✅ | §8, §10.47, `seo.test.ts` |
+| 5.5 | README / architecture notes | 🟡 | Basic README; formulas/stack depth TBD |
+
+### Gap-fill checklist (rollup)
+
+- [x] 1.2 Prepayment fee modeling
+- [x] 1.3 Reduce EMI vs Reduce Tenure
+- [x] 1.4 Amortisation CSV export
+- [x] 5.4 JSON-LD structured data
+- [ ] 2.1 Retirement real/nominal **display toggle**
+- [ ] 5.1 Lakhs/crores + locale formatting polish
+- [ ] 3.1–3.2 SIP + PPF calculators
+- [ ] 5.2 Named scenario save/compare (all tabs)
+- [ ] 2.2 Retirement drawdown phase
+- [ ] 1.1 Payment timing (advance/arrears)
+- [ ] 1.4b PDF amortisation export
+- [ ] 3.3–3.5 SSY, Gratuity, Lumpsum
+- [ ] 4.1 Budget monthly/yearly toggle
+- [ ] 4.2 Savings rate colour bands
+- [ ] 5.3 Tax-aware effective rate
+- [ ] 5.5 README architecture / formula appendix
 
 ---
 
@@ -70,7 +130,7 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 ### A4. Charts & exports (§4.9)
 
 - [ ] Debt tab — total balance over time chart
-- [ ] Retirement tab — nominal corpus by year chart
+- [ ] Retirement tab — nominal corpus by year chart *(line chart exists; verify gap-fill intent)*
 - [ ] Strategies tab — net worth at horizon bar chart
 - [ ] Shared SVG chart components reused across tabs
 - [ ] Richer CSV/JSON export fields where useful
@@ -160,11 +220,11 @@ When picking an item above, copy into the PR or a dated research note:
 
 | Field | Value |
 |-------|-------|
-| **Feature** | _e.g. GAME_BL_MIXED_FEE_ |
-| **SPEC §** | _e.g. SPEC §4.13 Tier P1_ |
+| **Feature** | _e.g. retirement-real-nominal-toggle_ |
+| **SPEC §** | _e.g. §4.11 + gap-fill §2.1_ |
 | **Needs §11 change?** | yes / no |
-| **Branch** | `cursor/…-c501` |
-| **TASKS.md** | phases 0–6 checked |
+| **Branch** | `cursor/…-a929` |
+| **TASKS.md** | gap-fill slice checklist |
 | **Tests** | unit / goldens / e2e |
 | **CHANGELOG** | `[Unreleased]` updated if user-facing |
 

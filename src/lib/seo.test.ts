@@ -230,7 +230,7 @@ describe("seo", () => {
     });
 
     it("updates document SEO tags for a tab", () => {
-      updatePageSeo("strategies", "https://example.com/app");
+      updatePageSeo("strategies", "https://example.com/app", "IN");
 
       expect(document.title).toBe(
         "Loan Repayment Strategy Comparison | FinancialPlanner",
@@ -243,6 +243,20 @@ describe("seo", () => {
       );
       expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(
         "https://example.com/app/strategies",
+      );
+      expect(document.querySelector('meta[property="og:locale"]')?.getAttribute("content")).toBe(
+        "en_IN",
+      );
+    });
+
+    it("sets og:locale from app locale", () => {
+      updatePageSeo("loan", "https://example.com/app", "US");
+      expect(document.querySelector('meta[property="og:locale"]')?.getAttribute("content")).toBe(
+        "en_US",
+      );
+      updatePageSeo("loan", "https://example.com/app", "UK");
+      expect(document.querySelector('meta[property="og:locale"]')?.getAttribute("content")).toBe(
+        "en_GB",
       );
     });
 

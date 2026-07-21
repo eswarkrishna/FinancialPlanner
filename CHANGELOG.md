@@ -17,6 +17,11 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ## [Unreleased]
 
+### Removed
+
+- **Release notifications (former §4.15)** — browser notification consent strip, in-app “new version” banner, service worker (`sw.js`), `version.json` polling, and related CI verify scripts.
+- **Google Fonts CDN** — Inter is self-hosted via `@fontsource/inter`; CSP no longer allows `fonts.googleapis.com`.
+
 ### Fixed
 
 - **Canonical URL double-composition (§10.59)** — built-shell `<link rel="canonical">` and `og:url` no longer duplicate the deploy base (`…/FinancialPlanner/FinancialPlanner/…`); sitemap `<loc>` values match `tabPageUrl()` for every tab.
@@ -24,6 +29,12 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Changed
 
+- **`og:locale`** — runtime updates per IN/US/UK locale (not hardcoded `en_IN` only).
+- **`dist/404.html`** — `robots` `noindex` so error pages are not indexed with the home canonical.
+- **README (Phase 2)** — screenshot lead, value prop, GA detail in [`docs/ANALYTICS.md`](docs/ANALYTICS.md); Android maintenance-only.
+- **KPI strip** — bolder teal headline numbers (`.kpi-card dd`).
+- **§10 numbering** — E2E 29–39, Android 40–41 (removed duplicate collision with retired release-notification tests).
+- **FEATURE-ROADMAP** — game Tier P1 frozen; US/UK maintenance mode; Android deprioritized.
 - **README** — removed “Connect to GitHub” boilerplate; analytics section documents the web consent strip before GA4 loads (§5.1.2).
 - **Loan & game UI copy** — baseline wording, removed internal codes from game payoff matrix, hide comparison KPI on baseline view.
 - **Analytics** — virtual page views fire only after consent accept (`App.tsx`).

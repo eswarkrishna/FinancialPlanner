@@ -90,6 +90,16 @@ for (const tab of PLANNER_TABS) {
   }
 }
 
+const notFoundPath = path.join(distDir, "404.html");
+if (!fs.existsSync(notFoundPath)) {
+  failures.push("404.html: missing");
+} else {
+  const notFoundHtml = fs.readFileSync(notFoundPath, "utf8");
+  if (!notFoundHtml.includes('content="noindex"')) {
+    failures.push("404.html: must include robots noindex meta");
+  }
+}
+
 const sitemapPath = path.join(distDir, "sitemap.xml");
 if (fs.existsSync(sitemapPath)) {
   const sitemap = fs.readFileSync(sitemapPath, "utf8");

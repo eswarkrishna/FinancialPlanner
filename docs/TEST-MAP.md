@@ -34,8 +34,8 @@ manual smoke checks.
 | 10.47 | JSON-LD WebApplication + BreadcrumbList, sitemap lastmod (§8) | `src/lib/seo.test.ts`, `src/App.test.tsx` |
 | 10.52 | Path-slug canonical URLs (`tabPageUrl`, `getTabFromLocation`) | `src/lib/seo.test.ts` |
 | 10.53 | Legacy `/?tab=` redirect preserves other query params | `src/lib/seo.test.ts`, `src/App.test.tsx` |
-| 10.54 | Build emits per-slug `index.html` + `404.html` | `scripts/verify-release-deploy.mjs`, `scripts/verify-release-artifacts.test.mjs` |
-| 10.55 | Per-shell `<noscript>` with calculator copy + sibling links | `src/lib/seo.test.ts`, `scripts/verify-release-deploy.mjs` |
+| 10.54 | Build emits per-slug `index.html` + `404.html` with `noindex` on 404 | `scripts/verify-seo-signoff.ts` (`npm run verify:seo`) |
+| 10.55 | Per-shell `<noscript>` with calculator copy + sibling links | `src/lib/seo.test.ts`, `scripts/verify-seo-signoff.ts` |
 | 10.56 | One keyword `<h1>` per active tab panel | `src/App.test.tsx`, `e2e/specs/app-shell.spec.ts` |
 | 10.57 | ≥1 contextual internal `<a href>` per tab | `src/lib/tabPageContent.test.ts`, `src/App.test.tsx` |
 | 10.58 | Explainer copy 100–200 words per tab | `src/lib/tabPageContent.test.ts`, `src/App.test.tsx` |
@@ -46,12 +46,8 @@ manual smoke checks.
 | 10.51 | Reduce EMI vs Reduce Tenure panel selects schedule (§4.4.2) | `src/features/loan/hooks/buildComparisonRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |
 | 10.23 | Tier 2 analytics consent gate | `src/hooks/useAnalyticsBootstrap.test.ts`, `src/App.test.tsx` |
 | 10.24 | Tier 2 `web_vitals` sample | `src/lib/analytics.test.ts`, `src/lib/analytics/webVitals.ts` |
-| 10.28 | Release consent persisted (`accept` / `reject`) | `src/lib/notifications/consent.test.ts`, `src/lib/notifications/useReleaseNotifications.test.tsx`, `src/App.test.tsx` |
-| 10.29 | New version detection (sha change, first baseline silent) | `src/lib/notifications/versionCheck.test.ts`, `src/lib/notifications/releaseNotifications.test.ts` |
-| 10.30 | Notification copy includes short commit id | `src/lib/notifications/browserNotifications.test.ts`, `src/lib/notifications/constants.ts` |
-| 10.31 | In-app update strip with reload/dismiss | `src/components/NewVersionBanner.test.tsx`, `src/App.test.tsx`, `src/lib/notifications/useReleaseNotifications.test.tsx` |
-| 10.32 | Build emits `version.json` + valid `sw.js` | `scripts/verify-release-deploy.mjs` (CI + `npm run verify:release`) |
-| 10.33 | Production `version.json` + `sw.js` reachable | `scripts/verify-production-release.mjs` (`npm run verify:production`) |
+| 10.29–39 | Browser E2E smoke (shell, navigation, loan, locale, budget) | `e2e/specs/*.spec.ts`, `npm run test:e2e` |
+| 10.40–41 | Android Capacitor sync + debug APK | `scripts/verify-android-sync.mjs`, `.github/workflows/ci.yml` |
 
 ## Golden contracts
 
@@ -80,8 +76,6 @@ Run `npm run dev` and verify:
 3. Retirement scenario select updates yearly timeline heading/content.
 4. Footer disclaimer text from SPEC §14 is visible on the main dashboard.
 5. Footer shows **Latest push** with commit date and linked short SHA (§8 deploy metadata).
-6. **Release notifications (§4.15):** consent strip appears on first visit; **No thanks** hides it; after simulating a new deploy (`lastSeen` ≠ build sha) the update banner shows **Reload**.
-7. **Production smoke (optional):** `npm run verify:production` — fetches live `version.json` and `sw.js`.
 
 ## SEO sign-off (Phases 12–13)
 

@@ -12,7 +12,7 @@
 **Version:** 1.4  
 **Audience:** Engineers / Cursor agents implementing the US locale  
 **Locale:** United States (USD; optional thousands separators in UI)  
-**Status:** Partially implemented — loan, debt, retirement, strategy tabs and US goldens ship in code; remaining gaps tracked in §13 (game profile aliases `GAME_US_*`, full `_inr` field rename deferred).
+**Status:** Partially implemented — loan, debt, retirement, strategy tabs and US goldens ship in code; remaining gaps tracked in §13. **Maintenance mode (2026-07):** bugfixes only; no new US parity features until the India prepayment wedge wins — see [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
 **Parity target:** Same planner tabs and decision surfaces as India locale for **employed US workers** modeling mortgage payoff, multi-debt, retirement, repayment strategies, and strategic games.
 
 ---

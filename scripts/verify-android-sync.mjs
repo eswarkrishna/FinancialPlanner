@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** docs/SPEC.md §5.2 / §10.34 — verify Capacitor sync copied the web bundle into Android assets. */
+/** docs/SPEC.md §5.2 / §10.40 — verify Capacitor sync copied the web bundle into Android assets. */
 
 import fs from "node:fs";
 import path from "node:path";

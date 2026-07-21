@@ -3,28 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithLocale } from "./test/renderWithLocale";
 import { App } from "./App";
-import {
-  LAST_SEEN_COMMIT_SHA_KEY,
-  RELEASE_CONSENT_LEAD,
-  RELEASE_NOTIFICATION_CONSENT_KEY,
-} from "./lib/notifications/constants";
-import * as buildInfo from "./lib/buildInfo";
 import { countWords, getTabExplainer } from "./lib/tabPageContent";
 import { ANALYTICS_CONSENT_LEAD, ANALYTICS_CONSENT_KEY } from "./lib/analytics/consent";
 import { isAnalyticsInitialized } from "./lib/analytics";
 import { PLANNER_TABS, tabPathname } from "./lib/seo";
-
-function mockNotificationApi() {
-  class MockNotification {
-    static permission: NotificationPermission = "default";
-    static requestPermission = vi.fn(async () => "granted" as NotificationPermission);
-  }
-  Object.defineProperty(window, "Notification", {
-    configurable: true,
-    writable: true,
-    value: MockNotification,
-  });
-}
 
 describe("App shell composition", () => {
   it("renders tab navigation and shows only the loan planner by default", async () => {
@@ -206,50 +188,5 @@ describe("analytics consent (§5.1.2 / §10.23)", () => {
     expect(screen.queryByText(ANALYTICS_CONSENT_LEAD)).not.toBeInTheDocument();
     expect(localStorage.getItem(ANALYTICS_CONSENT_KEY)).toBe("accept");
     expect(isAnalyticsInitialized()).toBe(true);
-  });
-});
-
-describe("release notifications (§4.15)", () => {
-  beforeEach(() => {
-    localStorage.clear();
-    mockNotificationApi();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("shows release notification consent until dismissed", () => {
-    renderWithLocale(<App />);
-    expect(screen.getByText(RELEASE_CONSENT_LEAD)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /enable notifications/i }),
-    ).toBeInTheDocument();
-  });
-
-  it("hides consent after No thanks", async () => {
-    const user = userEvent.setup();
-    renderWithLocale(<App />);
-
-    await user.click(screen.getByRole("button", { name: /no thanks/i }));
-
-    expect(screen.queryByText(RELEASE_CONSENT_LEAD)).not.toBeInTheDocument();
-    expect(localStorage.getItem(RELEASE_NOTIFICATION_CONSENT_KEY)).toBe("reject");
-  });
-
-  it("shows new version banner when last seen sha differs from build", () => {
-    localStorage.setItem(RELEASE_NOTIFICATION_CONSENT_KEY, "accept");
-    localStorage.setItem(LAST_SEEN_COMMIT_SHA_KEY, "old-sha");
-    vi.spyOn(buildInfo, "getBuildInfo").mockReturnValue({
-      commitSha: "new-sha",
-      commitShort: "new5678",
-      commitIsoDate: "2026-07-08T10:00:00.000Z",
-      githubRepo: "eswarkrishna/FinancialPlanner",
-    });
-
-    renderWithLocale(<App />);
-
-    expect(screen.getByText(/A new version is available/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^reload$/i })).toBeInTheDocument();
   });
 });

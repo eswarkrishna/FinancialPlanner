@@ -17,15 +17,11 @@ import { LocaleSegment } from "./components/LocaleSegment";
 import { TabPageHeading } from "./components/TabPageHeading";
 import { TabExplainer } from "./components/TabExplainer";
 import { RelatedCalculators } from "./components/RelatedCalculators";
-import { NewVersionBanner } from "./components/NewVersionBanner";
-import { ReleaseNotificationConsent } from "./components/ReleaseNotificationConsent";
 import { useAnalyticsBootstrap } from "./hooks/useAnalyticsBootstrap";
 import { useAnalyticsLifecycle } from "./hooks/useAnalyticsLifecycle";
 import { TabCalculatorSection, TabSectionLoading } from "./components/TabCalculatorSection";
 import { useLocale } from "./features/locale/LocaleContext";
 import type { Locale } from "./lib/locale/types";
-import { useReleaseNotifications } from "./lib/notifications/useReleaseNotifications";
-
 function focusTab(tabId: TabId) {
   document.getElementById(`tab-${tabId}`)?.focus();
 }
@@ -66,15 +62,6 @@ export function App() {
   const [activeTab, setActiveTab] = useState<TabId>(() => redirectLegacyTabQuery());
   const { locale, switchLocale } = useLocale();
   const {
-    showConsent,
-    showNewVersion,
-    newVersionShort,
-    acceptNotifications,
-    rejectNotifications,
-    dismissNewVersion,
-    reloadForUpdate,
-  } = useReleaseNotifications();
-  const {
     analyticsActive,
     showAnalyticsConsent,
     acceptAnalytics,
@@ -95,11 +82,11 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    updatePageSeo(activeTab);
+    updatePageSeo(activeTab, undefined, locale);
     if (analyticsActive) {
       trackPageView(`tab/${activeTab}`, pageTitle(activeTab));
     }
-  }, [activeTab, analyticsActive]);
+  }, [activeTab, analyticsActive, locale]);
 
   useEffect(() => {
     const lang = locale === "US" ? "en-US" : locale === "UK" ? "en-GB" : "en-IN";
@@ -221,23 +208,6 @@ export function App() {
 
       {showAnalyticsConsent ? (
         <AnalyticsConsent onAccept={acceptAnalytics} onReject={rejectAnalytics} />
-      ) : null}
-
-      {showConsent ? (
-        <ReleaseNotificationConsent
-          onAccept={() => {
-            void acceptNotifications();
-          }}
-          onReject={rejectNotifications}
-        />
-      ) : null}
-
-      {showNewVersion && newVersionShort ? (
-        <NewVersionBanner
-          shortCommit={newVersionShort}
-          onReload={reloadForUpdate}
-          onDismiss={dismissNewVersion}
-        />
       ) : null}
 
       <AppFooter activeTab={activeTab} locale={locale} />

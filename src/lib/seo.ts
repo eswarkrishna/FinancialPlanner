@@ -287,8 +287,19 @@ function upsertLink(rel: string, href: string): void {
 
 const STRUCTURED_DATA_SCRIPT_ID = "seo-structured-data";
 
+/** Map BCP 47 language tag or app locale to Open Graph locale (§8). */
+export function ogLocaleFromLang(lang: string): string {
+  if (lang === "en-US") return "en_US";
+  if (lang === "en-GB") return "en_GB";
+  return "en_IN";
+}
+
 /** Update title, description, canonical, social tags, and JSON-LD for the active tab. */
-export function updatePageSeo(tabId: TabId, siteUrl = getSiteUrl()): void {
+export function updatePageSeo(
+  tabId: TabId,
+  siteUrl = getSiteUrl(),
+  locale?: "IN" | "US" | "UK",
+): void {
   if (typeof document === "undefined") {
     return;
   }
@@ -297,6 +308,8 @@ export function updatePageSeo(tabId: TabId, siteUrl = getSiteUrl()): void {
   const description = pageDescription(tabId);
   const canonical = tabPageUrl(tabId, siteUrl);
   const image = `${resolveSiteUrl(siteUrl)}/og-image.png`;
+  const ogLocale =
+    locale === "US" ? "en_US" : locale === "UK" ? "en_GB" : "en_IN";
 
   document.title = title;
   upsertMeta('meta[name="description"]', { name: "description", content: description });
@@ -309,6 +322,7 @@ export function updatePageSeo(tabId: TabId, siteUrl = getSiteUrl()): void {
   });
   upsertMeta('meta[property="og:url"]', { property: "og:url", content: canonical });
   upsertMeta('meta[property="og:image"]', { property: "og:image", content: image });
+  upsertMeta('meta[property="og:locale"]', { property: "og:locale", content: ogLocale });
 
   upsertMeta('meta[name="twitter:title"]', { name: "twitter:title", content: title });
   upsertMeta('meta[name="twitter:description"]', {
@@ -473,6 +487,7 @@ export function buildIndexHtmlReplacements(
     __SEO_DESCRIPTION__: description,
     __SEO_CANONICAL__: canonical,
     __SEO_OG_IMAGE__: image,
+    __SEO_OG_LOCALE__: "en_IN",
     __SEO_JSON_LD__: jsonLd,
     __SEO_NOSCRIPT__: buildNoscriptHtml(tabId, routerBase),
   };

@@ -15,12 +15,14 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **in progress**; then inflation, locale formatting, SIP/PPF, scenarios
-2. UK locale completion + game theory Tier P1  
-3. Loan engine polish (timing / EMI / deterministic rate stress)  
-4. Charts, exports, persistence UX  
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; next: floating rates, lakh/crore formatting, SIP/PPF, bank validation
+2. Loan engine polish (timing / EMI / deterministic rate stress)  
+3. Charts, exports, persistence UX  
+4. **Web traffic first** — India wedge on the public SPA; Android/Capacitor maintenance-only (no new native features until web wins)
 5. Canada locale **or** multi-creditor games (after SPEC bump)  
 6. Platform (iOS, PDF)
+
+**Frozen (architecture review Phase 2):** §4.13 game theory Tier **P1** profiles — shipped P0 only; no new spec or UI until India prepayment wedge lands. US/UK locale specs in **maintenance mode** (bugfixes, no new parity features).
 
 ---
 
@@ -41,7 +43,9 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 
 ## A — Highest leverage (in or near SPEC)
 
-### A1. Game theory Tier P1 (§4.13)
+### A1. Game theory Tier P1 (§4.13) — **frozen at P0**
+
+> No new Tier P1 profiles, goldens, or Strategic-tab UI until the India prepayment wedge ships (architecture review Phase 2).
 
 - [ ] `GAME_BLH_SIM_FULL` — borrower + lender + household simultaneous
 - [ ] `GAME_BLN_SEQ_N_FEE` — unemployment timing + lender fee
@@ -52,7 +56,9 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [ ] Goldens under `src/test/fixtures/game/` for each new profile (§15.2)
 - [ ] Resolve open questions §13.1–§13.4 (default lender objective, Pareto cap, export grid, rate-bump order)
 
-### A2. UK locale completion (`SPEC-UK.md`)
+### A2. UK locale completion (`SPEC-UK.md`) — **maintenance mode**
+
+> Bugfixes only; no new parity features until India wedge wins.
 
 - [ ] Audit engine/UI/goldens vs SPEC-UK (redundancy / JSA / SMI bridge)
 - [ ] ISA / GIA sleeve parity with strategy + job-loss cashflow
@@ -119,7 +125,9 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [ ] Side-by-side scenario compare (e.g. job loss month 12 vs 24) without full re-entry
 - [ ] JSON import/export parity across tabs where missing
 
-### C2. Native & distribution
+### C2. Native & distribution — **deprioritized (web first)**
+
+> Capacitor Android shell remains buildable for smoke tests; no new native work until public web traffic validates the India wedge.
 
 - [ ] iOS Capacitor shell (**§11 Android non-goal today** — needs SPEC §5.2 revision)
 - [ ] Play / App Store listing notes (out of automation scope unless SPEC changes)

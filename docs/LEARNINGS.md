@@ -20,6 +20,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-21 — Phase 2 cut & clean (release notifications removed)
+
+- **Context:** Architecture review §3–§4 / [`TASKS-ARCHITECTURE-ROADMAP.md`](TASKS-ARCHITECTURE-ROADMAP.md) Phase 2.
+- **What we learned:** Deploy notification UI (consent strip + bell-adjacent patterns + service worker) added complexity without helping loan-calculator users; it also competed visually with analytics consent and occluded footer content.
+- **Action:** Removed §4.15 implementation entirely; moved to §11 non-goals. Renumbered §10 E2E/Android bullets to eliminate 34–36 collision. Self-host Inter; 404 `noindex`; freeze game P1 and US/UK parity in FEATURE-ROADMAP.
+
+---
+
 ## 2026-07-21 — Analytics consent restored (Phase 1 trust-breakers)
 
 - **Context:** Architecture review §2.2; SPEC §5.1.2 / §10.23; prior 2026-07-10 note had removed the banner.

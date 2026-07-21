@@ -707,9 +707,10 @@ tbody tr:hover {
 
 .kpi-card dd {
   margin: 0.25rem 0 0;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--text);
+  letter-spacing: -0.02em;
+  color: var(--accent-strong);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1137,9 +1138,7 @@ tbody tr:hover {
   color: var(--text);
 }
 
-.release-notification-consent,
-.analytics-consent,
-.new-version-banner {
+.analytics-consent {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -1156,26 +1155,20 @@ tbody tr:hover {
   box-shadow: var(--shadow-sm);
 }
 
-.release-notification-consent p,
-.analytics-consent p,
-.new-version-banner p {
+.analytics-consent p {
   margin: 0;
   flex: 1;
   min-width: 12rem;
 }
 
-.release-notification-actions,
-.analytics-consent-actions,
-.new-version-actions {
+.analytics-consent-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
 }
 
-.release-notification-accept,
-.analytics-consent-accept,
-.new-version-reload {
+.analytics-consent-accept {
   border: 1px solid var(--accent);
   background: var(--accent-active-bg);
   color: var(--accent-active-text);
@@ -1186,14 +1179,7 @@ tbody tr:hover {
   cursor: pointer;
 }
 
-.release-notification-accept:hover,
-.new-version-reload:hover {
-  background: var(--accent-active-hover);
-}
-
-.release-notification-reject,
-.analytics-consent-reject,
-.new-version-dismiss {
+.analytics-consent-reject {
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -1203,21 +1189,13 @@ tbody tr:hover {
   border-radius: 4px;
 }
 
-.new-version-dismiss {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.release-notification-reject:hover,
-.new-version-dismiss:hover {
+.analytics-consent-reject:hover {
   color: var(--text);
   background: var(--surface-subtle);
 }
 
-.release-notification-accept:focus-visible,
-.release-notification-reject:focus-visible,
-.new-version-reload:focus-visible,
-.new-version-dismiss:focus-visible {
+.analytics-consent-accept:focus-visible,
+.analytics-consent-reject:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

@@ -1,8 +1,10 @@
 # FinancialPlanner
 
-**Live demo:** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/) — free loan, debt, retirement, and budget calculators (India, US, UK).
+![FinancialPlanner loan and prepayment calculators](public/og-image.png)
 
-India-focused **loan payoff simulator** planning tool: reducing-balance loans, prepayment strategies, optional unemployment + staged PF withdrawals, and scenario comparison. Behaviour is defined in **`docs/SPEC.md`** (spec-driven development).
+**Live demo:** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)
+
+Spec-driven home-loan simulator for India (with US/UK locales): compare prepayment strategies, model unemployment with staged PF withdrawals, and audit amortisation schedules with bank-style reducing-balance math. Every formula and acceptance test lives in [`docs/SPEC.md`](docs/SPEC.md) so outputs stay reproducible; when we publish bank parity cases they will appear in [`docs/VALIDATION.md`](docs/VALIDATION.md) (Phase 5 wedge).
 
 ## Quick start
 
@@ -17,22 +19,6 @@ npm run test:e2e:full
 npm run build
 ```
 
-## Android app (Capacitor)
-
-The same SPA ships as a native **Android** app via [Capacitor](https://capacitorjs.com/) (`android/`). Behaviour is defined in `docs/SPEC.md` §5.2.
-
-**Prerequisites:** [Android Studio](https://developer.android.com/studio) (or Android SDK + **JDK 21** — Capacitor 8), `ANDROID_HOME` set.
-
-```bash
-npm install
-npm run cap:sync          # build mobile bundle + copy into android/
-npm run verify:android    # check synced assets (§10.34)
-npm run android:open      # open project in Android Studio
-npm run android:assemble  # debug APK → android/app/build/outputs/apk/debug/
-```
-
-Mobile builds use `VITE_BASE=./` so asset paths work inside the WebView. Release notifications (§4.15) are disabled in the native shell; users update via a new APK / Play Store install.
-
 ## Documentation
 
 | Document | Purpose |
@@ -42,6 +28,7 @@ Mobile builds use `VITE_BASE=./` so asset paths work inside the WebView. Release
 | [docs/TASKS.md](docs/TASKS.md) | Feature delivery checklist (mark tasks done) |
 | [docs/TASKS-SEO.md](docs/TASKS-SEO.md) | SEO gap-fill phased checklist |
 | [docs/SEO-SIGNOFF.md](docs/SEO-SIGNOFF.md) | SEO sign-off & ship (Phases 12–13) |
+| [docs/ANALYTICS.md](docs/ANALYTICS.md) | Optional GA4 setup and consent behaviour |
 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
 | [docs/research/](docs/research/) | Spikes and research notes |
@@ -64,12 +51,7 @@ Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/page
 
 **Live URL (after enable):** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)
 
-GitHub does **not** offer Pages on **private** repos with the free plan. Either:
-
-1. **Make the repo public** (recommended for this open calculator): GitHub → **Settings → General → Danger zone → Change visibility**, or  
-   `gh repo edit --visibility public --accept-visibility-change-consequences`
-2. Use a **paid** GitHub plan that includes Pages on private repos, or  
-3. Use **AWS** below, or connect the repo to [Cloudflare Pages](https://pages.cloudflare.com/) / [Netlify](https://www.netlify.com/) (both work with private repos).
+GitHub does **not** offer Pages on **private** repos with the free plan. Either make the repo public, use a paid plan, deploy via AWS (below), or connect to [Cloudflare Pages](https://pages.cloudflare.com/) / [Netlify](https://www.netlify.com/).
 
 Then: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
@@ -84,32 +66,25 @@ npm run build
 
 For S3 + CloudFront + your own domain, follow [`infra/README.md`](infra/README.md), set GitHub secrets `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, and `AWS_DEPLOY_ROLE_ARN`, then use [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
-### Google Analytics (optional)
-
-The measurement ID is baked in at **build time** (or dev-server start). Defaults live in [`.env.production`](.env.production) (CI/production builds) and [`.env.development`](.env.development) (`npm run dev`).
-
-1. Create a [GA4 property](https://analytics.google.com/) and copy the **Measurement ID** (`G-XXXXXXXXXX`).
-2. **Production:** update `.env.production`, or set GitHub Actions secret `VITE_GA_MEASUREMENT_ID` to override it on deploy. Redeploy by pushing to `main` or re-running the workflow.
-3. **Local:** `npm run dev` picks up `.env.development`. To override or disable, use `.env.local` (see [`.env.example`](.env.example)).
-
-The home page and each tab send virtual page views (`/FinancialPlanner/`, `/FinancialPlanner/debt`, etc.). Named interaction events (tab changes, exports, locale switches, etc.) are sent per `docs/SPEC.md` §5.1—loan inputs and personal data are not transmitted. When the measurement ID is set, the web app shows an accept/decline consent strip before loading GA4; your choice is stored in `localStorage`. See footer terms for the privacy note and Google’s opt-out add-on.
-
 ### User feedback
 
 Every page footer includes **Report on GitHub**, which opens a new issue on the repo (`VITE_GITHUB_REPO`, default `eswarkrishna/FinancialPlanner`).
 
 ### SEO
 
-Build-time and runtime SEO use `VITE_SITE_URL` (default in `.env.production`: GitHub Pages demo URL). Conventions follow SPEC §8 “SEO metadata” (patterns from [`docs/research/2026-07-financial-sites-seo.md`](docs/research/2026-07-financial-sites-seo.md)).
+Build-time and runtime SEO use `VITE_SITE_URL` (default in `.env.production`: GitHub Pages demo URL). Conventions follow SPEC §8.
 
 - **Titles/descriptions:** keyword-first per-tab titles (`{Keyword} | FinancialPlanner`) and unique 120–160-char descriptions
-- **Meta tags:** description, robots (`max-image-preview:large`), theme-color, canonical, Open Graph (`og:site_name`, `og:locale`, `og:image:alt`), Twitter cards
-- **JSON-LD:** `WebApplication` (feature list, `isAccessibleForFree`, publisher `sameAs` → GitHub) plus `BreadcrumbList` on non-loan tabs; refreshed on tab change
-- **Assets:** `public/favicon.svg`, `public/og-image.png`
-- **Tab URLs:** `?tab=loan|debt|retirement|strategies|strategic|budget` (updates `document.title`, meta tags, and JSON-LD)
-- **Generated on build:** `dist/robots.txt`, `dist/sitemap.xml` (with `<lastmod>` from the build commit date)
+- **Meta tags:** description, robots (`max-image-preview:large`), theme-color, canonical, Open Graph (`og:site_name`, per-locale `og:locale`, `og:image:alt`), Twitter cards
+- **JSON-LD:** `WebApplication` plus `BreadcrumbList` on non-loan tabs
+- **Assets:** `public/favicon.svg`, `public/og-image.png`; Inter font self-hosted via `@fontsource/inter`
+- **Generated on build:** `dist/robots.txt`, `dist/sitemap.xml`, per-route HTML shells, `dist/404.html` with `noindex`
 
-Override `VITE_SITE_URL` when deploying to a custom CloudFront domain.
+Run `npm run verify:seo` after build for automated shell checks.
+
+### Android (maintenance-only)
+
+A Capacitor shell exists under `android/` for smoke builds (`npm run cap:sync`). **Web traffic is the priority**; no new native features until the India loan wedge wins. See `docs/OVERVIEW.md` and SPEC §5.2.
 
 ## Licence
 

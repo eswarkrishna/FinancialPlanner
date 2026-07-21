@@ -25,14 +25,13 @@
     "test:automation": "npm run test && npm run test:e2e:full",
     "audit:a11y": "npx tsx scripts/a11y-audit.ts",
     "audit:lighthouse": "node scripts/lighthouse-audit.mjs",
-    "verify:release": "vitest run src/lib/notifications src/components/ReleaseNotificationConsent.test.tsx src/components/NewVersionBanner.test.tsx && node --test scripts/verify-release-artifacts.test.mjs && npm run build && node scripts/verify-release-deploy.mjs",
-    "verify:production": "node scripts/verify-production-release.mjs",
     "verify:seo": "npm run build && npx tsx scripts/verify-seo-signoff.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
+    "@fontsource/inter": "^5.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "web-vitals": "^4.2.4",

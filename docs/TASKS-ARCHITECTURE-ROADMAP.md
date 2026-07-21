@@ -14,8 +14,8 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 |-------|-------|
 | **Initiative** | Architecture review remediation + wedge focus |
 | **Source** | [`research/2026-07-architecture-review-roadmap.md`](research/2026-07-architecture-review-roadmap.md) |
-| **SPEC sections** | §4.4, §4.6, §4.12–§4.15, §5.1.2, §5.2, §8, §10 (new acceptance bullets) |
-| **Branch / PR** | `cursor/phase-1-trust-breakers-d414` / #68 |
+| **SPEC sections** | §4.4, §4.6, §4.12–§4.13, §5.1.2, §5.2, §8, §10, §11 |
+| **Branch / PR** | `cursor/phase-2-cut-clean-d414` |
 | **Started** | 2026-07-21 |
 
 ---
@@ -72,30 +72,30 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 
 ### 2.1 Surface-area cut list (§3)
 
-- [ ] **2.1.1** **Remove** release notifications (§4.15): bell FAB, service worker, `version.json` hourly polling, related consent UI.
-- [ ] **2.1.2** Update SPEC §11 / deferred backlog; remove §4.15 implementation references from code and tests.
-- [ ] **2.1.3** **Freeze** game theory (§4.13) at shipped P0 — no new Tier P1 spec or UI; mark FEATURE-ROADMAP items deferred.
-- [ ] **2.1.4** **Deprioritize** Android / Capacitor (§5.2) — document “web traffic first” in OVERVIEW / FEATURE-ROADMAP; no new native work.
-- [ ] **2.1.5** **Maintenance mode** for US/UK locale specs — no new parity features until India wedge wins.
+- [x] **2.1.1** **Remove** release notifications (§4.15): bell FAB, service worker, `version.json` hourly polling, related consent UI.
+- [x] **2.1.2** Update SPEC §11 / deferred backlog; remove §4.15 implementation references from code and tests.
+- [x] **2.1.3** **Freeze** game theory (§4.13) at shipped P0 — no new Tier P1 spec or UI; mark FEATURE-ROADMAP items deferred.
+- [x] **2.1.4** **Deprioritize** Android / Capacitor (§5.2) — document “web traffic first” in OVERVIEW / FEATURE-ROADMAP; no new native work.
+- [x] **2.1.5** **Maintenance mode** for US/UK locale specs — no new parity features until India wedge wins.
 
 ### 2.2 SEO & platform corrections (§4)
 
-- [ ] **2.2.1** Fix `og:locale`: drop hardcoded `en_IN` or emit per-locale variants for IN/US/UK.
-- [ ] **2.2.2** Add `<meta name="robots" content="noindex">` to `dist/404.html` during `writeBundle` (404 must not carry home canonical).
-- [ ] **2.2.3** Self-host Inter via `@fontsource/inter`; remove Google Fonts request; update CSP.
-- [ ] **2.2.4** Spec hygiene spike: resolve duplicate §10 test numbers (E2E vs Android 34–36 collision); plan split or renumber.
+- [x] **2.2.1** Fix `og:locale`: drop hardcoded `en_IN` or emit per-locale variants for IN/US/UK.
+- [x] **2.2.2** Add `<meta name="robots" content="noindex">` to `dist/404.html` during `writeBundle` (404 must not carry home canonical).
+- [x] **2.2.3** Self-host Inter via `@fontsource/inter`; remove Google Fonts request; update CSP.
+- [x] **2.2.4** Spec hygiene spike: resolve duplicate §10 test numbers (E2E vs Android 34–36 collision); plan split or renumber.
 
 ### 2.3 README & public artifact (§8)
 
-- [ ] **2.3.1** Rewrite README lead: screenshot + three sentences on novel value (spec-driven dev, unemployment + staged-PF stress, bank-validated outputs when available).
-- [ ] **2.3.2** Keep: MIT license, live-demo link, docs table, disclaimer.
-- [ ] **2.3.3** Remove: push-to-GitHub instructions; move GA setup detail to `docs/`.
-- [ ] **2.3.4** Add one distinctive visual element (signature chart style or bold numeric display) — design pass + implement.
+- [x] **2.3.1** Rewrite README lead: screenshot + three sentences on novel value (spec-driven dev, unemployment + staged-PF stress, bank-validated outputs when available).
+- [x] **2.3.2** Keep: MIT license, live-demo link, docs table, disclaimer.
+- [x] **2.3.3** Remove: push-to-GitHub instructions; move GA setup detail to `docs/`.
+- [x] **2.3.4** Add one distinctive visual element (signature chart style or bold numeric display) — design pass + implement.
 
 ### Phase 2 sign-off
 
-- [ ] **2.4** Deploy smoke: no bell FAB; 404 noindex; fonts load from self-host; README accurate.
-- [ ] **2.5** Update `CHANGELOG.md` and `docs/LEARNINGS.md` for major removals.
+- [x] **2.4** Deploy smoke: no bell FAB; 404 noindex; fonts load from self-host; README accurate.
+- [x] **2.5** Update `CHANGELOG.md` and `docs/LEARNINGS.md` for major removals.
 
 ---
 

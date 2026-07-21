@@ -20,7 +20,7 @@ See **SPEC §3** (borrower optimiser, stress tester, comparator).
 | `src/features/strategy/` | §4.12 household inputs, tier presets, strategy comparison + allocation tables. |
 | `src/features/budget/` | §4.16 personal budget, 50/30/20 analysis, investment tracker. |
 | `src/App.tsx` (and other `features/`) | Dashboard inputs, scenario selection, comparison tables, timeline views. |
-| `android/` | Capacitor Android shell (§5.2); `npm run cap:sync` copies `dist/` into the WebView bundle. |
+| `android/` | Capacitor Android shell (§5.2, **maintenance-only** — web traffic first); `npm run cap:sync` copies `dist/` into the WebView bundle. |
 | `docs/SPEC.md` | Source of truth for India locale behaviour and acceptance tests. |
 | `docs/SPEC-US.md` | Source of truth for US locale (401(k), mortgage, USD). |
 | `docs/SPEC-UK.md` | Source of truth for UK locale (redundancy/JSA/SMI bridge, ISA, GBP). |
@@ -47,7 +47,7 @@ flowchart LR
 
 ## Tech stack
 
-Vite, React 19, TypeScript, Zod, Vitest, jsdom, Capacitor 8 (Android native wrapper — see `package.json`, `capacitor.config.ts`, `android/`).
+Vite, React 19, TypeScript, Zod, Vitest, jsdom, `@fontsource/inter` (self-hosted). Capacitor 8 Android wrapper is **maintenance-only** (see `package.json`, `capacitor.config.ts`, `android/`).
 
 ## Testing & quality
 
@@ -76,6 +76,7 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | [TASKS-SEO.md](TASKS-SEO.md) | SEO gap-fill phased checklist |
 | [SEO-SIGNOFF.md](SEO-SIGNOFF.md) | SEO sign-off & ship (Phases 12–13) |
 | [TEST-MAP.md](TEST-MAP.md) | §10 acceptance → tests mapping |
+| [ANALYTICS.md](ANALYTICS.md) | Optional GA4 setup and consent |
 | [TASKS-ARCHITECTURE-ROADMAP.md](TASKS-ARCHITECTURE-ROADMAP.md) | Architecture review phased checklist (trust → cut → mobile → wedge) |
 | [FEATURE-ROADMAP.md](FEATURE-ROADMAP.md) | Backlog of candidate features beyond current ship |
 | [research/2026-07-architecture-review-roadmap.md](research/2026-07-architecture-review-roadmap.md) | Chief-architect review: trust-breakers, cut list, mobile UX, wedge strategy |

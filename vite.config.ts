@@ -3,7 +3,6 @@ import path from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { buildInfoDefine, getGitBuildInfo } from "./scripts/git-build-info";
-import { versionManifestJson } from "./src/lib/notifications/versionManifest";
 import {
   buildIndexHtmlReplacements,
   buildRobotsTxt,
@@ -71,11 +70,11 @@ function seoPlugin(): Plugin {
         path.join(outDir, "sitemap.xml"),
         buildSitemapXml(siteUrl, gitBuildInfo.VITE_BUILD_COMMIT_DATE),
       );
-      fs.writeFileSync(
-        path.join(outDir, "version.json"),
-        versionManifestJson(gitBuildInfo),
+      const notFoundHtml = homeHtml.replace(
+        /<meta name="robots" content="[^"]*"/,
+        '<meta name="robots" content="noindex">',
       );
-      fs.writeFileSync(path.join(outDir, "404.html"), homeHtml);
+      fs.writeFileSync(path.join(outDir, "404.html"), notFoundHtml);
 
       const shellOptions = {
         ...jsonLdOptions,

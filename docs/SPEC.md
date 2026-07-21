@@ -605,34 +605,6 @@ All §4.1–§4.2 loan and asset fields apply to the oracle.
 3. **Recommendation card** — equilibrium or max-min action with link to underlying amortisation scenario.  
 4. **Disclaimer** — §14 plus: “Opponent behaviour is assumed, not predicted.”
 
-### 4.15 Release notifications (web)
-
-Notify visitors when a **new deployed version** of the site is available (git commit baked at build time per §8).
-
-**Consent (first visit until choice)**
-
-- Show a compact non-modal strip above the footer on every visit until the user chooses. Copy: offer to **notify when a new version is released**. Buttons: **“Enable notifications”** / **“No thanks”**.
-- Persist choice in `localStorage` key `financial-planner-release-notification-consent` (`accept` \| `reject`).
-- On **accept**, call the browser `Notification.requestPermission()` API; register a service worker when supported. On **reject**, skip permission and polling.
-- Strip must not block calculator inputs.
-
-**Version detection**
-
-- At build time emit `version.json` in the site root: `{ "sha", "short", "date" }` (same git metadata as §8 footer).
-- Persist `financial-planner-last-seen-commit-sha` in `localStorage` after the user’s first accepted session baseline.
-- A **new version** is when live `version.json` `sha` ≠ stored `lastSeenSha` (and `lastSeenSha` is non-empty).
-- Poll `version.json` with `cache: 'no-store'` on load, when the tab becomes visible, and every **60 minutes** while the tab is open (consent `accept` only).
-
-**Notification delivery**
-
-- If consent is `accept` and permission is `granted`, show a browser notification: title **“FinancialPlanner update”**; body includes short commit id and “open to refresh”. No loan or user financial data.
-- Also show an in-app non-modal strip when a new version is detected on visit: **“A new version is available”** with **Reload** and dismiss (×). Reload performs `location.reload()`. Dismiss and reload must persist the **detected** commit sha (including from remote `version.json` when the tab still runs an older bundle).
-- Service worker (`sw.js`) mirrors remote checks when registered; notification click focuses an open tab or opens the site scope.
-
-**Privacy**
-
-- Store only consent choice and last-seen commit SHA. No server-side push subscription or FCM in v1.
-
 ### 4.16 Personal budget & investment tracker
 
 **Parity:** IN / US / UK with locale-scaled reference amounts (stored field suffix `_inr` per §4.10). Implementation: `src/lib/budget/`, `src/features/budget/`.
@@ -876,7 +848,6 @@ Ship the same React SPA inside a **Capacitor** Android WebView shell (`android/`
 **Platform behaviour**
 
 - **Loan / debt / retirement / strategy / game** — identical domain logic to the web SPA; `localStorage` persistence (§5 form persistence) works in the WebView.
-- **Release notifications (§4.15)** — **fully disabled** in the native shell: no service-worker registration, no browser-notification consent banner, no in-app new-version strip, no `sw.js` polling. Users update via Play Store / sideloaded APK, not live web deploy.
 - **Analytics (§5.1)** — optional when `VITE_GA_MEASUREMENT_ID` is set at mobile build time; same PII rules. Init on load with **no consent banner** in the native shell (§5.1.2).
 - **Exports (CSV / JSON)** — use Capacitor share / download affordances where the WebView allows; file pickers for import follow Android WebView behaviour.
 
@@ -1085,7 +1056,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
   - `WebApplication` — `applicationCategory: FinanceApplication`, `featureList` (one entry per planner tab), `isAccessibleForFree: true`, `inLanguage` (`en-IN`, `en-US`, `en-GB`), `offers` price 0, `dateModified` from build commit date, `publisher` `Organization` with GitHub `sameAs`.
   - `BreadcrumbList` — `Home → {tab label}` for non-loan tabs; omitted on the loan/home tab.
   - No `FAQPage` markup unless matching visible Q&A content exists (Google deprecated FAQ rich results May 2026).
-- **Head hygiene (static in `index.html`):** `robots` meta `index, follow, max-image-preview:large`, `og:site_name`, `og:locale`, `og:image:alt`, `theme-color` (teal accent `#0d9488`). Production builds inject a **Content-Security-Policy** meta tag from `security/content-security-policy.txt`; CloudFront deploys add the same policy as an HTTP response header.
+- **Head hygiene (static in `index.html`):** `robots` meta `index, follow, max-image-preview:large`, `og:site_name`, `og:locale` (default `en_IN` in build shells; runtime updates per IN/US/UK locale switch), `og:image:alt`, `theme-color` (teal accent `#0d9488`). Inter font is **self-hosted** via `@fontsource/inter` (no Google Fonts CDN). Production builds inject a **Content-Security-Policy** meta tag from `security/content-security-policy.txt`; CloudFront deploys add the same policy as an HTTP response header. **`dist/404.html`** carries `robots` `noindex` (must not inherit the home canonical for indexing).
 - **Sitemap:** every tab path URL with `<lastmod>` set to the build commit date (ISO 8601 date); omit `<lastmod>` when git metadata is unavailable. Sitemap uses path slugs, not `?tab=` query strings.
 - Existing rules stay: canonical per tab, OG/Twitter tags mirrored, `robots.txt` + `sitemap.xml` generated on build, no user data in URLs (§5.1).
 
@@ -1094,7 +1065,6 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 - **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
 - **Share on Facebook** — control next to the copy-link action in `AppFooter`. Label: “Share on Facebook”. Opens Facebook’s sharer with the tab URL per §5.1.1 (`utm_source=facebook`, `utm_medium=social`) and fires `share_link_facebook`. No Meta Pixel / Facebook SDK.  
 - **Analytics consent (§5.1.2)** — when GA is enabled in the web app, show accept/decline strip before loading gtag; persist `financial-planner-analytics-consent`. Footer terms disclose GA, `localStorage` sensitivity, and link to Google’s opt-out add-on.  
-- **Release notification consent (§4.15)** — separate strip offering browser notifications for new deploys; persists per §4.15.  
 - **Helpful? (Tier 2, optional)** — thumbs up/down near tab content heading; one vote per tab per session (disable after click).
 
 ### Comparison table columns
@@ -1191,35 +1161,26 @@ Store JSON golden outputs for scenarios `BASE`, `PREPAY_CASH_25L_TENURE`, `UE_PF
 27. **Import error handling:** malformed JSON or missing required numeric fields returns a user-visible error without mutating form state.  
 28. **Import size cap:** JSON files larger than 5 MB are rejected with a user-visible error.
 
-### Release notifications (§4.15)
-
-29. **Consent storage:** `accept` / `reject` persisted; banner hidden after choice.
-30. **New version detection:** when `lastSeenSha` differs from current build sha, `isNewVersionAvailable` is true; first baseline records sha without alerting.
-31. **Notification copy:** granted permission + new version triggers title/body containing short commit id.
-32. **In-app strip:** new version shows reload control; dismiss hides until next version change.
-33. **Deploy artifacts:** `npm run build` produces valid `dist/version.json` and plain-JS `dist/sw.js` (`scripts/verify-release-deploy.mjs`).
-34. **Production smoke:** `npm run verify:production` fetches live `version.json` and `sw.js` from the deployed site (default GitHub Pages URL).
-
 ### Browser automation (E2E smoke)
 
 Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, drives **Puppeteer**). These complement Vitest/jsdom checks with real-browser smoke coverage.
 
-34. **Shell:** app title, disclaimer footer, and terms summary render on first load.  
-35. **Navigation:** all five planner tabs open from URL and tab controls; `?tab=debt` updates the address bar; loan tab clears `tab` query param.  
-36. **Loan reference:** “Load reference scenario” shows comparison + schedule; BASE payoff month = **168**.  
-37. **Reactive inputs:** editing principal changes comparison payoff month without a submit action.  
-38. **Locale:** IN / US / UK segmented control updates `document.documentElement.lang` and principal currency label.  
-39. **Persistence:** edited loan principal survives a full page reload (`localStorage`, §4.9).  
-40. **Planner panels:** debt, retirement, strategies, and strategic tabs render their primary headings.  
-41. **Exports:** after reference load, schedule **Export CSV** and **Export JSON** controls are present.
-42. **Budget tab:** `?tab=budget` renders **Personal budget** heading, KPI strip with savings rate, and 50/30/20 comparison section.
-43. **Budget reference:** IN reference fixture — income ₹1,75,000, expenses ₹1,40,000, net flow ₹35,000, savings rate **20%** (±0.1 pp).
-44. **Budget E2E:** editing an income line updates net cash flow KPI without submit; budget JSON export control present.
+29. **Shell:** app title, disclaimer footer, and terms summary render on first load.  
+30. **Navigation:** all five planner tabs open from URL and tab controls; `?tab=debt` updates the address bar; loan tab clears `tab` query param.  
+31. **Loan reference:** “Load reference scenario” shows comparison + schedule; BASE payoff month = **168**.  
+32. **Reactive inputs:** editing principal changes comparison payoff month without a submit action.  
+33. **Locale:** IN / US / UK segmented control updates `document.documentElement.lang` and principal currency label.  
+34. **Persistence:** edited loan principal survives a full page reload (`localStorage`, §4.9).  
+35. **Planner panels:** debt, retirement, strategies, and strategic tabs render their primary headings.  
+36. **Exports:** after reference load, schedule **Export CSV** and **Export JSON** controls are present.
+37. **Budget tab:** `?tab=budget` renders **Personal budget** heading, KPI strip with savings rate, and 50/30/20 comparison section.
+38. **Budget reference:** IN reference fixture — income ₹1,75,000, expenses ₹1,40,000, net flow ₹35,000, savings rate **20%** (±0.1 pp).
+39. **Budget E2E:** editing an income line updates net cash flow KPI without submit; budget JSON export control present.
+
 ### Android native wrapper (§5.2)
 
-34. **Capacitor sync:** after `npm run cap:sync`, `android/app/src/main/assets/public/index.html` exists and references bundled JS/CSS under `assets/public/`.
-35. **Native release UI:** when `Capacitor.isNativePlatform()` is true, the §4.15 release-notification consent banner, service-worker registration, and in-app new-version strip are all hidden.
-36. **Debug APK:** `npm run android:assemble` completes `assembleDebug` without error when Android SDK is installed (CI optional).
+40. **Capacitor sync:** after `npm run cap:sync`, `android/app/src/main/assets/public/index.html` exists and references bundled JS/CSS under `assets/public/`.
+41. **Debug APK:** `npm run android:assemble` completes `assembleDebug` without error when Android SDK is installed (CI optional).
 
 ### SEO metadata (§8)
 
@@ -1258,11 +1219,13 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Analytics:** third-party ad pixels (Meta, LinkedIn, etc.), fingerprinting, storing full `document.referrer` URLs with query strings, or encoding user financial inputs in share/UTM links (§5.1).
 - **SEO campaigns:** paid link building, guest-posting for backlinks, or meta-description A/B testing (§8 covers on-page SEO only).
 - **Multi-language SEO:** `hreflang` tags or translated calculator pages (English-only UI for now).
-- **Server-side push:** FCM/APNs campaigns or per-user push backends (§4.15 uses browser notifications + `version.json` polling only).
+- **Server-side push:** FCM/APNs campaigns, browser deploy notifications, `version.json` polling, or service-worker update alerts (removed from web v1 — users refresh normally).
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
 **Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
+
+**Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 
 **In scope (v1.2+):** §4.13 Tier **P0** two-player games with discrete actions and deterministic payoffs.
 

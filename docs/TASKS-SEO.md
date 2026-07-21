@@ -99,7 +99,7 @@ flowchart LR
 | [x] | **2.1** Unique `<title>` and `<meta name="description">` per tab — `pageTitle()`, `pageDescription()`, `updatePageSeo()`. |
 | [x] | **2.2** Canonical + OG/Twitter tags update on tab change. |
 | [x] | **2.3** Path routes (`/`, `/debt`, `/retirement`, `/strategies`, `/strategic`, `/budget`) via `getTabFromPathname` / `setTabInUrl`. |
-| [x] | **2.4** Build emits `dist/{slug}/index.html` + `dist/404.html`; verified by `verify-release-deploy.mjs`. |
+| [x] | **2.4** Build emits `dist/{slug}/index.html` + `dist/404.html` (`noindex` on 404); verified by `npm run verify:seo`. |
 | [x] | **2.5** Legacy `/?tab=` redirects via `redirectLegacyTabQuery()` (UTM params preserved). |
 | [x] | **2.6** E2E: `navigation.spec.ts` + `e2e/helpers/page.ts` use path URLs. |
 

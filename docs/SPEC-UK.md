@@ -12,7 +12,7 @@
 **Version:** 1.0  
 **Audience:** Engineers / Cursor agents implementing the UK locale  
 **Locale:** United Kingdom (GBP; `en-GB` number formatting)  
-**Status:** Specced — not yet implemented. No UK code ships until this spec's §10 acceptance tests are mapped to Vitest + goldens.  
+**Status:** Specced — not yet implemented. No UK code ships until this spec's §10 acceptance tests are mapped to Vitest + goldens. **Maintenance mode (2026-07):** no new UK parity features until the India prepayment wedge wins — see [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).  
 **Parity target:** Same planner tabs and decision surfaces as India and US locales for **employed UK workers** modelling mortgage payoff, multi-debt, retirement, repayment strategies, and strategic games.
 
 > **Core design decision (differs from IN / US):** UK workplace/personal pensions are **legally inaccessible** before normal minimum pension age (**55**, rising to **57 on 6 April 2028**) except ill-health or protected pension ages. The UK locale therefore has **no staged pension-withdrawal tranche module**. The job-loss bridge (§4.7) is built from **redundancy pay, New Style JSA, ISA/GIA draws, and Support for Mortgage Interest (SMI)** instead. The pension pot is projection-only (§4.11–§4.12).

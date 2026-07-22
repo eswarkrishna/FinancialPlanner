@@ -100,6 +100,7 @@ describe("seo", () => {
       "retirement",
       "ppf",
       "sip",
+      "ssy",
       "payoff-strategies",
       "what-if-games",
       "budget",

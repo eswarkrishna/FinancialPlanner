@@ -154,8 +154,8 @@ export function App() {
                 <LocaleSegment value={locale} onChange={onLocaleChange} />
               </div>
               <p className="app-suite-tagline">
-                Eight calculators in one planner — loan, debt, retirement, PPF, SIP, budget, payoff
-                strategies, and what-if games.
+                Nine calculators in one planner — loan, debt, retirement, PPF, SIP, SSY, budget,
+                payoff strategies, and what-if games.
               </p>
               <p className="lede">
                 Plan your home loan, compare prepayment options, model debt and retirement

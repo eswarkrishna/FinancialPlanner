@@ -1,6 +1,15 @@
 /** SEO helpers: tab URLs, titles, meta updates, JSON-LD, sitemap/robots builders (SPEC §8). */
 
-export type TabId = "loan" | "debt" | "retirement" | "ppf" | "sip" | "strategies" | "strategic" | "budget";
+export type TabId =
+  | "loan"
+  | "debt"
+  | "retirement"
+  | "ppf"
+  | "sip"
+  | "ssy"
+  | "strategies"
+  | "strategic"
+  | "budget";
 
 export type PlannerTab = {
   id: TabId;
@@ -48,6 +57,13 @@ export const PLANNER_TABS: PlannerTab[] = [
       "Free SIP calculator for India mutual fund investments. Project maturity value, total invested, and gains from monthly contributions with compounded returns.",
   },
   {
+    id: "ssy",
+    label: "SSY",
+    seoTitle: "SSY Calculator — Sukanya Samriddhi",
+    description:
+      "Free SSY calculator for Sukanya Samriddhi Yojana. Project maturity at age 21 from annual deposits, girl child age, and government-notified interest rates.",
+  },
+  {
     id: "strategies",
     label: "Payoff strategies",
     seoTitle: "Household Payoff Strategy Comparison",
@@ -77,6 +93,7 @@ export const TAB_PATH_SLUG: Record<TabId, string> = {
   retirement: "retirement",
   ppf: "ppf",
   sip: "sip",
+  ssy: "ssy",
   strategies: "payoff-strategies",
   strategic: "what-if-games",
   budget: "budget",

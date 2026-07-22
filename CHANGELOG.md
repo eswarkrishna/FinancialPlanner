@@ -17,6 +17,10 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ## [Unreleased]
 
+### Added
+
+- **SSY calculator (§4.19)** — Sukanya Samriddhi Yojana maturity tab at `/ssy`: girl child age, annual deposits (15-year cap), interest until age 21, yearly timeline, CSV/JSON export, and reference golden (girl age 5, ₹1.5L/year, 8.2% → ₹48,43,020.48).
+
 ### Removed
 
 - **Release notifications (former §4.15)** — browser notification consent strip, in-app “new version” banner, service worker (`sw.js`), `version.json` polling, and related CI verify scripts.

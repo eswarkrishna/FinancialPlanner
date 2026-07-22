@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.7  
+**Version:** 2.8  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9) and **deterministic floating-rate resets** on the loan tab (§4.3.1). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), and the **PPF maturity calculator** (§4.17). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -689,6 +689,57 @@ Educational monthly budget planner with **50/30/20** bucket analysis and manual 
 
 **Persistence (v1.8):** Budget tab form state in `localStorage` per locale (`financial-planner-budget-form-IN`, etc.). Locale switch resets to reference budget for the new locale.
 
+### 4.17 Public Provident Fund (PPF) calculator
+
+**Locale:** India-focused savings instrument; tab is visible for all locales with amounts stored in INR. US/UK users see an India-specific disclaimer. Implementation: `src/lib/ppf/`, `src/features/ppf/`.
+
+Educational PPF maturity projection with annual compounding — complements §4.11 retirement corpus (which may aggregate EPF/NPS/PPF) without modelling EPF rules or tax deduction limits.
+
+#### 4.17.1 Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `opening_balance_inr` | number | no | Default `0` — existing PPF balance |
+| `annual_contribution_inr` | number | yes | Annual deposit; UI warns when outside ₹500–₹1,50,000 band |
+| `interest_rate_pct` | number | yes | Default **7.1%** (government-notified rate for FY 2025–26 Q1; user must verify latest NSC/India Post notification) |
+| `years` | integer | yes | Projection horizon ≥ 1; UI notes 15-year minimum account term |
+
+#### 4.17.2 Computations
+
+Simplified annual model (does **not** model monthly deposit timing or the “lowest balance between 5th and last day” rule):
+
+Each year \(y = 1 \ldots \text{years}\):
+
+- `opening_inr` = balance at start of year (year 1 = `opening_balance_inr`)
+- `interest_inr` = `roundInr((opening_inr + annual_contribution_inr) × interest_rate_pct / 100)`
+- `closing_inr` = `roundInr(opening_inr + annual_contribution_inr + interest_inr)`
+
+Totals:
+
+- `total_contributed_inr` = `annual_contribution_inr × years` (new deposits only; opening balance is separate)
+- `maturity_value_inr` = final `closing_inr`
+- `total_interest_inr` = `maturity_value_inr − opening_balance_inr − total_contributed_inr`
+
+#### 4.17.3 Warnings
+
+| Code | Condition |
+|------|-----------|
+| `PPF_BELOW_MIN` | `0 < annual_contribution_inr < 500` |
+| `PPF_ABOVE_MAX` | `annual_contribution_inr > 150_000` |
+| `PPF_INVALID_YEARS` | `years < 1` |
+
+#### 4.17.4 Outputs
+
+- **KPI strip:** maturity value, total contributed, total interest earned
+- **Yearly table:** year, opening balance, contribution, interest credited, closing balance
+- **Balance growth chart** (line)
+
+**Trust copy:** methodology one-liner near inputs (annual compounding assumption + verify latest notified rate).
+
+**Export:** CSV of yearly timeline + JSON export of inputs and summary.
+
+**Persistence:** PPF tab form state in `localStorage` per locale (`financial-planner-ppf-form-IN`, etc.). Locale switch resets to reference PPF inputs for the new locale.
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1053,7 +1104,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Build output (web):** production `vite build` emits:
   - `dist/index.html` — loan/home shell;
-  - `dist/{slug}/index.html` for each non-loan tab (`debt`, `retirement`, `payoff-strategies`, `what-if-games`, `budget`);
+  - `dist/{slug}/index.html` for each non-loan tab (`debt`, `retirement`, `payoff-strategies`, `what-if-games`, `budget`, `ppf`);
   - `dist/strategies/index.html` and `dist/strategic/index.html` — legacy redirect shells pointing at canonical slugs;
   - `dist/404.html` — copy of the home shell (safety net for unmatched paths).
   Each shell has tab-specific `<title>`, description, canonical, OG/Twitter tags, and JSON-LD baked at build time (same token injection as home).
@@ -1067,7 +1118,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
 
-- **Home framing:** on the loan/home tab, a short **“suite of 6 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, budget, payoff strategies, and what-if games.
+- **Home framing:** on the loan/home tab, a short **“suite of 7 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, budget, PPF, payoff strategies, and what-if games.
 
 - **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) **below** the calculator inputs and results (after the KPI strip and schedule on loan/strategy tabs). Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
 
@@ -1231,6 +1282,14 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 54. **Trust copy:** loan tab shows methodology one-liner (§4.3.1) and localStorage privacy note near inputs.
 55. **Bank validation doc:** `docs/VALIDATION.md` exists with at least one reproducible HDFC or SBI EMI parity case and documented rounding policy.
 
+### PPF calculator (§4.17)
+
+60. **PPF reference:** opening ₹0, annual contribution ₹1,50,000, rate 7.1%, 15 years → `maturity_value_inr = 4,068,209.23`, `total_interest_inr = 1,818,209.23` (half-up paise rounding).  
+61. **PPF limits:** annual contribution ₹2,00,000 → warning `PPF_ABOVE_MAX`; contribution ₹400 → warning `PPF_BELOW_MIN`.  
+62. **PPF route:** `tabPageUrl("ppf")` resolves `/ppf`; `getTabFromLocation` maps pathname to `ppf` tab id; `dist/ppf/index.html` exists after build.  
+63. **PPF trust copy:** PPF tab shows methodology one-liner (§4.17.4) near inputs.  
+64. **PPF explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -1248,7 +1307,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (SIP/SSY/gratuity/lumpsum — **PPF shipped** §4.17); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

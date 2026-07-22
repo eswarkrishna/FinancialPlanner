@@ -8,6 +8,7 @@ const SEO_H1: Record<PlannerTabId, string> = {
   loan: "Loan EMI Calculator with Prepayment",
   debt: "Debt Avalanche vs Snowball Calculator",
   retirement: "Retirement Corpus & SIP Calculator",
+  ppf: "PPF Calculator — Maturity & Interest",
   strategies: "Household Payoff Strategy Comparison",
   strategic: "Loan Payoff What-If Game Explorer",
   budget: "Budget Planner with 50/30/20 Rule",

@@ -1,7 +1,7 @@
 import type { Page } from "puppeteer";
 import { getBaseUrl } from "./env";
 
-const TAB_IDS = ["loan", "debt", "retirement", "strategies", "strategic", "budget"] as const;
+const TAB_IDS = ["loan", "debt", "retirement", "ppf", "strategies", "strategic", "budget"] as const;
 export type PlannerTabId = (typeof TAB_IDS)[number];
 
 /** Canonical path slug per tab (SPEC §8). */
@@ -9,6 +9,7 @@ const TAB_PATH_SLUG: Record<PlannerTabId, string> = {
   loan: "",
   debt: "debt",
   retirement: "retirement",
+  ppf: "ppf",
   strategies: "payoff-strategies",
   strategic: "what-if-games",
   budget: "budget",
@@ -57,6 +58,7 @@ const TAB_LABELS: Record<PlannerTabId, string> = {
   loan: "Loan",
   debt: "Multi-debt",
   retirement: "Retirement",
+  ppf: "PPF",
   strategies: "Payoff strategies",
   strategic: "What-if games",
   budget: "Budget",

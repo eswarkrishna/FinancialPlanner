@@ -21,11 +21,15 @@ const GameSection = lazy(() =>
 const BudgetSection = lazy(() =>
   import("../features/budget/BudgetSection").then((module) => ({ default: module.BudgetSection })),
 );
+const PpfSection = lazy(() =>
+  import("../features/ppf/PpfSection").then((module) => ({ default: module.PpfSection })),
+);
 
 const TAB_SECTIONS: Record<TabId, ComponentType> = {
   loan: LoanSection,
   debt: DebtSection,
   retirement: RetirementSection,
+  ppf: PpfSection,
   strategies: StrategySection,
   strategic: GameSection,
   budget: BudgetSection,

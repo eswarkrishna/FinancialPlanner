@@ -98,6 +98,7 @@ describe("seo", () => {
     expect(SEO_ROUTE_SLUGS).toEqual([
       "debt",
       "retirement",
+      "ppf",
       "payoff-strategies",
       "what-if-games",
       "budget",

@@ -44,6 +44,12 @@ describe("planner sections", () => {
     assert.equal(hasMatrix, true);
   });
 
+  it("renders PPF calculator on ppf tab", async () => {
+    await gotoApp(session.page, "ppf");
+    await waitForHeading(session.page, "PPF maturity calculator");
+    await waitForHeading(session.page, "Balance growth");
+  });
+
   it("renders budget planner on budget tab", async () => {
     await gotoApp(session.page, "budget");
     await waitForHeading(session.page, "Personal budget");

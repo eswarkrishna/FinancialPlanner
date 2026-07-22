@@ -43,6 +43,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **PPF calculator (§4.17, Phase 5)** — new PPF tab with annual compounding maturity projection, yearly timeline, CSV/JSON export, methodology trust note, and `/ppf` SEO route; home tagline updated to “suite of 7 tools”.
 - **SEO verification (`npm run verify:seo`)** — post-build check of per-route HTML shells (title, noscript, JSON-LD); browser smoke in `e2e/specs/seo-signoff.spec.ts`; ship checklist [`docs/SEO-SIGNOFF.md`](docs/SEO-SIGNOFF.md).
 - **SEO path routes (SPEC v2.6 §8 / §10.52–55)** — per-calculator path URLs (`/debt`, `/retirement`, …), legacy `/?tab=` redirect, build-time HTML shells with `<noscript>` fallback, and updated sitemap canonicals.
 - **SEO spec extension (SPEC v2.6, §8 / §10.52–58)** — path-slug canonical URLs, per-route HTML build shells, `<noscript>` fallback, per-tab `<h1>`, internal calculator links, and 100–200 word explainer copy per tab; research in [`docs/research/2026-07-seo-routes-noscript.md`](docs/research/2026-07-seo-routes-noscript.md).

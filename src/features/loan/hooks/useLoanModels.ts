@@ -31,6 +31,11 @@ import {
   type StagedPrepayEntry,
 } from "../../../lib/loan/stagedPrepays";
 import {
+  newRateChangeEntry,
+  parseRateChanges,
+  type RateChangeEntry,
+} from "../../../lib/loan/rateChanges";
+import {
   LOAN_FORM_STORAGE_VERSION,
   readLoanFormState,
   writeLoanFormState,
@@ -73,6 +78,7 @@ function initialLoanState(locale: ReturnType<typeof useLocale>["locale"]) {
       scenarioView: stored.scenarioView,
       prepaySource: stored.prepaySource,
       stagedPrepays: stored.stagedPrepays,
+      rateChanges: stored.rateChanges,
     };
   }
   return {
@@ -80,6 +86,7 @@ function initialLoanState(locale: ReturnType<typeof useLocale>["locale"]) {
     scenarioView: "BASE" as ScenarioView,
     prepaySource: "cash" as PrepaySource,
     stagedPrepays: [] as StagedPrepayEntry[],
+    rateChanges: [] as RateChangeEntry[],
   };
 }
 
@@ -98,6 +105,9 @@ export function useLoanModels() {
   );
   const [stagedPrepays, setStagedPrepays] = useState<StagedPrepayEntry[]>(
     () => initialLoanState(locale).stagedPrepays,
+  );
+  const [rateChanges, setRateChanges] = useState<RateChangeEntry[]>(
+    () => initialLoanState(locale).rateChanges,
   );
 
   const parsed = useMemo(() => {
@@ -122,6 +132,7 @@ export function useLoanModels() {
           : "none",
       prepayment_fee_inr: inputs.prepayment_fee_inr || 0,
       prepayment_fee_pct: inputs.prepayment_fee_pct || 0,
+      rate_type: inputs.rate_type === "floating" ? "floating" : "fixed",
       unemployment_mode: inputs.unemployment_mode === "true",
       unemployment_start_month: inputs.unemployment_start_month || 1,
       monthly_living_expense_inr: inputs.monthly_living_expense_inr || 0,
@@ -180,6 +191,7 @@ export function useLoanModels() {
   }, [parsed, locale]);
 
   const stagedEvents = useMemo(() => parseStagedPrepays(stagedPrepays), [stagedPrepays]);
+  const parsedRateChanges = useMemo(() => parseRateChanges(rateChanges), [rateChanges]);
 
   const models = useMemo(() => {
     if (!parsed.success) return null;
@@ -189,8 +201,9 @@ export function useLoanModels() {
       effectiveLiquidInr,
       stagedEvents,
       locale,
+      parsedRateChanges,
     );
-  }, [parsed, prepaySource, effectiveLiquidInr, stagedEvents, locale]);
+  }, [parsed, prepaySource, effectiveLiquidInr, stagedEvents, locale, parsedRateChanges]);
 
   useEffect(() => {
     if (!models) return;
@@ -259,8 +272,9 @@ export function useLoanModels() {
       scenarioView,
       prepaySource,
       stagedPrepays,
+      rateChanges,
     });
-  }, [locale, inputs, scenarioView, prepaySource, stagedPrepays]);
+  }, [locale, inputs, scenarioView, prepaySource, stagedPrepays, rateChanges]);
 
   function setField<K extends keyof LoanInput>(key: K, value: string) {
     setImportError(null);
@@ -286,12 +300,14 @@ export function useLoanModels() {
     scenarioView: ScenarioView;
     prepaySource: PrepaySource;
     stagedPrepays: StagedPrepayEntry[];
+    rateChanges: RateChangeEntry[];
   }) {
     skipPersistRef.current = true;
     setInputs(next.inputs);
     setScenarioView(next.scenarioView);
     setPrepaySource(next.prepaySource);
     setStagedPrepays(next.stagedPrepays);
+    setRateChanges(next.rateChanges);
     writeLoanFormState({
       version: LOAN_FORM_STORAGE_VERSION,
       locale,
@@ -299,6 +315,7 @@ export function useLoanModels() {
       scenarioView: next.scenarioView,
       prepaySource: next.prepaySource,
       stagedPrepays: next.stagedPrepays,
+      rateChanges: next.rateChanges,
     });
   }
 
@@ -312,6 +329,7 @@ export function useLoanModels() {
       scenarioView: "BASE",
       prepaySource: "cash",
       stagedPrepays: [],
+      rateChanges: [],
     });
     trackLoanLoadReference(locale);
   }
@@ -333,6 +351,7 @@ export function useLoanModels() {
       scenarioView: "BASE",
       prepaySource: "cash",
       stagedPrepays: [],
+      rateChanges: [],
     });
   }, [locale]);
 
@@ -356,6 +375,24 @@ export function useLoanModels() {
     );
   }
 
+  function addRateChange() {
+    setRateChanges((prev) => [...prev, newRateChangeEntry()]);
+  }
+
+  function removeRateChange(id: string) {
+    setRateChanges((prev) => prev.filter((entry) => entry.id !== id));
+  }
+
+  function updateRateChange(
+    id: string,
+    field: "month" | "annual_rate",
+    value: string,
+  ) {
+    setRateChanges((prev) =>
+      prev.map((entry) => (entry.id === id ? { ...entry, [field]: value } : entry)),
+    );
+  }
+
   function importScenarioJson(file: File) {
     void readImportTextFile(file)
       .then((text) => {
@@ -371,6 +408,7 @@ export function useLoanModels() {
           scenarioView: outcome.scenarioView,
           prepaySource: outcome.prepaySource,
           stagedPrepays: outcome.stagedPrepays,
+          rateChanges: [],
         });
         trackLoanImportScenarioJson(outcome.scenarioView, locale, true);
       })
@@ -458,6 +496,10 @@ export function useLoanModels() {
     addStagedPrepay,
     removeStagedPrepay,
     updateStagedPrepay,
+    rateChanges,
+    addRateChange,
+    removeRateChange,
+    updateRateChange,
     exportScheduleCsv,
     exportScenarioJson,
   };

@@ -1,6 +1,12 @@
 import { computeEmi, monthlyRateFromAnnualPercent } from "./emi";
 import { roundInr } from "../money";
 import { BALANCE_EPSILON_INR } from "../shared/constants";
+import {
+  annualRateForMonth,
+  loanRateConfigFrom,
+  type LoanRateConfig,
+  usesFloatingRate,
+} from "./rateSchedule";
 
 export interface ScheduleRow {
   month: number;
@@ -53,16 +59,66 @@ export function baselineSchedule(
   principalInr: number,
   annualPercent: number,
   tenureMonths: number,
+  rateConfig?: LoanRateConfig,
 ): { rows: ScheduleRow[]; totals: ScheduleTotals; emi_inr: number } {
-  const emi = computeEmi(principalInr, annualPercent, tenureMonths);
-  const r = monthlyRateFromAnnualPercent(annualPercent);
+  const config =
+    rateConfig ?? loanRateConfigFrom(annualPercent, "fixed", []);
+
+  if (!usesFloatingRate(config)) {
+    const emi = computeEmi(principalInr, annualPercent, tenureMonths);
+    const r = monthlyRateFromAnnualPercent(annualPercent);
+    const rows: ScheduleRow[] = [];
+    let balance = roundInr(principalInr);
+    let totalInterest = 0;
+    let totalPaid = 0;
+
+    for (let m = 1; m <= tenureMonths; m++) {
+      const opening = balance;
+      const interest = roundInr(opening * r);
+      const isLast = m === tenureMonths;
+      const principal = isLast
+        ? opening
+        : roundInr(Math.min(opening, emi - interest));
+      const payment = roundInr(interest + principal);
+      balance = roundInr(opening - principal);
+      pushRow(rows, m, opening, interest, principal, 0, balance, emi);
+      totalInterest += interest;
+      totalPaid += payment;
+    }
+
+    return {
+      emi_inr: emi,
+      rows,
+      totals: {
+        total_paid_inr: roundInr(totalPaid),
+        total_interest_inr: roundInr(totalInterest),
+        total_prepayments_inr: 0,
+        payoff_month: rows.length,
+      },
+    };
+  }
+
   const rows: ScheduleRow[] = [];
   let balance = roundInr(principalInr);
   let totalInterest = 0;
   let totalPaid = 0;
+  let emi = computeEmi(principalInr, annualRateForMonth(1, config), tenureMonths);
+  let previousAnnualRate: number | null = null;
 
   for (let m = 1; m <= tenureMonths; m++) {
+    if (balance <= BALANCE_EPSILON_INR) {
+      break;
+    }
     const opening = balance;
+    const annualRate = annualRateForMonth(m, config);
+    const r = monthlyRateFromAnnualPercent(annualRate);
+    const rateChanged =
+      previousAnnualRate === null || annualRate !== previousAnnualRate;
+    if (rateChanged) {
+      emi = computeEmi(opening, annualRate, tenureMonths - m + 1);
+    }
+    previousAnnualRate = annualRate;
+
     const interest = roundInr(opening * r);
     const isLast = m === tenureMonths;
     const principal = isLast

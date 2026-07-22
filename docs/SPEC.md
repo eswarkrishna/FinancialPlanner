@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.6  
+**Version:** 2.7  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9) and **deterministic floating-rate resets** on the loan tab (§4.3.1). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -76,7 +76,8 @@ Optional **strategic interaction** modelling (§4.13) compares borrower, lender,
 | `prepayment_fee_type` | enum | optional | `none` (default) / `flat` / `percent` — loan-tab fee on lump prepays (§4.4.1) |
 | `prepayment_fee_inr` | number | optional | Flat fee when type = `flat`; default `0`. Also used by §4.13 `L_FEE_FLAT`. |
 | `prepayment_fee_pct` | number | optional | % of prepaid principal when type = `percent`; default `0`. Also used by §4.13 `L_FEE_PCT` (game default 1% if unset). |
-| `rate_type` | enum | optional | `fixed` (v1); `floating` deferred |
+| `rate_type` | enum | optional | `fixed` (default) or `floating` — see §4.3.1 |
+| `rate_changes` | array | optional | When `rate_type = floating`: `{ month, annual_rate }[]` discrete resets (month ≥ 2); ignored when fixed |
 
 ### 4.2 Asset inputs (for labelling & constraints, not all are auto-spent)
 
@@ -100,6 +101,21 @@ Optional **strategic interaction** modelling (§4.13) compares borrower, lender,
 
 - Generate **month-by-month schedule** for baseline: opening balance, interest portion, principal portion, closing balance.  
 - Totals: **total paid**, **total interest**, **payoff month index**.
+
+#### 4.3.1 Floating interest rate (deterministic)
+
+When `rate_type = floating`, the loan uses a **piecewise-constant** annual nominal rate:
+
+- Month **1** uses `annual_interest_rate` as the initial rate.
+- Each entry in `rate_changes` is `{ month: M, annual_rate: R }` where `M` is an integer **≥ 2** and **≤ tenure_months**. From the **start** of month `M` onward (before EMI interest accrual), the annual rate becomes `R` until a later change supersedes it.
+- Changes must be sorted by ascending `month`; duplicate months are invalid (validation error).
+- On any month where the annual rate **changes** from the prior month, **EMI is recomputed** as `computeEmi(opening_balance, new_rate, remaining_months)` where `remaining_months = tenure_months − month + 1` (same reset rule as `recompute_emi_keep_tenure` at a rate reset — matches typical Indian floating home-loan behaviour).
+- When `rate_type = fixed`, `rate_changes` is ignored and §4.3 baseline behaviour is unchanged.
+- Floating rate applies to **baseline** amortisation and all loan-tab schedules that share the same principal/tenure engine (including prepay scenarios). Not stochastic — no live MCLR/repo feeds (§11).
+
+**Methodology note (loan tab):** “Reducing-balance EMI; monthly rate = annual ÷ 12; amounts rounded half-up to 2 decimals (paise) per step unless noted.”
+
+**Privacy note (loan tab):** Visible copy: “Your data never leaves your browser — inputs are stored in localStorage on this device only.”
 
 ### 4.4 Prepayment engine (v1 must support)
 
@@ -1210,6 +1226,10 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 49. **Percent fee:** same prepay with `prepayment_fee_type = percent`, `prepayment_fee_pct = 1` → fee = **₹25,000** (1% of prepaid principal).  
 50. **No fee default:** `prepayment_fee_type = none` → fees = 0 and net savings equals gross interest saved.  
 51. **Strategy panel:** when a one-time prepay source has balance &gt; 0, UI shows side-by-side Reduce EMI vs Reduce Tenure with new EMI, payoff months, total interest, gross saved, fees, and net savings; selecting either policy switches the active schedule view.
+52. **Floating baseline:** `rate_type = fixed` with empty `rate_changes` → identical totals to pre-§4.3.1 goldens for reference inputs.
+53. **Floating reset:** principal ₹50,00,000, tenure 168, initial 7.9%, single change `{ month: 13, annual_rate: 8.5 }` → EMI on month 13 is recomputed from opening balance at 8.5% with 156 months remaining; total interest **greater** than fixed 7.9% baseline.
+54. **Trust copy:** loan tab shows methodology one-liner (§4.3.1) and localStorage privacy note near inputs.
+55. **Bank validation doc:** `docs/VALIDATION.md` exists with at least one reproducible HDFC or SBI EMI parity case and documented rounding policy.
 
 ---
 
@@ -1228,7 +1248,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (PPF/SIP/SSY/gratuity/lumpsum); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

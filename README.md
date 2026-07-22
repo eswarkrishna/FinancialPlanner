@@ -29,7 +29,7 @@ npm run build
 | [docs/TASKS-SEO.md](docs/TASKS-SEO.md) | SEO gap-fill phased checklist |
 | [docs/SEO-SIGNOFF.md](docs/SEO-SIGNOFF.md) | SEO sign-off & ship (Phases 12–13) |
 | [docs/ANALYTICS.md](docs/ANALYTICS.md) | Optional GA4 setup and consent behaviour |
-| [docs/OVERVIEW.md](docs/OVERVIEW.md) | Architecture and doc map (onboarding) |
+| [docs/VALIDATION.md](docs/VALIDATION.md) | Bank calculator parity cases and methodology |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | Dated post-feature learnings |
 | [docs/research/](docs/research/) | Spikes and research notes |
 | [AGENTS.md](AGENTS.md) | Instructions for AI coding agents + Cursor skills index |

@@ -28,9 +28,10 @@ export const LOAN_US_V11_FIELD_DEFAULTS = {
   k401_loan_balance_inr: 0,
 } as const;
 
-/** Loan-tab prepayment fee defaults (§4.4.1) — spread into all locale references. */
+/** Loan-tab prepayment fee + rate defaults (§4.4.1, §4.3.1). */
 export const LOAN_PREPAYMENT_FEE_DEFAULTS = {
   prepayment_fee_type: "none" as const,
   prepayment_fee_inr: 0,
   prepayment_fee_pct: 0,
+  rate_type: "fixed" as const,
 } as const;

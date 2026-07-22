@@ -21,6 +21,7 @@ describe("loanFormState (SPEC §4.9 v1.7)", () => {
       scenarioView: "PREPAY_EMI",
       prepaySource: "pf",
       stagedPrepays: [],
+      rateChanges: [],
     });
     const stored = readLoanFormState("IN");
     expect(stored?.inputs.principal_inr).toBe("5000000");
@@ -36,6 +37,7 @@ describe("loanFormState (SPEC §4.9 v1.7)", () => {
       scenarioView: "BASE",
       prepaySource: "cash",
       stagedPrepays: [],
+      rateChanges: [],
     });
     writeLoanFormState({
       version: LOAN_FORM_STORAGE_VERSION,
@@ -44,6 +46,7 @@ describe("loanFormState (SPEC §4.9 v1.7)", () => {
       scenarioView: "BASE",
       prepaySource: "cash",
       stagedPrepays: [],
+      rateChanges: [],
     });
 
     expect(readLoanFormState("IN")?.inputs.principal_inr).toBe("5000000");

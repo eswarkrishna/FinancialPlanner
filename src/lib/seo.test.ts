@@ -99,6 +99,7 @@ describe("seo", () => {
       "debt",
       "retirement",
       "ppf",
+      "sip",
       "payoff-strategies",
       "what-if-games",
       "budget",

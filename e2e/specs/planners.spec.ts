@@ -50,6 +50,12 @@ describe("planner sections", () => {
     await waitForHeading(session.page, "Balance growth");
   });
 
+  it("renders SIP calculator on sip tab", async () => {
+    await gotoApp(session.page, "sip");
+    await waitForHeading(session.page, "SIP calculator");
+    await waitForHeading(session.page, "Corpus growth");
+  });
+
   it("renders budget planner on budget tab", async () => {
     await gotoApp(session.page, "budget");
     await waitForHeading(session.page, "Personal budget");

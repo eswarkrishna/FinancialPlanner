@@ -143,7 +143,7 @@ Feature order from gap-fill backlog (§7). One slice per branch/PR.
 
 - [x] **5.1.1** Floating-rate loan support (top competitor gap) — baseline schedule + rate reset UI (§4.3.1).
 - [x] **5.1.2** PPF calculator (India instruments) — §4.17.
-- [ ] **5.1.3** SIP calculator.
+- [x] **5.1.3** SIP calculator — §4.18.
 - [ ] **5.1.4** SSY calculator.
 - [ ] **5.1.5** Gratuity calculator.
 - [ ] **5.1.6** Reduce-EMI vs Reduce-Tenure panel polish (§4.4.2 — already spec'd). *Shipped in gap-fill v2.5.*
@@ -159,7 +159,7 @@ Feature order from gap-fill backlog (§7). One slice per branch/PR.
 ### Phase 5 sign-off
 
 - [ ] **5.3** At least one bank parity case documented with reproducible inputs.
-- [x] **5.4** First PPF or SIP companion live with tests and golden fixtures where applicable. *PPF §4.17 shipped; SIP pending.*
+- [x] **5.4** First PPF or SIP companion live with tests and golden fixtures where applicable. *PPF §4.17 + SIP §4.18 shipped.*
 - [ ] **5.5** README mentions bank-validated outputs once §5.2.1 ships.
 
 ---

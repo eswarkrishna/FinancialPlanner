@@ -8,6 +8,7 @@ const TAB_HEADINGS: Record<(typeof TAB_IDS)[number], string> = {
   debt: "Debt payoff planner",
   retirement: "Retirement planner",
   ppf: "PPF maturity calculator",
+  sip: "SIP calculator",
   strategies: "Repayment strategies",
   strategic: "Strategic scenarios",
   budget: "Personal budget",

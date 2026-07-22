@@ -15,7 +15,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF** shipped (§4.17); next: SIP, lakh/crore formatting
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF** + **SIP** shipped (§4.17–§4.18); next: lakh/crore formatting, SSY/gratuity
 2. Loan engine polish (timing / EMI / deterministic rate stress)  
 3. Charts, exports, persistence UX  
 4. **Web traffic first** — India wedge on the public SPA; Android/Capacitor maintenance-only (no new native features until web wins)
@@ -36,7 +36,7 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [ ] Currency/locale formatting polish (lakhs vs millions)
 - [ ] Amortisation CSV already shipped — PDF export still open
 - [x] PPF calculator (India instruments) — §4.17 shipped
-- [ ] SIP calculator (India instruments)
+- [x] SIP calculator (India instruments) — §4.18 shipped
 - [ ] Scenario save/compare (named localStorage slots)
 - [ ] Remaining: SSY, gratuity, lumpsum, drawdown phase, budget charts, tax-aware rate, SEO polish
 

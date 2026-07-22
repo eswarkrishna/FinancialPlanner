@@ -146,7 +146,7 @@ export function App() {
                 <LocaleSegment value={locale} onChange={onLocaleChange} />
               </div>
               <p className="app-suite-tagline">
-                Seven calculators in one planner — loan, debt, retirement, PPF, budget, payoff
+                Eight calculators in one planner — loan, debt, retirement, PPF, SIP, budget, payoff
                 strategies, and what-if games.
               </p>
               <p className="lede">

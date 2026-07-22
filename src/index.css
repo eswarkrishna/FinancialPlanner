@@ -425,6 +425,7 @@ body {
   padding: 0.5rem 0 0.85rem;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
 }
 
 .app-tabs-scroll:focus-visible {
@@ -433,6 +434,7 @@ body {
 }
 
 .app-tab {
+  scroll-snap-align: start;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;

@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-22 — Production outage: Pages served repo root, not `dist/`
+
+- **Context:** After Phase 4 merge, https://eswarkrishna.github.io/FinancialPlanner/ showed blank page with `__SEO_TITLE__` and `<script src="/src/main.tsx">`.
+- **What we learned:** GitHub Pages `build_type` was **`legacy`** (branch `main`, path `/`), so every push served the **unbuilt** Vite `index.html` template. The Actions workflow builds `dist/` correctly but was not the active Pages source. Phase 4 CI also failed `verify:seo` because legacy redirect meta refresh uses `/FinancialPlanner/…` under `VITE_BASE` but the verifier only looked for `/payoff-strategies`.
+- **Action:** Repo owner must set **Settings → Pages → Build and deployment → Source: GitHub Actions**. Fix verifier + pass `VITE_BASE` in the verify workflow step; re-run Pages deploy.
+
+---
+
 ## 2026-07-22 — Information architecture Phase 4
 
 - **Context:** Architecture review §4 / `TASKS-ARCHITECTURE-ROADMAP.md` Phase 4 — “Strategies” vs “Strategic” confused users and SEO slugs.

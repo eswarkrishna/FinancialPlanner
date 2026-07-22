@@ -1,6 +1,6 @@
 /** SEO helpers: tab URLs, titles, meta updates, JSON-LD, sitemap/robots builders (SPEC §8). */
 
-export type TabId = "loan" | "debt" | "retirement" | "ppf" | "strategies" | "strategic" | "budget";
+export type TabId = "loan" | "debt" | "retirement" | "ppf" | "sip" | "strategies" | "strategic" | "budget";
 
 export type PlannerTab = {
   id: TabId;
@@ -41,6 +41,13 @@ export const PLANNER_TABS: PlannerTab[] = [
       "Free PPF maturity calculator for India. Project balance growth from annual contributions and government-notified interest rates with a yearly timeline.",
   },
   {
+    id: "sip",
+    label: "SIP",
+    seoTitle: "SIP Calculator — Mutual Fund Returns",
+    description:
+      "Free SIP calculator for India mutual fund investments. Project maturity value, total invested, and gains from monthly contributions with compounded returns.",
+  },
+  {
     id: "strategies",
     label: "Payoff strategies",
     seoTitle: "Household Payoff Strategy Comparison",
@@ -69,6 +76,7 @@ export const TAB_PATH_SLUG: Record<TabId, string> = {
   debt: "debt",
   retirement: "retirement",
   ppf: "ppf",
+  sip: "sip",
   strategies: "payoff-strategies",
   strategic: "what-if-games",
   budget: "budget",

@@ -24,12 +24,16 @@ const BudgetSection = lazy(() =>
 const PpfSection = lazy(() =>
   import("../features/ppf/PpfSection").then((module) => ({ default: module.PpfSection })),
 );
+const SipSection = lazy(() =>
+  import("../features/sip/SipSection").then((module) => ({ default: module.SipSection })),
+);
 
 const TAB_SECTIONS: Record<TabId, ComponentType> = {
   loan: LoanSection,
   debt: DebtSection,
   retirement: RetirementSection,
   ppf: PpfSection,
+  sip: SipSection,
   strategies: StrategySection,
   strategic: GameSection,
   budget: BudgetSection,

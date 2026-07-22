@@ -13,7 +13,7 @@ describe("App shell composition", () => {
     renderWithLocale(<App />);
 
     expect(document.querySelector(".app-brand-name")).toHaveTextContent("FinancialPlanner");
-    expect(screen.getByText(/Seven calculators in one planner/)).toBeInTheDocument();
+    expect(screen.getByText(/Eight calculators in one planner/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { level: 1, name: "Loan EMI Calculator with Prepayment" }),
     ).toBeInTheDocument();
@@ -39,6 +39,8 @@ describe("App shell composition", () => {
       { tab: "Loan", h1: "Loan EMI Calculator with Prepayment" },
       { tab: "Multi-debt", h1: "Debt Avalanche vs Snowball Calculator" },
       { tab: "Retirement", h1: "Retirement Corpus & SIP Calculator" },
+      { tab: "PPF", h1: "PPF Calculator — Maturity & Interest" },
+      { tab: "SIP", h1: "SIP Calculator — Mutual Fund Returns" },
       { tab: "Payoff strategies", h1: "Household Payoff Strategy Comparison" },
       { tab: "What-if games", h1: "Loan Payoff What-If Game Explorer" },
       { tab: "Budget", h1: "Budget Planner with 50/30/20 Rule" },

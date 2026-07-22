@@ -43,6 +43,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **SIP calculator (§4.18, Phase 5)** — new SIP tab with monthly compounding projection, invested vs gains KPIs, yearly timeline, CSV/JSON export, and `/sip` SEO route; home tagline updated to “suite of 8 tools”.
 - **PPF calculator (§4.17, Phase 5)** — new PPF tab with annual compounding maturity projection, yearly timeline, CSV/JSON export, methodology trust note, and `/ppf` SEO route; home tagline updated to “suite of 7 tools”.
 - **SEO verification (`npm run verify:seo`)** — post-build check of per-route HTML shells (title, noscript, JSON-LD); browser smoke in `e2e/specs/seo-signoff.spec.ts`; ship checklist [`docs/SEO-SIGNOFF.md`](docs/SEO-SIGNOFF.md).
 - **SEO path routes (SPEC v2.6 §8 / §10.52–55)** — per-calculator path URLs (`/debt`, `/retirement`, …), legacy `/?tab=` redirect, build-time HTML shells with `<noscript>` fallback, and updated sitemap canonicals.

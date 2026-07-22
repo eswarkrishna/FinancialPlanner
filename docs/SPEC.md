@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.8  
+**Version:** 2.9  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), and the **PPF maturity calculator** (§4.17). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), the **PPF maturity calculator** (§4.17), and the **SIP investment calculator** (§4.18). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -740,6 +740,57 @@ Totals:
 
 **Persistence:** PPF tab form state in `localStorage` per locale (`financial-planner-ppf-form-IN`, etc.). Locale switch resets to reference PPF inputs for the new locale.
 
+### 4.18 Systematic Investment Plan (SIP) calculator
+
+**Locale:** India-focused mutual-fund SIP; tab visible for all locales with amounts in INR. US/UK users see a disclaimer that the model is illustrative DCA (not fund-specific). Implementation: `src/lib/sip/`, `src/features/sip/`.
+
+Educational SIP maturity projection with **monthly** compounding — same engine pattern as §4.11 retirement corpus (monthly contribution after growth). Does not model expense ratios, STCG/LTCG, exit loads, or step-up SIP.
+
+#### 4.18.1 Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `opening_balance_inr` | number | no | Default `0` — existing fund value |
+| `monthly_investment_inr` | number | yes | SIP instalment each month |
+| `expected_annual_return_pct` | number | yes | Default **12%** (illustrative equity CAGR; not a forecast) |
+| `years` | integer | yes | Horizon ≥ 1 |
+
+#### 4.18.2 Computations
+
+Monthly nominal rate: \( r = \text{expected\_annual\_return\_pct} / 100 / 12 \).
+
+Each month \(m = 1 \ldots \text{years} \times 12\):
+
+- `growth_inr` = `roundInr(balance × r)`
+- `balance` = `roundInr(balance + growth_inr + monthly_investment_inr)`
+
+Year-end snapshot (months 12, 24, …): record `opening_inr`, `contribution_inr` (= `monthly_investment_inr × 12`), `gains_inr` (= `closing_inr − opening_inr − contribution_inr`), `closing_inr`.
+
+Totals:
+
+- `total_invested_inr` = `monthly_investment_inr × years × 12`
+- `maturity_value_inr` = final balance
+- `total_gains_inr` = `maturity_value_inr − opening_balance_inr − total_invested_inr`
+
+#### 4.18.3 Warnings
+
+| Code | Condition |
+|------|-----------|
+| `SIP_INVALID_YEARS` | `years < 1` |
+| `SIP_NO_CONTRIBUTION` | `monthly_investment_inr = 0` and `opening_balance_inr = 0` |
+
+#### 4.18.4 Outputs
+
+- **KPI strip:** maturity value, total invested, total gains
+- **Yearly table:** year, opening, contributions, gains, closing balance
+- **Balance growth chart** (line)
+
+**Trust copy:** methodology one-liner (monthly compounding, illustrative return, not fund advice).
+
+**Export:** CSV of yearly timeline + JSON export of inputs and summary.
+
+**Persistence:** SIP tab form state in `localStorage` per locale (`financial-planner-sip-form-IN`, etc.).
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1096,6 +1147,8 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
   | `loan` | `/` | `…/FinancialPlanner/` |
   | `debt` | `/debt` | `…/FinancialPlanner/debt` |
   | `retirement` | `/retirement` | `…/FinancialPlanner/retirement` |
+  | `ppf` | `/ppf` | `…/FinancialPlanner/ppf` |
+  | `sip` | `/sip` | `…/FinancialPlanner/sip` |
   | `strategies` | `/payoff-strategies` | `…/FinancialPlanner/payoff-strategies` |
   | `strategic` | `/what-if-games` | `…/FinancialPlanner/what-if-games` |
   | `budget` | `/budget` | `…/FinancialPlanner/budget` |
@@ -1104,7 +1157,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Build output (web):** production `vite build` emits:
   - `dist/index.html` — loan/home shell;
-  - `dist/{slug}/index.html` for each non-loan tab (`debt`, `retirement`, `payoff-strategies`, `what-if-games`, `budget`, `ppf`);
+  - `dist/{slug}/index.html` for each non-loan tab (`debt`, `retirement`, `ppf`, `sip`, `payoff-strategies`, `what-if-games`, `budget`);
   - `dist/strategies/index.html` and `dist/strategic/index.html` — legacy redirect shells pointing at canonical slugs;
   - `dist/404.html` — copy of the home shell (safety net for unmatched paths).
   Each shell has tab-specific `<title>`, description, canonical, OG/Twitter tags, and JSON-LD baked at build time (same token injection as home).
@@ -1118,7 +1171,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
 
-- **Home framing:** on the loan/home tab, a short **“suite of 7 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, budget, PPF, payoff strategies, and what-if games.
+- **Home framing:** on the loan/home tab, a short **“suite of 8 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, PPF, SIP, budget, payoff strategies, and what-if games.
 
 - **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) **below** the calculator inputs and results (after the KPI strip and schedule on loan/strategy tabs). Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
 
@@ -1290,6 +1343,14 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 63. **PPF trust copy:** PPF tab shows methodology one-liner (§4.17.4) near inputs.  
 64. **PPF explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
 
+### SIP calculator (§4.18)
+
+65. **SIP reference:** opening ₹0, monthly ₹10,000, expected return 12%, 10 years → `maturity_value_inr = 23,00,386.88`, `total_gains_inr = 11,00,386.88` (half-up paise rounding).  
+66. **SIP empty:** monthly ₹0 and opening ₹0 → warning `SIP_NO_CONTRIBUTION`.  
+67. **SIP route:** `tabPageUrl("sip")` resolves `/sip`; `dist/sip/index.html` exists after build.  
+68. **SIP trust copy:** SIP tab shows methodology one-liner (§4.18.4) near inputs.  
+69. **SIP explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -1307,7 +1368,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (SIP/SSY/gratuity/lumpsum — **PPF shipped** §4.17); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (SSY/gratuity/lumpsum — **PPF** §4.17 and **SIP** §4.18 shipped); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

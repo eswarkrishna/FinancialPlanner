@@ -37,6 +37,11 @@ export function RetirementSection() {
     <>
       <section className="card">
         <h2>Retirement planner</h2>
+        <p className="hint trust-note">
+          <strong>Methodology:</strong> monthly corpus growth at annual return ÷ 12, then your
+          contribution; inflation adjusts the target corpus. Illustrative scenarios — not tax or
+          pension-rule specific.
+        </p>
         <div className="form-grid">
           <label>
             Current corpus ({currencyLabel})

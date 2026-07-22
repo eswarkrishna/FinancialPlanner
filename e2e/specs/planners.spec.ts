@@ -62,6 +62,12 @@ describe("planner sections", () => {
     await waitForHeading(session.page, "Balance growth");
   });
 
+  it("renders gratuity calculator on gratuity tab", async () => {
+    await gotoApp(session.page, "gratuity");
+    await waitForHeading(session.page, "Gratuity calculator");
+    expect(await session.page.evaluate(() => document.body.textContent?.includes("Gratuity payable"))).toBe(true);
+  });
+
   it("renders budget planner on budget tab", async () => {
     await gotoApp(session.page, "budget");
     await waitForHeading(session.page, "Personal budget");

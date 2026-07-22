@@ -6,10 +6,12 @@ import {
   effectiveGoldLiquidInr,
 } from "../../../lib/loan";
 import {
+  downloadBlob,
   downloadTextFile,
   ImportFileTooLargeError,
   readImportTextFile,
   scheduleToCsv,
+  scheduleToPdfBytes,
   scenarioToJson,
   type ScenarioExportPayload,
 } from "../../../lib/export";
@@ -434,6 +436,19 @@ export function useLoanModels() {
     trackLoanExportScheduleCsv(scenarioView, locale);
   }
 
+  function exportSchedulePdf() {
+    if (!models || !activeBundle) return;
+    const bytes = scheduleToPdfBytes(activeRows, {
+      includeCashBalance: activeCashBalances !== undefined,
+      cashBalances: activeCashBalances,
+      startDateIso: models.v.start_date,
+      title: `Loan schedule — ${SCENARIO_LABELS[scenarioView]}`,
+    });
+    const slug = SCENARIO_LABELS[scenarioView].toLowerCase();
+    downloadBlob(`loan-schedule-${slug}.pdf`, new Blob([bytes], { type: "application/pdf" }));
+    trackLoanExportScheduleCsv(scenarioView, locale);
+  }
+
   function exportScenarioJson() {
     if (!models || !activeBundle) return;
     const comp = comparisonRows.find((r) => r.id === scenarioView);
@@ -501,6 +516,7 @@ export function useLoanModels() {
     removeRateChange,
     updateRateChange,
     exportScheduleCsv,
+    exportSchedulePdf,
     exportScenarioJson,
   };
 }

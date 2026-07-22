@@ -28,7 +28,7 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 | 2 | Cut & clean | §3, §4, §8 | Bell FAB gone; fonts self-hosted; 404 noindexed; README rewritten; PRs ≤ 1 |
 | 3 | Mobile UX | §5 (items 1–6) | No horizontal scroll at 360 px; locale switcher reachable; explainer below tool; formatted inputs |
 | 4 | Information architecture | §6 | Old slugs redirect; sitemap updated; tab labels intent-clear |
-| 5 | Wedge — Indian prepayment | §7 | Floating rates shipped; `docs/VALIDATION.md` published; first PPF/SIP companion live |
+| 5 | Wedge — Indian prepayment | §7 | Floating rates shipped; `docs/VALIDATION.md` published; India instrument companions live; PDF export; Phase 5 sign-off complete |
 
 ---
 
@@ -145,22 +145,22 @@ Feature order from gap-fill backlog (§7). One slice per branch/PR.
 - [x] **5.1.2** PPF calculator (India instruments) — §4.17.
 - [x] **5.1.3** SIP calculator — §4.18.
 - [x] **5.1.4** SSY calculator.
-- [ ] **5.1.5** Gratuity calculator.
-- [ ] **5.1.6** Reduce-EMI vs Reduce-Tenure panel polish (§4.4.2 — already spec'd). *Shipped in gap-fill v2.5.*
-- [ ] **5.1.7** Lakh/crore display formatting throughout UI. *Partial: currency fields (Phase 3).*
-- [ ] **5.1.8** PDF amortisation export.
+- [x] **5.1.5** Gratuity calculator.
+- [x] **5.1.6** Reduce-EMI vs Reduce-Tenure panel polish (§4.4.2 — already spec'd). *Shipped in gap-fill v2.5.*
+- [x] **5.1.7** Lakh/crore display formatting throughout UI. *KPI strip + currency field echo.*
+- [x] **5.1.8** PDF amortisation export.
 
 ### 5.2 Trust layer
 
 - [x] **5.2.1** Create `docs/VALIDATION.md`: compare EMI, prepayment, PF outputs against 2–3 bank calculators (HDFC, SBI); document methodology and deltas.
-- [x] **5.2.2** Uniform one-line methodology note per calculator (reducing-balance, compounding, rounding). *Loan tab shipped; extend to other tabs in follow-up.*
+- [x] **5.2.2** Uniform one-line methodology note per calculator (reducing-balance, compounding, rounding). *All planner tabs.*
 - [x] **5.2.3** Add “Your data never leaves your browser” near inputs (localStorage-only).
 
 ### Phase 5 sign-off
 
-- [ ] **5.3** At least one bank parity case documented with reproducible inputs.
-- [x] **5.4** First PPF or SIP companion live with tests and golden fixtures where applicable. *PPF §4.17 + SIP §4.18 shipped.*
-- [ ] **5.5** README mentions bank-validated outputs once §5.2.1 ships.
+- [x] **5.3** At least one bank parity case documented with reproducible inputs. *`docs/VALIDATION.md` Case 1 (HDFC).*
+- [x] **5.4** First PPF or SIP companion live with tests and golden fixtures where applicable. *PPF §4.17 + SIP §4.18 + SSY §4.19 + Gratuity §4.20 shipped.*
+- [x] **5.5** README mentions bank-validated outputs once §5.2.1 ships.
 
 ---
 

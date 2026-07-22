@@ -4,7 +4,7 @@
 
 **Live demo:** [https://eswarkrishna.github.io/FinancialPlanner/](https://eswarkrishna.github.io/FinancialPlanner/)
 
-Spec-driven home-loan simulator for India (with US/UK locales): compare prepayment strategies, model unemployment with staged PF withdrawals, and audit amortisation schedules with bank-style reducing-balance math. Every formula and acceptance test lives in [`docs/SPEC.md`](docs/SPEC.md) so outputs stay reproducible; when we publish bank parity cases they will appear in [`docs/VALIDATION.md`](docs/VALIDATION.md) (Phase 5 wedge).
+Spec-driven home-loan simulator for India (with US/UK locales): compare prepayment strategies, model unemployment with staged PF withdrawals, and audit amortisation schedules with bank-style reducing-balance math. Every formula and acceptance test lives in [`docs/SPEC.md`](docs/SPEC.md) so outputs stay reproducible; bank parity cases (HDFC/SBI EMI) are documented in [`docs/VALIDATION.md`](docs/VALIDATION.md).
 
 ## Quick start
 

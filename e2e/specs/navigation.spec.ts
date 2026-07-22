@@ -10,6 +10,7 @@ const TAB_HEADINGS: Record<(typeof TAB_IDS)[number], string> = {
   ppf: "PPF maturity calculator",
   sip: "SIP calculator",
   ssy: "SSY maturity calculator",
+  gratuity: "Gratuity calculator",
   strategies: "Repayment strategies",
   strategic: "Strategic scenarios",
   budget: "Personal budget",

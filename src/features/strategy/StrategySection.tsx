@@ -94,6 +94,11 @@ export function StrategySection() {
 
       <section className="card">
         <h2>Repayment strategies</h2>
+        <p className="hint trust-note">
+          <strong>Methodology:</strong> fixed rules split surplus between equity sleeve and loan
+          prepayment; loan uses the same reducing-balance engine as the Loan tab; equity compounds
+          monthly at the entered return.
+        </p>
         <p className="hint">
           Compare three allocation approaches — <strong>Equity blend</strong>,{" "}
           <strong>Prepay heavy</strong>, and <strong>Aggressive prepay</strong> — over the

@@ -77,6 +77,10 @@ export const RELATED_CALCULATOR_LINKS: Record<TabId, RelatedCalculatorLink[]> = 
   ],
   ssy: [
     {
+      tabId: "gratuity",
+      blurb: "Estimate statutory gratuity payable when leaving employment.",
+    },
+    {
       tabId: "ppf",
       blurb: "Compare SSY with PPF for other government-backed savings.",
     },
@@ -84,9 +88,19 @@ export const RELATED_CALCULATOR_LINKS: Record<TabId, RelatedCalculatorLink[]> = 
       tabId: "sip",
       blurb: "Balance SSY deposits with mutual-fund SIP projections.",
     },
+  ],
+  gratuity: [
+    {
+      tabId: "retirement",
+      blurb: "Combine gratuity with corpus and SIP-style retirement projections.",
+    },
     {
       tabId: "budget",
-      blurb: "Check whether your monthly budget can fund the annual SSY deposit.",
+      blurb: "Plan how a gratuity payout fits your monthly cashflow.",
+    },
+    {
+      tabId: "ppf",
+      blurb: "Balance employment benefits with long-term PPF savings.",
     },
   ],
   strategies: [
@@ -138,6 +152,8 @@ export const TAB_EXPLAINERS: Record<TabId, string> = {
   sip: `The SIP calculator projects how a fixed monthly mutual-fund instalment grows when returns compound every month at an illustrative annual rate. Enter an opening balance, monthly SIP amount, expected return, and years to see maturity value, total invested, and gains. For example, ten thousand rupees per month for ten years at twelve percent from zero grows to about twenty-three lakh — roughly eleven lakh in gains on twelve lakh invested. Each month the model adds growth on the current balance, then your instalment, matching the same monthly engine used on the retirement tab. Expense ratios, capital-gains tax, exit loads, and step-up SIP are not included. Returns are educational assumptions, not fund forecasts or investment advice. Use the PPF or SSY tabs for government-backed savings and the retirement tab when you need inflation-adjusted targets and funded-ratio scenarios. Export the yearly timeline as CSV for your own spreadsheet.`,
 
   ssy: `The Sukanya Samriddhi Yojana calculator projects how annual deposits grow until the girl child turns twenty-one. Enter her current age, planned yearly contribution, and interest rate to see maturity value, total contributed, and interest earned. For example, opening at age five with one lakh fifty thousand per year at eight point two percent matures in sixteen years at roughly forty-eight lakh forty-three thousand — about twenty-six lakh in interest on twenty-two lakh fifty thousand of deposits over fifteen contribution years. Deposits stop after fifteen years while interest continues until age twenty-one. This model assumes deposits at the start of each year with annual compounding and does not model partial withdrawals or Section 80C tax benefits. Accounts can only be opened when the girl is age ten or younger. Verify the latest notified rate on NSC or India Post before relying on numbers. Pair with the PPF tab for other government savings or the budget tab to confirm your annual deposit fits your cashflow.`,
+
+  gratuity: `The gratuity calculator estimates statutory gratuity payable under the Payment of Gratuity Act from your last drawn monthly salary and completed years of service. The formula is salary times fifteen times years, divided by twenty-six, with half-up rounding to paise and a statutory cap on the payable amount. For example, fifty thousand rupees per month for ten years yields about two lakh eighty-eight thousand before any cap. Gratuity generally requires five years of continuous service; the tool warns when service is shorter. Last drawn salary should include basic plus dearness allowance as defined by your employer. Tax exemption limits and company-specific policies are not modelled. Use the retirement tab to see how a gratuity lump sum fits a broader corpus plan, or the budget tab to allocate the payout across goals. Export JSON for your own records.`,
 
   strategies: `Household repayment strategies split extra cash between investing and loan prepayment using fixed rules. The equity blend strategy sends a portion of surplus to an equity sleeve first, then applies the remainder as extra principal. Prepay-heavy and aggressive prepay variants route more cash straight to the loan, shortening payoff and cutting interest at the cost of lower invested balances at the horizon. Each strategy uses the same underlying loan amortisation engine as the loan tab, so principal, rate, tenure, and prepayment timing stay consistent. Comparison rows show payoff month, total interest, ending net worth, and allocation breakdown at the horizon you choose. For example, on a long home loan with moderate extra monthly cash, aggressive prepay may finish years earlier while equity blend keeps more assets in the market. Pick a strategy card to inspect allocation bars and export comparison numbers. These are planning sketches, not investment recommendations or lender-specific product rules.`,
 

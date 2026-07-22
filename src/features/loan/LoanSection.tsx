@@ -72,6 +72,7 @@ export function LoanSection() {
     removeRateChange,
     updateRateChange,
     exportScheduleCsv,
+    exportSchedulePdf,
     exportScenarioJson,
   } = useLoanModels();
 
@@ -854,6 +855,9 @@ export function LoanSection() {
                 <div className="actions inline-actions">
                   <button type="button" className="btn secondary btn-sm" onClick={exportScheduleCsv}>
                     Export CSV
+                  </button>
+                  <button type="button" className="btn secondary btn-sm" onClick={exportSchedulePdf}>
+                    Export PDF
                   </button>
                   <button type="button" className="btn secondary btn-sm" onClick={exportScenarioJson}>
                     Export JSON

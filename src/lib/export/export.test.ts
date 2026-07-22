@@ -5,6 +5,7 @@ import { debtResultToJson } from "./debtJson";
 import { retirementTimelineToCsv } from "./retirementCsv";
 import { retirementResultToJson } from "./retirementJson";
 import { scheduleToCsv } from "./scheduleCsv";
+import { scheduleToPdfBytes } from "./schedulePdf";
 import { scenarioToJson } from "./scenarioJson";
 import { strategyComparisonToCsv } from "./strategyCsv";
 import { strategyResultToJson } from "./strategyJson";
@@ -32,6 +33,13 @@ describe("scheduleToCsv (SPEC §4.9)", () => {
     const csv = scheduleToCsv(sampleRows);
     expect(csv.split("\n")[0]).toContain("opening_inr");
     expect(csv).toContain("1,5000000");
+  });
+
+  it("builds PDF bytes with table content (§10.80)", () => {
+    const bytes = scheduleToPdfBytes(sampleRows, { title: "Test schedule" });
+    expect(bytes.byteLength).toBeGreaterThan(500);
+    const header = new TextDecoder().decode(bytes.slice(0, 8));
+    expect(header).toContain("%PDF");
   });
 
   it("neutralizes formula-like focus labels in debt CSV", () => {

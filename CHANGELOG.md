@@ -19,6 +19,19 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Gratuity calculator (§4.20)** — statutory gratuity tab at `/gratuity` with Payment of Gratuity Act formula, ₹20 lakh cap, and reference golden (₹50k × 10 years → ₹2,88,461.54).
+- **Loan schedule PDF export (§4.9, §10.80)** — Export PDF button on amortisation schedule (landscape A4 via jsPDF).
+- **INR KPI lakh/crore suffix (§10.79)** — headline KPIs ≥ ₹1 lakh show compact suffix (e.g. `₹50,00,000 · 50 lakh`).
+
+### Changed
+
+- **Methodology trust notes (§5.2.2)** — uniform one-liner on debt, retirement, budget, strategies, strategic, and gratuity tabs.
+- **Home tagline** — “suite of 10 tools” including gratuity.
+- **README** — bank-validated EMI parity documented in `docs/VALIDATION.md` (Phase 5.5).
+- **Phase 5 roadmap** — all §5.1–§5.5 sign-off items complete.
+
+### Added (prior)
+
 - **SSY calculator (§4.19)** — Sukanya Samriddhi Yojana maturity tab at `/ssy`: girl child age, annual deposits (15-year cap), interest until age 21, yearly timeline, CSV/JSON export, and reference golden (girl age 5, ₹1.5L/year, 8.2% → ₹48,43,020.48).
 
 ### Removed

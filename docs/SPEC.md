@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 3.0  
+**Version:** 3.1  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), the **PPF maturity calculator** (§4.17), the **SIP investment calculator** (§4.18), and the **SSY maturity calculator** (§4.19). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20), and **PDF amortisation export** on the loan tab. Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -251,7 +251,7 @@ For each scenario:
 - **Charts (optional v1.1):** remaining principal curve, cumulative interest  
 - **Charts (v1.8):** debt tab — total balance over time; retirement tab — nominal corpus by year; strategies tab — net worth at horizon bar chart (reuse shared SVG components).
 
-**Export:** CSV export of schedule + JSON export of scenario config. CSV text fields that begin with `=`, `+`, `-`, `@`, or tab are prefixed with `'` so spreadsheet apps do not treat them as formulas.
+**Export:** CSV and **PDF** export of schedule + JSON export of scenario config. CSV text fields that begin with `=`, `+`, `-`, `@`, or tab are prefixed with `'` so spreadsheet apps do not treat them as formulas. PDF uses landscape A4 with the same columns as CSV (month, balances, interest, principal, prepayment).
 
 **Import (v1.7):** JSON import of a previously exported loan scenario config (§4.9 payload shape). Restores numeric inputs, one-time prepay source, staged prepayments, and the exported scenario view when recognised. Invalid files surface an inline error; no silent partial apply. Imports are rejected when the file exceeds **5 MB**.
 
@@ -845,6 +845,46 @@ Totals:
 
 **Persistence:** SSY tab form state in `localStorage` per locale (`financial-planner-ssy-form-IN`, etc.).
 
+### 4.20 Gratuity calculator
+
+**Locale:** India-focused employment benefit; tab visible for all locales with amounts in INR. US/UK users see an India-specific disclaimer. Implementation: `src/lib/gratuity/`, `src/features/gratuity/`.
+
+Educational statutory gratuity estimate under the Payment of Gratuity Act — does not model tax exemption limits or employer-specific policies.
+
+#### 4.20.1 Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `last_drawn_salary_inr` | number | yes | Monthly salary including basic + DA |
+| `years_of_service` | number | yes | Completed years of continuous service |
+
+#### 4.20.2 Computations
+
+Statutory formula:
+
+\[
+\text{gratuity} = \text{roundInr}\left(\frac{\text{last\_drawn\_salary\_inr} \times 15 \times \text{years\_of\_service}}{26}\right)
+\]
+
+- `gratuity_payable_inr` = `min(raw_gratuity_inr, 20_00_000)` — statutory cap
+- `is_capped` = `raw_gratuity_inr > 20_00_000`
+
+#### 4.20.3 Warnings
+
+| Code | Condition |
+|------|-----------|
+| `GRATUITY_BELOW_MIN_YEARS` | `years_of_service < 5` |
+| `GRATUITY_CAPPED` | `raw_gratuity_inr > 20_00_000` |
+
+#### 4.20.4 Outputs
+
+- **KPI strip:** gratuity payable, formula amount, years of service
+- **Trust copy:** methodology one-liner (formula, cap, basic+DA assumption)
+
+**Export:** JSON export of inputs and summary.
+
+**Persistence:** Gratuity tab form state in `localStorage` per locale (`financial-planner-gratuity-form-IN`, etc.).
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1225,7 +1265,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
 
-- **Home framing:** on the loan/home tab, a short **“suite of 9 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, PPF, SIP, SSY, budget, payoff strategies, and what-if games.
+- **Home framing:** on the loan/home tab, a short **“suite of 10 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, PPF, SIP, SSY, gratuity, budget, payoff strategies, and what-if games.
 
 - **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) **below** the calculator inputs and results (after the KPI strip and schedule on loan/strategy tabs). Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
 
@@ -1255,7 +1295,7 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 Design tokens and layout follow [`docs/research/2026-07-ui-redesign-figma-direction.md`](research/2026-07-ui-redesign-figma-direction.md) (PR #14 Figma direction).
 
 - **Shell:** Sticky header with brand + locale segmented control; **sidebar navigation on desktop** (≥1024px), horizontal tab scroll on smaller viewports.  
-- **KPI strip:** Loan and Strategies tabs show a summary row (payoff, total interest, Δ vs baseline, min cash, warning count) when results are available — visible without horizontal scroll on mobile. **Headline KPI currency values** round to **whole rupees / dollars / pounds**; paise and cents appear only in schedule and comparison tables.  
+- **KPI strip:** Loan and Strategies tabs show a summary row (payoff, total interest, Δ vs baseline, min cash, warning count) when results are available — visible without horizontal scroll on mobile. **Headline KPI currency values** round to **whole rupees / dollars / pounds**; **INR KPIs ≥ ₹1 lakh** also show a lakh/crore suffix (e.g. `₹50,00,000 · 50 lakh`); paise and cents appear only in schedule and comparison tables.  
 - **Grouped inputs:** Loan tab uses collapsible sections (loan terms, assets, cashflow/stress, advanced).  
 - **Scenario selection:** Schedule drill-down uses **scenario cards** (radiogroup), not an exclusive long `<select>`. Comparison table remains for audit numbers.  
 - **Strategic tab:** Payoff matrix includes a **heatmap** visualization alongside the table (§4.13.9 export unchanged).  
@@ -1413,6 +1453,20 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 73. **SSY trust copy:** SSY tab shows methodology one-liner (§4.19.4) near inputs.  
 74. **SSY explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
 
+### Gratuity calculator (§4.20)
+
+75. **Gratuity reference:** last drawn salary ₹50,000/month, 10 years → `gratuity_payable_inr = 2,88,461.54` (half-up paise rounding).  
+76. **Gratuity cap:** salary ₹1,50,000, 25 years → `gratuity_payable_inr = 20,00,000`, warning `GRATUITY_CAPPED`; 4 years service → warning `GRATUITY_BELOW_MIN_YEARS`.  
+77. **Gratuity route:** `tabPageUrl("gratuity")` resolves `/gratuity`; `dist/gratuity/index.html` exists after build.  
+78. **Gratuity trust copy:** gratuity tab shows methodology one-liner (§4.20.4) near inputs.
+
+### Phase 5 platform (§8, §4.9)
+
+79. **INR KPI lakh/crore:** `formatMoneyKpi(5_000_000, "IN")` → `₹50,00,000 · 50 lakh`; `formatMoneyKpi(25_000_000, "IN")` → `₹2,50,00,000 · 2.5 crore`.  
+80. **Loan PDF export:** after reference load, loan schedule shows **Export PDF**; generated PDF contains header row and ≥ 1 data row for baseline schedule.  
+81. **Trust copy (all tabs):** debt, retirement, budget, strategies, strategic, PPF, SIP, SSY, and gratuity tabs each show a methodology one-liner near inputs (§5.2.2).  
+82. **Bank validation:** `docs/VALIDATION.md` documents reproducible HDFC Case 1 inputs and expected EMI; README links to it.
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -1430,7 +1484,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (gratuity/lumpsum — **PPF** §4.17, **SIP** §4.18, and **SSY** §4.19 shipped); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; **lumpsum** investment calculator; budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

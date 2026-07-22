@@ -375,6 +375,14 @@ body {
   outline-offset: 2px;
 }
 
+.app-suite-tagline {
+  margin: 0.15rem 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-strong);
+  line-height: 1.35;
+}
+
 .app-brand .lede {
   margin: 0.35rem 0 0;
   font-size: 0.92rem;

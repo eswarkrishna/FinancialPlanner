@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-22 — Information architecture Phase 4
+
+- **Context:** Architecture review §4 / `TASKS-ARCHITECTURE-ROADMAP.md` Phase 4 — “Strategies” vs “Strategic” confused users and SEO slugs.
+- **What we learned:** Internal `TabId` values (`strategies`, `strategic`) can stay stable while UI labels and canonical path slugs change; legacy bookmarks need both client `replaceState` and static redirect shells for no-JS crawlers.
+- **Action:** Canonical slugs `payoff-strategies` / `what-if-games`; build emits redirect HTML at old paths; home tagline lists all six tools above the fold on mobile.
+
+---
+
 ## 2026-07-14 — Gap-fill prepay fee vs game-theory fees
 
 - **Context:** SPEC §4.4.1–§4.4.2 / gap-fill §1.2–1.3; PR for competitor parity first slice.

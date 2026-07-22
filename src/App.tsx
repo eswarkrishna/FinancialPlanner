@@ -4,7 +4,7 @@ import {
   getTabFromLocation,
   pageTitle,
   PLANNER_TABS,
-  redirectLegacyTabQuery,
+  resolveInitialNavigation,
   setTabInUrl,
   type TabId,
   updatePageSeo,
@@ -59,7 +59,7 @@ function handleTabKeyDown(
 }
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<TabId>(() => redirectLegacyTabQuery());
+  const [activeTab, setActiveTab] = useState<TabId>(() => resolveInitialNavigation());
   const { locale, switchLocale } = useLocale();
   const {
     analyticsActive,
@@ -145,6 +145,10 @@ export function App() {
                 </div>
                 <LocaleSegment value={locale} onChange={onLocaleChange} />
               </div>
+              <p className="app-suite-tagline">
+                Six calculators in one planner — loan, debt, retirement, budget, payoff strategies,
+                and what-if games.
+              </p>
               <p className="lede">
                 Plan your home loan, compare prepayment options, model debt and retirement
                 savings, track your monthly budget and investments, and explore what-if

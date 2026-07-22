@@ -2,21 +2,22 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { launchBrowser, type BrowserSession } from "../helpers/browser";
 import { getBaseUrl } from "../helpers/env";
-import { gotoApp, TAB_IDS, type PlannerTabId } from "../helpers/page";
+import { gotoApp, TAB_IDS, TAB_PATH_SLUG, type PlannerTabId } from "../helpers/page";
 
 const SEO_H1: Record<PlannerTabId, string> = {
   loan: "Loan EMI Calculator with Prepayment",
   debt: "Debt Avalanche vs Snowball Calculator",
   retirement: "Retirement Corpus & SIP Calculator",
-  strategies: "Loan Repayment Strategy Comparison",
-  strategic: "Loan Payoff Game Theory Explorer",
+  strategies: "Household Payoff Strategy Comparison",
+  strategic: "Loan Payoff What-If Game Explorer",
   budget: "Budget Planner with 50/30/20 Rule",
 };
 
 const BRAND_SUFFIX = " | FinancialPlanner";
 
 function pathForTab(tabId: PlannerTabId): string {
-  return tabId === "loan" ? "/" : `/${tabId}/`;
+  const slug = TAB_PATH_SLUG[tabId];
+  return slug ? `/${slug}/` : "/";
 }
 
 async function readJsonLd(page: import("puppeteer").Page): Promise<unknown> {
@@ -83,7 +84,8 @@ describe("SEO sign-off (§10.52–58, Phase 12.2)", () => {
       if (tabId === "loan") {
         assert.match(canonical, /\/(?:FinancialPlanner\/)?$/);
       } else {
-        assert.ok(canonical.endsWith(`/${tabId}`), `canonical should end with /${tabId}`);
+        const slug = TAB_PATH_SLUG[tabId];
+        assert.ok(canonical.endsWith(`/${slug}`), `canonical should end with /${slug}`);
       }
 
       const previewPath = pathForTab(tabId);
@@ -115,4 +117,19 @@ describe("SEO sign-off (§10.52–58, Phase 12.2)", () => {
       await session.page.setJavaScriptEnabled(true);
     });
   }
+
+  it("redirects legacy /strategies/ bookmark to /payoff-strategies/", async () => {
+    const base = getBaseUrl();
+    await session.page.goto(`${base}/strategies/`, { waitUntil: "networkidle0" });
+    assert.match(session.page.url(), /\/payoff-strategies\/?(\?|$|#)/);
+
+    const h1 = await session.page.$eval("h1", (element) => element.textContent?.trim() ?? "");
+    assert.equal(h1, SEO_H1.strategies);
+  });
+
+  it("redirects legacy /strategic/ bookmark to /what-if-games/", async () => {
+    const base = getBaseUrl();
+    await session.page.goto(`${base}/strategic/`, { waitUntil: "networkidle0" });
+    assert.match(session.page.url(), /\/what-if-games\/?(\?|$|#)/);
+  });
 });

@@ -4,6 +4,16 @@ import { getBaseUrl } from "./env";
 const TAB_IDS = ["loan", "debt", "retirement", "strategies", "strategic", "budget"] as const;
 export type PlannerTabId = (typeof TAB_IDS)[number];
 
+/** Canonical path slug per tab (SPEC §8). */
+const TAB_PATH_SLUG: Record<PlannerTabId, string> = {
+  loan: "",
+  debt: "debt",
+  retirement: "retirement",
+  strategies: "payoff-strategies",
+  strategic: "what-if-games",
+  budget: "budget",
+};
+
 export async function dismissConsentBanners(page: Page): Promise<void> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const dismissed = await page.evaluate(() => {
@@ -36,7 +46,8 @@ export async function clickAriaLabel(page: Page, label: string): Promise<void> {
 
 export async function gotoApp(page: Page, tab: PlannerTabId = "loan"): Promise<void> {
   const base = getBaseUrl();
-  const url = tab === "loan" ? `${base}/` : `${base}/${tab}`;
+  const slug = TAB_PATH_SLUG[tab];
+  const url = slug ? `${base}/${slug}` : `${base}/`;
   await page.goto(url, { waitUntil: "networkidle0" });
   await dismissConsentBanners(page);
   await page.waitForSelector("h1", { timeout: 10_000 });
@@ -46,8 +57,8 @@ const TAB_LABELS: Record<PlannerTabId, string> = {
   loan: "Loan",
   debt: "Multi-debt",
   retirement: "Retirement",
-  strategies: "Strategies",
-  strategic: "Strategic",
+  strategies: "Payoff strategies",
+  strategic: "What-if games",
   budget: "Budget",
 };
 
@@ -183,4 +194,4 @@ export async function getComparisonPayoffMonth(page: Page): Promise<string> {
   return month;
 }
 
-export { TAB_IDS };
+export { TAB_IDS, TAB_PATH_SLUG };

@@ -5,12 +5,14 @@ import react from "@vitejs/plugin-react";
 import { buildInfoDefine, getGitBuildInfo } from "./scripts/git-build-info";
 import {
   buildIndexHtmlReplacements,
+  buildLegacyRedirectShell,
   buildRobotsTxt,
   buildSitemapXml,
   patchIndexHtmlSeo,
   PLANNER_TABS,
   resolveSiteUrl,
-  SEO_ROUTE_SLUGS,
+  TAB_PATH_SLUG,
+  LEGACY_TAB_PATH_SLUG,
 } from "./src/lib/seo";
 
 /** GitHub Pages serves from /{repo}/; AWS/CloudFront uses root `/`. */
@@ -80,13 +82,23 @@ function seoPlugin(): Plugin {
         ...jsonLdOptions,
         routerBase: base,
       };
-      for (const slug of SEO_ROUTE_SLUGS) {
-        const tab = PLANNER_TABS.find((entry) => entry.id === slug);
-        if (!tab) continue;
+      for (const tab of PLANNER_TABS) {
+        if (tab.id === "loan") continue;
+        const pathSlug = TAB_PATH_SLUG[tab.id];
         const shellHtml = patchIndexHtmlSeo(homeHtml, siteUrl, tab.id, shellOptions);
-        const slugDir = path.join(outDir, slug);
+        const slugDir = path.join(outDir, pathSlug);
         fs.mkdirSync(slugDir, { recursive: true });
         fs.writeFileSync(path.join(slugDir, "index.html"), shellHtml);
+
+        const legacySlug = LEGACY_TAB_PATH_SLUG[tab.id];
+        if (legacySlug && legacySlug !== pathSlug) {
+          const legacyDir = path.join(outDir, legacySlug);
+          fs.mkdirSync(legacyDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(legacyDir, "index.html"),
+            buildLegacyRedirectShell(shellHtml, tab.id, siteUrl, base),
+          );
+        }
       }
     },
   };

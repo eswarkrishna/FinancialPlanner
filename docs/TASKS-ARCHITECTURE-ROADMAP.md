@@ -123,15 +123,15 @@ Priority order from screenshot review (§5). Target viewport: **360 px** width.
 
 ## Phase 4 — Information architecture (P2)
 
-- [ ] **4.1** Decide tab rename/merge: “Strategies” vs “Strategic” → intent-based labels (e.g. “Payoff strategies”, “What-if games”) or fold game theory into §4.12 as advanced panel.
-- [ ] **4.2** Update SPEC §8 routes, tab labels, and SEO titles/descriptions for new names.
-- [ ] **4.3** Implement redirects from old slugs (`replaceState` / static redirect rules); update sitemap.
-- [ ] **4.4** **Home framing:** keep “suite of 6 tools” tagline above the fold on mobile at root route.
-- [ ] **4.5** Internal links and noscript shells updated for renamed routes.
+- [x] **4.1** Decide tab rename/merge: “Strategies” vs “Strategic” → intent-based labels (e.g. “Payoff strategies”, “What-if games”) or fold game theory into §4.12 as advanced panel.
+- [x] **4.2** Update SPEC §8 routes, tab labels, and SEO titles/descriptions for new names.
+- [x] **4.3** Implement redirects from old slugs (`replaceState` / static redirect rules); update sitemap.
+- [x] **4.4** **Home framing:** keep “suite of 6 tools” tagline above the fold on mobile at root route.
+- [x] **4.5** Internal links and noscript shells updated for renamed routes.
 
 ### Phase 4 sign-off
 
-- [ ] **4.6** Old bookmarked URLs land on correct tab; sitemap URLs match canonicals.
+- [x] **4.6** Old bookmarked URLs land on correct tab; sitemap URLs match canonicals.
 
 ---
 

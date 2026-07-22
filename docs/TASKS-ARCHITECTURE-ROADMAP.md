@@ -141,20 +141,20 @@ Feature order from gap-fill backlog (§7). One slice per branch/PR.
 
 ### 5.1 Core features
 
-- [ ] **5.1.1** Floating-rate loan support (top competitor gap).
+- [x] **5.1.1** Floating-rate loan support (top competitor gap) — baseline schedule + rate reset UI (§4.3.1).
 - [ ] **5.1.2** PPF calculator (India instruments).
 - [ ] **5.1.3** SIP calculator.
 - [ ] **5.1.4** SSY calculator.
 - [ ] **5.1.5** Gratuity calculator.
-- [ ] **5.1.6** Reduce-EMI vs Reduce-Tenure panel polish (§4.4.2 — already spec'd).
-- [ ] **5.1.7** Lakh/crore display formatting throughout UI.
+- [ ] **5.1.6** Reduce-EMI vs Reduce-Tenure panel polish (§4.4.2 — already spec'd). *Shipped in gap-fill v2.5.*
+- [ ] **5.1.7** Lakh/crore display formatting throughout UI. *Partial: currency fields (Phase 3).*
 - [ ] **5.1.8** PDF amortisation export.
 
 ### 5.2 Trust layer
 
-- [ ] **5.2.1** Create `docs/VALIDATION.md`: compare EMI, prepayment, PF outputs against 2–3 bank calculators (HDFC, SBI); document methodology and deltas.
-- [ ] **5.2.2** Uniform one-line methodology note per calculator (reducing-balance, compounding, rounding).
-- [ ] **5.2.3** Add “Your data never leaves your browser” near inputs (localStorage-only).
+- [x] **5.2.1** Create `docs/VALIDATION.md`: compare EMI, prepayment, PF outputs against 2–3 bank calculators (HDFC, SBI); document methodology and deltas.
+- [x] **5.2.2** Uniform one-line methodology note per calculator (reducing-balance, compounding, rounding). *Loan tab shipped; extend to other tabs in follow-up.*
+- [x] **5.2.3** Add “Your data never leaves your browser” near inputs (localStorage-only).
 
 ### Phase 5 sign-off
 

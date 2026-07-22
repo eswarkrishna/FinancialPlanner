@@ -12,6 +12,7 @@ import { ScenarioCardPicker } from "./components/ScenarioCardPicker";
 import { ScheduleChart } from "./components/ScheduleChart";
 import { ScenarioTable } from "./components/ScenarioTable";
 import { StagedPrepayEditor } from "./components/StagedPrepayEditor";
+import { RateChangesEditor } from "./components/RateChangesEditor";
 import { buildScenarioViewOptions } from "./hooks/buildScenarioViewOptions";
 import {
   type PrepaySource,
@@ -66,6 +67,10 @@ export function LoanSection() {
     addStagedPrepay,
     removeStagedPrepay,
     updateStagedPrepay,
+    rateChanges,
+    addRateChange,
+    removeRateChange,
+    updateRateChange,
     exportScheduleCsv,
     exportScenarioJson,
   } = useLoanModels();
@@ -117,6 +122,14 @@ export function LoanSection() {
       <section className="card">
         <h2>Loan &amp; assets</h2>
         <FormSection title="Loan terms">
+        <p className="loan-trust-note">
+          Your data never leaves your browser — inputs are stored in localStorage on
+          this device only.
+        </p>
+        <p className="loan-methodology-note">
+          Reducing-balance EMI; monthly rate = annual ÷ 12; amounts rounded half-up to
+          2 decimals (paise) per step.
+        </p>
         <div className="form-grid">
           <CurrencyField
             label={`Principal (${currencyLabel})`}
@@ -131,6 +144,16 @@ export function LoanSection() {
               value={inputs.annual_interest_rate}
               onChange={(e) => setField("annual_interest_rate", e.target.value)}
             />
+          </label>
+          <label>
+            Rate type
+            <select
+              value={inputs.rate_type === "floating" ? "floating" : "fixed"}
+              onChange={(e) => setField("rate_type", e.target.value)}
+            >
+              <option value="fixed">Fixed</option>
+              <option value="floating">Floating</option>
+            </select>
           </label>
           <label>
             Tenure (months)
@@ -187,6 +210,14 @@ export function LoanSection() {
             </label>
           )}
         </div>
+        {inputs.rate_type === "floating" ? (
+          <RateChangesEditor
+            entries={rateChanges}
+            onAdd={addRateChange}
+            onRemove={removeRateChange}
+            onChange={updateRateChange}
+          />
+        ) : null}
         </FormSection>
 
         <FormSection title="Assets &amp; income">

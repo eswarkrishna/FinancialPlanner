@@ -50,6 +50,8 @@ export const loanInputSchema = z.object({
     .default("none"),
   prepayment_fee_inr: z.coerce.number().min(0).optional().default(0),
   prepayment_fee_pct: z.coerce.number().min(0).max(100).optional().default(0),
+  /** Fixed vs deterministic floating rate path (§4.3.1). */
+  rate_type: z.enum(["fixed", "floating"]).optional().default("fixed"),
 
   /** Unemployment / job-loss + cashflow module (§4.7–4.8 / SPEC-US §4.7–4.8). */
   unemployment_mode: z.coerce.boolean().optional().default(false),

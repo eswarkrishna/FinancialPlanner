@@ -13,6 +13,8 @@ import {
   simulateUsCashPlus401kCashflow,
   simulateUsCashflowSchedule,
 } from "../../../lib/loan";
+import type { ParsedRateChange } from "../../../lib/loan/rateChanges";
+import { loanRateConfigFrom } from "../../../lib/loan/rateSchedule";
 import { computeK401JobLossWithdrawalPlan } from "../../../lib/k401/index";
 import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf/index";
 import type { LoanInput } from "../../../lib/schemas/index";
@@ -95,6 +97,7 @@ export function buildLoanModels(
   effectiveLiquidInr: number,
   stagedEvents: { month: number; amount_inr: number }[],
   locale: Locale,
+  rateChanges: ParsedRateChange[] = [],
 ): BuiltLoanModels {
   if (locale === "UK") {
     return buildUkLoanModels(v, prepaySource, stagedEvents);
@@ -102,10 +105,16 @@ export function buildLoanModels(
   const x = v.monthly_cash_to_loan_inr;
   const salaryRecurring = v.monthly_salary_inr;
   const recurringToLoan = x + salaryRecurring;
+  const rateConfig = loanRateConfigFrom(
+    v.annual_interest_rate,
+    v.rate_type ?? "fixed",
+    rateChanges,
+  );
   const base = baselineSchedule(
     v.principal_inr,
     v.annual_interest_rate,
     v.tenure_months,
+    rateConfig,
   );
   const baseSalarySweep =
     salaryRecurring > 0

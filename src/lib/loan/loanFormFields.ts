@@ -17,6 +17,7 @@ export const EMPTY_LOAN_FORM: Record<keyof LoanInput, string> = {
   prepayment_fee_type: "none",
   prepayment_fee_inr: "",
   prepayment_fee_pct: "",
+  rate_type: "fixed",
   unemployment_mode: "false",
 
   unemployment_start_month: "1",
@@ -93,6 +94,7 @@ export function loanInputToFormFields(
         : "none",
     prepayment_fee_inr: stringField(input.prepayment_fee_inr),
     prepayment_fee_pct: stringField(input.prepayment_fee_pct),
+    rate_type: input.rate_type === "floating" ? "floating" : "fixed",
     unemployment_mode: boolField(input.unemployment_mode, false),
 
     unemployment_start_month: stringField(input.unemployment_start_month, "1"),

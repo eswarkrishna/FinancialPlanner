@@ -1,5 +1,6 @@
 import type { Locale } from "../locale/types";
 import type { StagedPrepayEntry } from "../loan/stagedPrepays";
+import type { RateChangeEntry } from "../loan/rateChanges";
 import {
   SCENARIO_LABELS,
   type PrepaySource,
@@ -19,10 +20,26 @@ export interface LoanFormPersistedState {
   scenarioView: ScenarioView;
   prepaySource: PrepaySource;
   stagedPrepays: StagedPrepayEntry[];
+  rateChanges: RateChangeEntry[];
 }
 
 export function loanFormStorageKey(locale: Locale): string {
   return `${LOAN_FORM_STORAGE_KEY}-${locale}`;
+}
+
+function isRateChangeEntry(value: unknown): value is RateChangeEntry {
+  if (!value || typeof value !== "object") return false;
+  const entry = value as Partial<RateChangeEntry>;
+  return (
+    typeof entry.id === "string" &&
+    typeof entry.month === "string" &&
+    typeof entry.annual_rate === "string"
+  );
+}
+
+function normalizeRateChanges(value: unknown): RateChangeEntry[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isRateChangeEntry);
 }
 
 function isStagedPrepayEntry(value: unknown): value is StagedPrepayEntry {
@@ -62,6 +79,10 @@ function isValidPersistedState(value: Partial<LoanFormPersistedState>): value is
   if (!isValidPrepaySource(value.prepaySource)) return false;
   if (!Array.isArray(value.stagedPrepays)) return false;
   if (!value.stagedPrepays.every(isStagedPrepayEntry)) return false;
+  if (value.rateChanges !== undefined) {
+    if (!Array.isArray(value.rateChanges)) return false;
+    if (!value.rateChanges.every(isRateChangeEntry)) return false;
+  }
   return true;
 }
 
@@ -89,6 +110,7 @@ function normalizePersistedState(
     scenarioView: value.scenarioView,
     prepaySource: value.prepaySource,
     stagedPrepays: normalizeStagedPrepays(value.stagedPrepays),
+    rateChanges: normalizeRateChanges(value.rateChanges),
   };
 }
 

@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-22 — Phase 5 wedge slice 1 (floating rate + trust)
+
+- **Context:** Architecture review Phase 5 / gap-fill §7 — floating rates and bank validation doc.
+- **What we learned:** Indian floating loans are modelled as deterministic rate steps with EMI reset on remaining tenure; prepay paths still use fixed rate until a follow-up wires `rateConfig` through cashflow helpers.
+- **Action:** §4.3.1 baseline floating; `docs/VALIDATION.md` for HDFC/SBI parity methodology; loan-tab privacy + methodology copy.
+
+---
+
 ## 2026-07-22 — Production outage: Pages served repo root, not `dist/`
 
 - **Context:** After Phase 4 merge, https://eswarkrishna.github.io/FinancialPlanner/ showed blank page with `__SEO_TITLE__` and `<script src="/src/main.tsx">`.

@@ -12,3 +12,5 @@ export * from "./loanFormFields";
 export * from "./prepaymentFee";
 export * from "./scenarioViews";
 export * from "./stagedPrepays";
+export * from "./rateChanges";
+export * from "./rateSchedule";

@@ -383,6 +383,26 @@ body {
   line-height: 1.35;
 }
 
+.loan-trust-note,
+.loan-methodology-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.loan-methodology-note {
+  margin-bottom: 1rem;
+}
+
+.rate-changes {
+  margin-top: 1rem;
+}
+
+.rate-changes h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
 .app-brand .lede {
   margin: 0.35rem 0 0;
   font-size: 0.92rem;

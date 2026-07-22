@@ -29,6 +29,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Changed
 
+- **Phase 5 wedge (slice 1)** — deterministic floating-rate resets on loan baseline (§4.3.1); `docs/VALIDATION.md` bank parity methodology; loan-tab privacy and methodology notes.
 - **Information architecture (Phase 4)** — tab labels “Payoff strategies” and “What-if games”; canonical paths `/payoff-strategies` and `/what-if-games`; legacy `/strategies` and `/strategic` redirect client-side and via static build shells; home “suite of 6 tools” tagline above the fold.
 - **Mobile UX (Phase 3)** — single-column form grid below 480px; explainer and feedback moved below calculator; INR lakh/crore echo on currency inputs; headline KPIs round to whole currency units; baseline prepay hint card; darker secondary-button text for contrast on mint background.
 - **`dist/404.html`** — `robots` `noindex` so error pages are not indexed with the home canonical.

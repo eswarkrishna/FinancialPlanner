@@ -13,7 +13,7 @@ describe("App shell composition", () => {
     renderWithLocale(<App />);
 
     expect(document.querySelector(".app-brand-name")).toHaveTextContent("FinancialPlanner");
-    expect(screen.getByText(/Six calculators in one planner/)).toBeInTheDocument();
+    expect(screen.getByText(/Seven calculators in one planner/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { level: 1, name: "Loan EMI Calculator with Prepayment" }),
     ).toBeInTheDocument();

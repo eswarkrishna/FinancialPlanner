@@ -1,6 +1,6 @@
 /** SEO helpers: tab URLs, titles, meta updates, JSON-LD, sitemap/robots builders (SPEC §8). */
 
-export type TabId = "loan" | "debt" | "retirement" | "strategies" | "strategic" | "budget";
+export type TabId = "loan" | "debt" | "retirement" | "ppf" | "strategies" | "strategic" | "budget";
 
 export type PlannerTab = {
   id: TabId;
@@ -34,6 +34,13 @@ export const PLANNER_TABS: PlannerTab[] = [
       "Project your retirement corpus and funded ratio with monthly SIP-style contributions, inflation, and conservative to optimistic scenarios.",
   },
   {
+    id: "ppf",
+    label: "PPF",
+    seoTitle: "PPF Calculator — Maturity & Interest",
+    description:
+      "Free PPF maturity calculator for India. Project balance growth from annual contributions and government-notified interest rates with a yearly timeline.",
+  },
+  {
     id: "strategies",
     label: "Payoff strategies",
     seoTitle: "Household Payoff Strategy Comparison",
@@ -61,6 +68,7 @@ export const TAB_PATH_SLUG: Record<TabId, string> = {
   loan: "",
   debt: "debt",
   retirement: "retirement",
+  ppf: "ppf",
   strategies: "payoff-strategies",
   strategic: "what-if-games",
   budget: "budget",

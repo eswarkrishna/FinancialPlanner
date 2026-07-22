@@ -12,11 +12,13 @@ import {
   resolveSiteUrl,
   TAB_PATH_SLUG,
   tabPageUrl,
+  tabPathname,
   type TabId,
 } from "../src/lib/seo.ts";
 
 const distDir = path.resolve("dist");
 const siteUrl = resolveSiteUrl(process.env.VITE_SITE_URL);
+const routerBase = process.env.VITE_BASE ?? "/";
 const failures: string[] = [];
 
 function readCanonical(html: string): string | null {
@@ -113,8 +115,10 @@ for (const tab of PLANNER_TABS) {
       `${legacyLabel}: canonical "${legacyCanonical ?? ""}" !== "${expectedCanonical}"`,
     );
   }
-  if (!legacyHtml.includes(`url=/${canonicalSlug}`) && !legacyHtml.includes(`url=${canonicalSlug}`)) {
-    failures.push(`${legacyLabel}: missing meta refresh to /${canonicalSlug}`);
+  if (!legacyHtml.includes(`url=${tabPathname(tab.id, routerBase)}`)) {
+    failures.push(
+      `${legacyLabel}: missing meta refresh to ${tabPathname(tab.id, routerBase)}`,
+    );
   }
 }
 

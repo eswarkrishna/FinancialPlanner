@@ -1050,7 +1050,9 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
 
-- **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) above or beside the calculator inputs. Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
+- **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) **below** the calculator inputs and results (after the KPI strip and schedule on loan/strategy tabs). Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
+
+- **Feedback:** optional “Helpful?” thumbs control appears **after** calculator results (below explainer copy on each tab).
 
 - **JSON-LD (per tab, updated on tab change):**
   - `WebApplication` — `applicationCategory: FinanceApplication`, `featureList` (one entry per planner tab), `isAccessibleForFree: true`, `inLanguage` (`en-IN`, `en-US`, `en-GB`), `offers` price 0, `dateModified` from build commit date, `publisher` `Organization` with GitHub `sameAs`.
@@ -1065,7 +1067,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 - **Copy link to this tab** — control in the footer feedback region (`AppFooter`). Label: “Copy link to this tab”. On success, brief inline confirmation (“Link copied”). URL per §5.1.1 (`utm_source=share`, `utm_medium=copy`).  
 - **Share on Facebook** — control next to the copy-link action in `AppFooter`. Label: “Share on Facebook”. Opens Facebook’s sharer with the tab URL per §5.1.1 (`utm_source=facebook`, `utm_medium=social`) and fires `share_link_facebook`. No Meta Pixel / Facebook SDK.  
 - **Analytics consent (§5.1.2)** — when GA is enabled in the web app, show accept/decline strip before loading gtag; persist `financial-planner-analytics-consent`. Footer terms disclose GA, `localStorage` sensitivity, and link to Google’s opt-out add-on.  
-- **Helpful? (Tier 2, optional)** — thumbs up/down near tab content heading; one vote per tab per session (disable after click).
+- **Helpful? (Tier 2, optional)** — thumbs up/down **after** calculator results and explainer copy; one vote per tab per session (disable after click).
 
 ### Comparison table columns
 
@@ -1076,7 +1078,7 @@ Scenario name; Payoff month; Total interest; Δ interest vs BASE; Total outflows
 Design tokens and layout follow [`docs/research/2026-07-ui-redesign-figma-direction.md`](research/2026-07-ui-redesign-figma-direction.md) (PR #14 Figma direction).
 
 - **Shell:** Sticky header with brand + locale segmented control; **sidebar navigation on desktop** (≥1024px), horizontal tab scroll on smaller viewports.  
-- **KPI strip:** Loan and Strategies tabs show a summary row (payoff, total interest, Δ vs baseline, min cash, warning count) when results are available — visible without horizontal scroll on mobile.  
+- **KPI strip:** Loan and Strategies tabs show a summary row (payoff, total interest, Δ vs baseline, min cash, warning count) when results are available — visible without horizontal scroll on mobile. **Headline KPI currency values** round to **whole rupees / dollars / pounds**; paise and cents appear only in schedule and comparison tables.  
 - **Grouped inputs:** Loan tab uses collapsible sections (loan terms, assets, cashflow/stress, advanced).  
 - **Scenario selection:** Schedule drill-down uses **scenario cards** (radiogroup), not an exclusive long `<select>`. Comparison table remains for audit numbers.  
 - **Strategic tab:** Payoff matrix includes a **heatmap** visualization alongside the table (§4.13.9 export unchanged).  

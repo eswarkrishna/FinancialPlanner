@@ -192,12 +192,12 @@ export function App() {
                 {activeTab === tab.id ? (
                   <>
                     <TabPageHeading tabId={tab.id} />
-                    <TabExplainer tabId={tab.id} />
                     <RelatedCalculators tabId={tab.id} onSelectTab={selectTab} />
-                    <FeedbackHelpful tabId={tab.id} locale={locale} />
                     <Suspense fallback={<TabSectionLoading />}>
                       <TabCalculatorSection tabId={tab.id} />
                     </Suspense>
+                    <TabExplainer tabId={tab.id} />
+                    <FeedbackHelpful tabId={tab.id} locale={locale} />
                   </>
                 ) : null}
               </div>

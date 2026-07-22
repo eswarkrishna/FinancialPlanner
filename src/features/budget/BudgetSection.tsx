@@ -1,4 +1,4 @@
-import { formatMoneyFinite } from "../../lib/locale/formatMoney";
+import { formatMoneyFinite, formatMoneyKpi } from "../../lib/locale/formatMoney";
 import { buildBudgetPortfolioCurve } from "../../lib/loan/chartData";
 import { AlertCallout } from "../../components/AlertCallout";
 import { BarChart } from "../../components/BarChart";
@@ -37,6 +37,7 @@ function bucketDeltaClass(kind: BucketRowKind, actual: number, target: number): 
 export function BudgetSection() {
   const { locale } = useLocale();
   const money = (value: number) => formatMoneyFinite(value, locale);
+  const moneyKpi = (value: number) => formatMoneyKpi(value, locale);
   const currencyLabel = locale === "US" ? "USD" : locale === "UK" ? "GBP" : "INR";
   const {
     form,
@@ -68,17 +69,17 @@ export function BudgetSection() {
     {
       id: "income",
       label: "Monthly income",
-      value: money(summary.total_income_inr),
+      value: moneyKpi(summary.total_income_inr),
     },
     {
       id: "expenses",
       label: "Monthly expenses",
-      value: money(summary.total_expenses_inr),
+      value: moneyKpi(summary.total_expenses_inr),
     },
     {
       id: "net",
       label: "Net cash flow",
-      value: money(summary.net_cash_flow_inr),
+      value: moneyKpi(summary.net_cash_flow_inr),
       tone:
         summary.net_cash_flow_inr < 0
           ? ("danger" as const)
@@ -101,7 +102,7 @@ export function BudgetSection() {
     {
       id: "portfolio",
       label: "Portfolio value",
-      value: money(summary.investment_portfolio_inr),
+      value: moneyKpi(summary.investment_portfolio_inr),
     },
   ];
 

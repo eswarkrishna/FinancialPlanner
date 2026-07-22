@@ -1,5 +1,5 @@
 import { KpiStrip, type KpiItem } from "../../../components/KpiStrip";
-import { formatMoney } from "../../../lib/locale/formatMoney";
+import { formatMoneyKpi } from "../../../lib/locale/formatMoney";
 import type { Locale } from "../../../lib/locale/types";
 import type { ComparisonRow } from "../hooks/loanModelTypes";
 import type { ScenarioView } from "../hooks/loanModelTypes";
@@ -28,7 +28,7 @@ export function LoanKpiStrip({
   emiLabel,
   emiValue,
 }: LoanKpiStripProps) {
-  const money = (value: number) => formatMoney(value, locale);
+  const money = (value: number) => formatMoneyKpi(value, locale);
   const activeRow = findRow(comparisonRows, scenarioView) ?? comparisonRows[0];
   if (!activeRow) return null;
 
@@ -52,7 +52,13 @@ export function LoanKpiStrip({
     },
   ];
 
-  if (!isBaseline) {
+  if (isBaseline) {
+    items.push({
+      id: "compare-hint",
+      label: "Prepay savings",
+      value: "Add a prepayment to compare",
+    });
+  } else {
     items.push({
       id: "delta",
       label: "Interest saved vs baseline",

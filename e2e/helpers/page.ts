@@ -136,20 +136,28 @@ export async function waitForHeading(page: Page, name: string): Promise<void> {
 export async function setLabeledInput(page: Page, labelText: string, value: string): Promise<void> {
   const updated = await page.evaluate(
     (label, nextValue) => {
-      const target = Array.from(document.querySelectorAll("label")).find((element) =>
-        element.textContent?.includes(label),
-      );
-      const input = target?.querySelector("input");
-      if (!input) return false;
+      for (const element of document.querySelectorAll("label")) {
+        if (!element.textContent?.includes(label)) continue;
 
-      const setter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        "value",
-      )?.set;
-      setter?.call(input, nextValue);
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-      return true;
+        let input =
+          element.querySelector("input") ??
+          (() => {
+            const htmlFor = element.getAttribute("for");
+            return htmlFor ? document.getElementById(htmlFor) : null;
+          })();
+
+        if (!(input instanceof HTMLInputElement)) continue;
+
+        const setter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype,
+          "value",
+        )?.set;
+        setter?.call(input, nextValue);
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        return true;
+      }
+      return false;
     },
     labelText,
     value,

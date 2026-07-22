@@ -15,7 +15,7 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 | **Initiative** | Architecture review remediation + wedge focus |
 | **Source** | [`research/2026-07-architecture-review-roadmap.md`](research/2026-07-architecture-review-roadmap.md) |
 | **SPEC sections** | §4.4, §4.6, §4.12–§4.13, §5.1.2, §5.2, §8, §10, §11 |
-| **Branch / PR** | `cursor/phase-2-cut-clean-d414` |
+| **Branch / PR** | `cursor/phase-3-mobile-ux-d414` |
 | **Started** | 2026-07-21 |
 
 ---
@@ -103,21 +103,21 @@ Actionable tasks derived from [`research/2026-07-architecture-review-roadmap.md`
 
 Priority order from screenshot review (§5). Target viewport: **360 px** width.
 
-- [ ] **3.1** **Grid collapse:** stack 4-column input grid to one column below ~480 px; fix clipped “Start date” and truncated “PF annual interest”.
-- [ ] **3.2** **Locale switcher:** keep IN/US/UK control reachable at narrow widths (do not hide primary control).
-- [ ] **3.3** **Explainer placement:** move formula prose below KPI strip and form; amend SPEC §8 to “below” default.
-- [ ] **3.4** **Feedback widget:** move “Helpful? 👍👎” after results / schedule.
-- [ ] **3.5** **Number ergonomics:** live formatted echo under currency fields (e.g. “₹50,00,000 · 50 lakh”); `inputmode="numeric"` on amount inputs.
-- [ ] **3.6** **KPI rounding:** round headline KPIs to whole rupees; paise only in schedule table.
-- [ ] **3.7** **Dead KPI card:** hide “Δ VS BASE: —” until prepay scenario active, or show “Add a prepayment to compare.”
-- [ ] **3.8** **Helper-text structure:** split Unemployment & cashflow run-on; co-locate “Monthly cash to loan” explanation with its input.
-- [ ] **3.9** **Contrast:** verify mint “Load reference scenario” buttons meet 4.5:1; adjust teal `#0d9488` if needed for small text.
-- [ ] **3.10** Manual smoke at 360 px: no horizontal scroll inside forms; KPI visible above fold.
+- [x] **3.1** **Grid collapse:** stack 4-column input grid to one column below ~480 px; fix clipped “Start date” and truncated “PF annual interest”.
+- [x] **3.2** **Locale switcher:** keep IN/US/UK control reachable at narrow widths (do not hide primary control).
+- [x] **3.3** **Explainer placement:** move formula prose below KPI strip and form; amend SPEC §8 to “below” default.
+- [x] **3.4** **Feedback widget:** move “Helpful? 👍👎” after results / schedule.
+- [x] **3.5** **Number ergonomics:** live formatted echo under currency fields (e.g. “₹50,00,000 · 50 lakh”); `inputmode="numeric"` on amount inputs.
+- [x] **3.6** **KPI rounding:** round headline KPIs to whole rupees; paise only in schedule table.
+- [x] **3.7** **Dead KPI card:** hide “Δ VS BASE: —” until prepay scenario active, or show “Add a prepayment to compare.”
+- [x] **3.8** **Helper-text structure:** split Unemployment & cashflow run-on; co-locate “Monthly cash to loan” explanation with its input.
+- [x] **3.9** **Contrast:** verify mint “Load reference scenario” buttons meet 4.5:1; adjust teal `#0d9488` if needed for small text.
+- [x] **3.10** Manual smoke at 360 px: no horizontal scroll inside forms; KPI visible above fold.
 
 ### Phase 3 sign-off
 
-- [ ] **3.11** Puppeteer or manual mobile screenshots attached to PR.
-- [ ] **3.12** `npm run test:e2e` green if mobile layout assertions exist.
+- [x] **3.11** Puppeteer or manual mobile screenshots attached to PR.
+- [x] **3.12** `npm run test:e2e` green if mobile layout assertions exist.
 
 ---
 

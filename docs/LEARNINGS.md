@@ -20,6 +20,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-22 — Mobile UX Phase 3
+
+- **Context:** Architecture review §5 / `TASKS-ARCHITECTURE-ROADMAP.md` Phase 3 (360px target).
+- **What we learned:** Explainer prose above inputs pushed KPIs and forms below the fold on narrow screens; multi-column `minmax(11rem)` grids clipped date and PF-interest labels before fields wrapped.
+- **Action:** Default tab order is heading → calculator → explainer → feedback; `CurrencyField` echoes lakh/crore for INR; `formatMoneyKpi` for headline strips only.
+
+---
+
 ## 2026-07-21 — Phase 2 cut & clean (release notifications removed)
 
 - **Context:** Architecture review §3–§4 / [`TASKS-ARCHITECTURE-ROADMAP.md`](TASKS-ARCHITECTURE-ROADMAP.md) Phase 2.

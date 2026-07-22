@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { AlertCallout } from "../../components/AlertCallout";
+import { CurrencyField } from "../../components/CurrencyField";
 import { FormSection } from "../../components/FormSection";
 import { formatMoney } from "../../lib/locale/formatMoney";
 import { trackLoanPrepaySourceChange, trackLoanScenarioViewChange } from "../../lib/analytics";
@@ -117,14 +118,12 @@ export function LoanSection() {
         <h2>Loan &amp; assets</h2>
         <FormSection title="Loan terms">
         <div className="form-grid">
-          <label>
-            Principal ({currencyLabel})
-            <input
-              inputMode="decimal"
-              value={inputs.principal_inr}
-              onChange={(e) => setField("principal_inr", e.target.value)}
-            />
-          </label>
+          <CurrencyField
+            label={`Principal (${currencyLabel})`}
+            value={inputs.principal_inr}
+            onChange={(value) => setField("principal_inr", value)}
+            locale={locale}
+          />
           <label>
             Annual interest (%)
             <input
@@ -149,14 +148,13 @@ export function LoanSection() {
               onChange={(e) => setField("start_date", e.target.value)}
             />
           </label>
-          <label>
-            Monthly {isUs || isUk ? "payment" : "cash"} to loan ({currencyLabel})
-            <input
-              inputMode="decimal"
-              value={inputs.monthly_cash_to_loan_inr}
-              onChange={(e) => setField("monthly_cash_to_loan_inr", e.target.value)}
-            />
-          </label>
+          <CurrencyField
+            label={`Monthly ${isUs || isUk ? "payment" : "cash"} to loan (${currencyLabel})`}
+            value={inputs.monthly_cash_to_loan_inr}
+            onChange={(value) => setField("monthly_cash_to_loan_inr", value)}
+            locale={locale}
+            hint="Extra principal after each month's scheduled EMI (monthly-inflow scenarios only)."
+          />
           <label>
             Prepayment fee type
             <select
@@ -193,22 +191,19 @@ export function LoanSection() {
 
         <FormSection title="Assets &amp; income">
         <div className="form-grid">
-          <label>
-            Cash ({currencyLabel})
-            <input
-              inputMode="decimal"
-              value={inputs.cash_inr}
-              onChange={(e) => setField("cash_inr", e.target.value)}
-            />
-          </label>
-          <label>
-            Monthly salary ({currencyLabel})
-            <input
-              inputMode="decimal"
-              value={inputs.monthly_salary_inr}
-              onChange={(e) => setField("monthly_salary_inr", e.target.value)}
-            />
-          </label>
+          <CurrencyField
+            label={`Cash (${currencyLabel})`}
+            value={inputs.cash_inr}
+            onChange={(value) => setField("cash_inr", value)}
+            locale={locale}
+          />
+          <CurrencyField
+            label={`Monthly salary (${currencyLabel})`}
+            value={inputs.monthly_salary_inr}
+            onChange={(value) => setField("monthly_salary_inr", value)}
+            locale={locale}
+            hint="Routed as extra principal in salary-sweep and prepay scenarios, not in the baseline row."
+          />
           {isUk ? (
             <>
               <label>
@@ -473,6 +468,13 @@ export function LoanSection() {
           title={isUk ? "Job loss & cashflow" : isUs ? "Job loss & cashflow" : "Unemployment & cashflow"}
           defaultOpen={unemploymentOn}
         >
+        <p className="field-hint field-hint--section">
+          {isUk
+            ? "Model a simplified job-loss bridge: living costs, replacement income, and optional UK benefits."
+            : isUs
+              ? "Model a simplified job-loss period: living costs, UI, and optional 401(k) / HSA draws."
+              : "Model unemployment: living costs, replacement income, and optional PF tranche withdrawals."}
+        </p>
         <div className="form-grid">
           <label className="checkbox-label">
             <input
@@ -604,11 +606,6 @@ export function LoanSection() {
         </FormSection>
 
         <p className="hint">
-          <strong>Monthly cash to loan:</strong> amount applied as{" "}
-          <strong>extra principal</strong> after each month&apos;s scheduled EMI (used in
-          monthly-inflow scenarios only).{" "}
-          <strong>Monthly salary</strong> is routed as extra principal in salary-sweep
-          and prepay scenarios, but <strong>not</strong> in the baseline row.{" "}
           <strong>{isUk ? "ISA/GIA" : isUs ? "Brokerage liquid" : "Gold liquid"}</strong> can be the
           one-time prepay source{!isUk && "; enable haircut to model liquidation discount"}.
           {!isUk && goldHaircutOn && models && (

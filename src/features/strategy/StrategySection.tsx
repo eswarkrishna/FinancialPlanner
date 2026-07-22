@@ -1,4 +1,4 @@
-import { formatMoney } from "../../lib/locale/formatMoney";
+import { formatMoney, formatMoneyKpi } from "../../lib/locale/formatMoney";
 import type { StrategyResult, StrategyWarning } from "../../lib/strategy/types";
 import type { Locale } from "../../lib/locale/types";
 import { BarChart } from "../../components/BarChart";
@@ -49,6 +49,7 @@ export function StrategySection() {
     importError,
   } = useStrategyPlanner();
   const money = (value: number) => formatMoney(value, locale);
+  const moneyKpi = (value: number) => formatMoneyKpi(value, locale);
   const isUs = locale === "US";
   const currencyLabel = isUs ? "USD" : "INR";
   const warnings = warningCopy(locale);
@@ -64,7 +65,7 @@ export function StrategySection() {
           {
             id: "best-nw",
             label: "Best net worth",
-            value: money(
+            value: moneyKpi(
               Math.max(...results.map((row) => row.net_worth_at_horizon_inr)),
             ),
             tone: "positive",
@@ -72,7 +73,7 @@ export function StrategySection() {
           {
             id: "interest-saved",
             label: "Max interest saved",
-            value: money(
+            value: moneyKpi(
               Math.max(...results.map((row) => row.interest_saved_vs_base_inr)),
             ),
           },

@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 2.9  
+**Version:** 3.0  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), the **PPF maturity calculator** (§4.17), and the **SIP investment calculator** (§4.18). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), the **PPF maturity calculator** (§4.17), the **SIP investment calculator** (§4.18), and the **SSY maturity calculator** (§4.19). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -791,6 +791,60 @@ Totals:
 
 **Persistence:** SIP tab form state in `localStorage` per locale (`financial-planner-sip-form-IN`, etc.).
 
+### 4.19 Sukanya Samriddhi Yojana (SSY) calculator
+
+**Locale:** India-focused savings scheme for a girl child; tab visible for all locales with amounts in INR. US/UK users see an India-specific disclaimer. Implementation: `src/lib/ssy/`, `src/features/ssy/`.
+
+Educational SSY maturity projection with annual compounding — complements §4.17 PPF and §4.18 SIP without modelling partial withdrawals, transfer rules, or Section 80C limits.
+
+#### 4.19.1 Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `annual_contribution_inr` | number | yes | Annual deposit; UI warns when outside ₹250–₹1,50,000 band |
+| `girl_age_years` | integer | yes | Girl child's age at account opening (today); UI warns when &gt; 10 or when maturity cannot be projected |
+| `interest_rate_pct` | number | yes | Default **8.2%** (government-notified rate for FY 2025–26 Q1; user must verify latest NSC/India Post notification) |
+
+Account is assumed opened **now** with zero opening balance. Maturity horizon is derived: `years_to_maturity = 21 − girl_age_years`.
+
+#### 4.19.2 Computations
+
+Simplified annual model (does **not** model monthly deposit timing or official lowest-balance interest rules):
+
+- `deposit_years` = `min(years_to_maturity, 15)` — SSY allows deposits for up to 15 years from opening
+- Each year \(y = 1 \ldots \text{years\_to\_maturity}\):
+  - `contribution_inr` = `annual_contribution_inr` when \(y \le \text{deposit\_years}\), else `0`
+  - `interest_inr` = `roundInr((opening_inr + contribution_inr) × interest_rate_pct / 100)`
+  - `closing_inr` = `roundInr(opening_inr + contribution_inr + interest_inr)`
+  - `girl_age` = `girl_age_years + y`
+
+Totals:
+
+- `total_contributed_inr` = `annual_contribution_inr × deposit_years`
+- `maturity_value_inr` = final `closing_inr` (when girl child reaches age 21)
+- `total_interest_inr` = `maturity_value_inr − total_contributed_inr`
+
+#### 4.19.3 Warnings
+
+| Code | Condition |
+|------|-----------|
+| `SSY_BELOW_MIN` | `0 < annual_contribution_inr < 250` |
+| `SSY_ABOVE_MAX` | `annual_contribution_inr > 150_000` |
+| `SSY_AGE_ABOVE_MAX` | `girl_age_years > 10` |
+| `SSY_INVALID_AGE` | `girl_age_years < 0` or `years_to_maturity < 1` |
+
+#### 4.19.4 Outputs
+
+- **KPI strip:** maturity value at age 21, total contributed, total interest earned
+- **Yearly table:** year, girl's age, opening balance, contribution, interest credited, closing balance
+- **Balance growth chart** (line)
+
+**Trust copy:** methodology one-liner (15-year deposit cap, interest until age 21, verify latest notified rate).
+
+**Export:** CSV of yearly timeline + JSON export of inputs and summary.
+
+**Persistence:** SSY tab form state in `localStorage` per locale (`financial-planner-ssy-form-IN`, etc.).
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1171,7 +1225,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
 
-- **Home framing:** on the loan/home tab, a short **“suite of 8 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, PPF, SIP, budget, payoff strategies, and what-if games.
+- **Home framing:** on the loan/home tab, a short **“suite of 9 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, PPF, SIP, SSY, budget, payoff strategies, and what-if games.
 
 - **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) **below** the calculator inputs and results (after the KPI strip and schedule on loan/strategy tabs). Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
 
@@ -1351,6 +1405,14 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 68. **SIP trust copy:** SIP tab shows methodology one-liner (§4.18.4) near inputs.  
 69. **SIP explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
 
+### SSY calculator (§4.19)
+
+70. **SSY reference:** girl age 5, annual contribution ₹1,50,000, rate 8.2% → `years_to_maturity = 16`, `deposit_years = 15`, `maturity_value_inr = 48,43,020.48`, `total_interest_inr = 25,93,020.48` (half-up paise rounding).  
+71. **SSY limits:** annual contribution ₹2,00,000 → warning `SSY_ABOVE_MAX`; contribution ₹200 → warning `SSY_BELOW_MIN`; girl age 11 → warning `SSY_AGE_ABOVE_MAX`.  
+72. **SSY route:** `tabPageUrl("ssy")` resolves `/ssy`; `getTabFromLocation` maps pathname to `ssy` tab id; `dist/ssy/index.html` exists after build.  
+73. **SSY trust copy:** SSY tab shows methodology one-liner (§4.19.4) near inputs.  
+74. **SSY explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
+
 ---
 
 ## 11. Non-Goals (v1)
@@ -1368,7 +1430,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (SSY/gratuity/lumpsum — **PPF** §4.17 and **SIP** §4.18 shipped); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; India instrument calculators (gratuity/lumpsum — **PPF** §4.17, **SIP** §4.18, and **SSY** §4.19 shipped); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; PDF amortisation; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

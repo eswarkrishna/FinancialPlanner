@@ -10,6 +10,7 @@ const SEO_H1: Record<PlannerTabId, string> = {
   retirement: "Retirement Corpus & SIP Calculator",
   ppf: "PPF Calculator — Maturity & Interest",
   sip: "SIP Calculator — Mutual Fund Returns",
+  ssy: "SSY Calculator — Sukanya Samriddhi",
   strategies: "Household Payoff Strategy Comparison",
   strategic: "Loan Payoff What-If Game Explorer",
   budget: "Budget Planner with 50/30/20 Rule",

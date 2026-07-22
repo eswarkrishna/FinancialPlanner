@@ -56,6 +56,12 @@ describe("planner sections", () => {
     await waitForHeading(session.page, "Corpus growth");
   });
 
+  it("renders SSY calculator on ssy tab", async () => {
+    await gotoApp(session.page, "ssy");
+    await waitForHeading(session.page, "SSY maturity calculator");
+    await waitForHeading(session.page, "Balance growth");
+  });
+
   it("renders budget planner on budget tab", async () => {
     await gotoApp(session.page, "budget");
     await waitForHeading(session.page, "Personal budget");

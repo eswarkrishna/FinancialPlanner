@@ -93,6 +93,14 @@ export function App() {
     document.documentElement.lang = lang;
   }, [locale]);
 
+  useEffect(() => {
+    document.getElementById(`tab-${activeTab}`)?.scrollIntoView?.({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [activeTab]);
+
   function selectTab(tabId: TabId) {
     if (tabId === activeTab) return;
     trackTabSelect(tabId);

@@ -21,4 +21,20 @@ describe("SsySection (§4.19)", () => {
     renderWithLocale(<SsySection />);
     expect(screen.getByText("India-specific instrument")).toBeInTheDocument();
   });
+
+  it("hides timeline when girl age is invalid", () => {
+    localStorage.setItem(
+      "financial-planner-ssy-form-IN",
+      JSON.stringify({
+        version: 1,
+        locale: "IN",
+        annual_contribution_inr: "150000",
+        girl_age_years: "-1",
+        interest_rate_pct: "8.2",
+      }),
+    );
+    renderWithLocale(<SsySection />);
+    expect(screen.queryByText("Balance growth")).not.toBeInTheDocument();
+    expect(screen.queryByText("Maturity at age 21")).not.toBeInTheDocument();
+  });
 });

@@ -73,7 +73,7 @@ export function useSsyCalculator() {
   );
 
   const projection = useMemo(() => projectSsyMaturity(input), [input]);
-  const ageInvalid = projection.years_to_maturity < 1;
+  const ageInvalid = projection.warnings.includes("SSY_INVALID_AGE");
 
   const warningMessages = projection.warnings.map((code) => WARNING_MESSAGES[code]);
 

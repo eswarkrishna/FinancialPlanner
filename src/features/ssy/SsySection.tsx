@@ -54,7 +54,7 @@ export function SsySection() {
 
   return (
     <>
-      <KpiStrip items={kpiItems} ariaLabel="SSY key metrics" />
+      {!ageInvalid && <KpiStrip items={kpiItems} ariaLabel="SSY key metrics" />}
 
       {warningMessages.length > 0 && (
         <AlertCallout title="SSY warnings" messages={warningMessages} tone="warning" />
@@ -82,17 +82,22 @@ export function SsySection() {
             >
               Export CSV
             </button>
-            <button type="button" className="btn secondary btn-sm" onClick={exportSsyJson}>
+            <button
+              type="button"
+              className="btn secondary btn-sm"
+              onClick={exportSsyJson}
+              disabled={ageInvalid || projection.yearly.length === 0}
+            >
               Export JSON
             </button>
           </div>
         </div>
         <p className="hint trust-note">
           <strong>Methodology:</strong> annual contribution at the start of each deposit year,
-          interest compounded once per year at your entered rate. Deposits stop after{" "}
-          {maxDepositYears} years; interest continues until the girl child reaches age{" "}
-          {maturityAgeYears}. Verify the latest government-notified rate on NSC or India Post before
-          planning.
+          interest compounded once per year at your entered rate. Deposits continue for up to{" "}
+          {maxDepositYears} years from opening (fewer when maturity is sooner); interest continues
+          until the girl child reaches age {maturityAgeYears}. Verify the latest government-notified
+          rate on NSC or India Post before planning.
         </p>
         <p className="hint">
           SSY accounts mature when the girl child turns {maturityAgeYears}. Accounts can be opened

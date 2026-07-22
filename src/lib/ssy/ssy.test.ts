@@ -47,6 +47,15 @@ describe("projectSsyMaturity (§4.19, §10.70)", () => {
     expect(result.warnings).toContain("SSY_AGE_ABOVE_MAX");
   });
 
+  it("warns when girl age is negative (§10.71)", () => {
+    const result = projectSsyMaturity({
+      annual_contribution_inr: 150_000,
+      girl_age_years: -1,
+      interest_rate_pct: 8.2,
+    });
+    expect(result.warnings).toContain("SSY_INVALID_AGE");
+  });
+
   it("stops deposits after 15 years but continues interest until age 21", () => {
     const result = projectSsyMaturity({
       annual_contribution_inr: 150_000,

@@ -524,6 +524,18 @@ label {
   color: var(--text-muted);
 }
 
+.currency-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.currency-field > label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 input,
 select {
   font: inherit;
@@ -567,12 +579,13 @@ button:focus-visible,
 
 .btn.secondary {
   background: var(--accent-muted);
-  color: var(--accent-strong);
-  border-color: #99f6e4;
+  color: #0c4a44;
+  border-color: #5eead4;
 }
 
 .btn.secondary:hover {
   background: #99f6e4;
+  color: #0c4a44;
 }
 
 .errors {
@@ -586,6 +599,25 @@ button:focus-visible,
   margin: 0 0 0.75rem;
   font-size: 0.88rem;
   color: var(--text-muted);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-subtle);
+}
+
+.field-hint--section {
+  margin: 0 0 0.75rem;
+}
+
+.currency-echo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-strong);
+  font-variant-numeric: tabular-nums;
 }
 
 .hint.warning {
@@ -1507,4 +1539,41 @@ code {
   margin: 0;
   padding-left: 1.2rem;
   font-size: 0.88rem;
+}
+
+/* Phase 3 — mobile UX (360px target) */
+@media (max-width: 480px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-brand-row {
+    align-items: flex-start;
+  }
+
+  .locale-segment {
+    flex-shrink: 0;
+  }
+
+  .locale-segment-btn {
+    min-width: 2.75rem;
+    min-height: 2.25rem;
+  }
+
+  .card {
+    padding: 1rem 1.05rem;
+  }
+
+  input[type="date"] {
+    min-width: 0;
+    width: 100%;
+  }
 }

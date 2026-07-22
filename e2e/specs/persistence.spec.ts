@@ -24,10 +24,17 @@ describe("loan form persistence", () => {
     await dismissConsentBanners(session.page);
 
     const restored = await session.page.evaluate(() => {
-      const label = Array.from(document.querySelectorAll("label")).find((element) =>
-        element.textContent?.includes("Principal (INR)"),
-      );
-      return label?.querySelector("input")?.value ?? "";
+      for (const element of document.querySelectorAll("label")) {
+        if (!element.textContent?.includes("Principal (INR)")) continue;
+        const input =
+          element.querySelector("input") ??
+          (() => {
+            const htmlFor = element.getAttribute("for");
+            return htmlFor ? document.getElementById(htmlFor) : null;
+          })();
+        if (input instanceof HTMLInputElement) return input.value;
+      }
+      return "";
     });
 
     assert.equal(restored, "6000000");

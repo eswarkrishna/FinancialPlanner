@@ -14,7 +14,9 @@ import {
   pageHeading,
   pageTitle,
   PLANNER_TABS,
+  redirectLegacyPathSlug,
   redirectLegacyTabQuery,
+  resolveInitialNavigation,
   resolveSiteUrl,
   SEO_ROUTE_SLUGS,
   setTabInUrl,
@@ -44,9 +46,19 @@ describe("seo", () => {
     expect(getTabFromPathname("/", "/")).toBe("loan");
     expect(getTabFromPathname("/debt", "/")).toBe("debt");
     expect(getTabFromPathname("/retirement", "/")).toBe("retirement");
+    expect(getTabFromPathname("/payoff-strategies", "/")).toBe("strategies");
+    expect(getTabFromPathname("/what-if-games", "/")).toBe("strategic");
     expect(getTabFromPathname("/FinancialPlanner/", "/FinancialPlanner")).toBe("loan");
     expect(getTabFromPathname("/FinancialPlanner/debt", "/FinancialPlanner")).toBe("debt");
+    expect(getTabFromPathname("/FinancialPlanner/payoff-strategies", "/FinancialPlanner")).toBe(
+      "strategies",
+    );
     expect(getTabFromPathname("/unknown", "/")).toBe("loan");
+  });
+
+  it("parses legacy path slugs before redirect (§8 Phase 4)", () => {
+    expect(getTabFromPathname("/strategies", "/")).toBe("strategies");
+    expect(getTabFromPathname("/strategic", "/")).toBe("strategic");
   });
 
   it("resolves tab from location pathname before legacy query", () => {
@@ -86,8 +98,8 @@ describe("seo", () => {
     expect(SEO_ROUTE_SLUGS).toEqual([
       "debt",
       "retirement",
-      "strategies",
-      "strategic",
+      "payoff-strategies",
+      "what-if-games",
       "budget",
     ]);
   });
@@ -217,6 +229,27 @@ describe("seo", () => {
       expect(window.location.search).toBe("?utm_source=test");
     });
 
+    it("redirects legacy path slugs to canonical paths (§8 Phase 4)", () => {
+      window.history.replaceState({}, "", "/strategies");
+      redirectLegacyPathSlug();
+      expect(window.location.pathname).toBe("/payoff-strategies");
+
+      window.history.replaceState({}, "", "/strategic?utm_source=legacy");
+      redirectLegacyPathSlug();
+      expect(window.location.pathname).toBe("/what-if-games");
+      expect(window.location.search).toBe("?utm_source=legacy");
+    });
+
+    it("resolveInitialNavigation applies path and query redirects", () => {
+      window.history.replaceState({}, "", "/strategies");
+      expect(resolveInitialNavigation()).toBe("strategies");
+      expect(window.location.pathname).toBe("/payoff-strategies");
+
+      window.history.replaceState({}, "", "/?tab=strategic");
+      expect(resolveInitialNavigation()).toBe("strategic");
+      expect(window.location.pathname).toBe("/what-if-games");
+    });
+
     it("pushes tab history entries when requested", () => {
       const pushSpy = vi.spyOn(window.history, "pushState");
       const replaceSpy = vi.spyOn(window.history, "replaceState");
@@ -233,16 +266,16 @@ describe("seo", () => {
       updatePageSeo("strategies", "https://example.com/app", "IN");
 
       expect(document.title).toBe(
-        "Loan Repayment Strategy Comparison | FinancialPlanner",
+        "Household Payoff Strategy Comparison | FinancialPlanner",
       );
       expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toMatch(
         /equity blend/i,
       );
       expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(
-        "https://example.com/app/strategies",
+        "https://example.com/app/payoff-strategies",
       );
       expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(
-        "https://example.com/app/strategies",
+        "https://example.com/app/payoff-strategies",
       );
       expect(document.querySelector('meta[property="og:locale"]')?.getAttribute("content")).toBe(
         "en_IN",

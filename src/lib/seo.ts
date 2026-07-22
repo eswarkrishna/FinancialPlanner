@@ -35,17 +35,17 @@ export const PLANNER_TABS: PlannerTab[] = [
   },
   {
     id: "strategies",
-    label: "Strategies",
-    seoTitle: "Loan Repayment Strategy Comparison",
+    label: "Payoff strategies",
+    seoTitle: "Household Payoff Strategy Comparison",
     description:
       "Compare equity blend, prepay heavy, and aggressive prepay household repayment strategies side by side with payoff month and total interest.",
   },
   {
     id: "strategic",
-    label: "Strategic",
-    seoTitle: "Loan Payoff Game Theory Explorer",
+    label: "What-if games",
+    seoTitle: "Loan Payoff What-If Game Explorer",
     description:
-      "Explore game-theory payoff matrices for borrower, lender, household, and nature moves, built on the same amortisation engine as the loan planner.",
+      "Explore what-if payoff games for borrower, lender, household, and nature moves, built on the same amortisation engine as the loan planner.",
   },
   {
     id: "budget",
@@ -61,9 +61,15 @@ export const TAB_PATH_SLUG: Record<TabId, string> = {
   loan: "",
   debt: "debt",
   retirement: "retirement",
+  strategies: "payoff-strategies",
+  strategic: "what-if-games",
+  budget: "budget",
+};
+
+/** Former path slugs → redirect to `TAB_PATH_SLUG` (§8 Phase 4 IA). */
+export const LEGACY_TAB_PATH_SLUG: Partial<Record<TabId, string>> = {
   strategies: "strategies",
   strategic: "strategic",
-  budget: "budget",
 };
 
 export const DEFAULT_SITE_URL = "https://eswarkrishna.github.io/FinancialPlanner";
@@ -114,14 +120,13 @@ export function getTabFromSearch(search: string): TabId {
   return isTabId(param) ? param : "loan";
 }
 
-/** Resolve tab from URL pathname (§8 path slugs). Unknown segments default to loan. */
-export function getTabFromPathname(pathname: string, routerBase = getRouterBasePath()): TabId {
+function pathSegmentFromPathname(pathname: string, routerBase = getRouterBasePath()): string {
   const base = normalizeRouterBase(routerBase);
   let rest = pathname;
 
   if (base !== "/") {
     if (rest === base || rest === `${base}/`) {
-      return "loan";
+      return "";
     }
     if (rest.startsWith(`${base}/`)) {
       rest = rest.slice(base.length);
@@ -129,18 +134,33 @@ export function getTabFromPathname(pathname: string, routerBase = getRouterBaseP
   }
 
   rest = rest.replace(/^\/+|\/+$/g, "");
-  if (!rest) {
-    return "loan";
-  }
+  return rest.split("/")[0]?.toLowerCase() ?? "";
+}
 
-  const segment = rest.split("/")[0]!.toLowerCase();
+function tabIdFromPathSegment(segment: string): TabId | null {
+  if (!segment) return "loan";
+
   for (const tab of PLANNER_TABS) {
-    if (TAB_PATH_SLUG[tab.id] === segment) {
+    const slug = TAB_PATH_SLUG[tab.id];
+    if (slug && slug === segment) {
+      return tab.id;
+    }
+    const legacy = LEGACY_TAB_PATH_SLUG[tab.id];
+    if (legacy && legacy === segment) {
       return tab.id;
     }
   }
 
-  return "loan";
+  return null;
+}
+
+/** Resolve tab from URL pathname (§8 path slugs). Unknown segments default to loan. */
+export function getTabFromPathname(pathname: string, routerBase = getRouterBasePath()): TabId {
+  const segment = pathSegmentFromPathname(pathname, routerBase);
+  if (!segment) {
+    return "loan";
+  }
+  return tabIdFromPathSegment(segment) ?? "loan";
 }
 
 export function getTabFromLocation(
@@ -203,6 +223,42 @@ export function redirectLegacyTabQuery(
   url.pathname = tabPathname(tabId);
   window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   return tabId;
+}
+
+/** Legacy path slugs (`/strategies`, `/strategic`) → canonical paths (§8 Phase 4). */
+export function redirectLegacyPathSlug(
+  locationLike: Pick<Location, "href" | "pathname"> = window.location,
+  routerBase = getRouterBasePath(),
+): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const tabId = getTabFromPathname(locationLike.pathname, routerBase);
+  const legacy = LEGACY_TAB_PATH_SLUG[tabId];
+  if (!legacy) {
+    return;
+  }
+
+  const segment = pathSegmentFromPathname(locationLike.pathname, routerBase);
+  if (segment !== legacy) {
+    return;
+  }
+
+  const url = new URL(locationLike.href);
+  url.pathname = tabPathname(tabId, routerBase);
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+/** Apply legacy query + path redirects, then resolve the active tab. */
+export function resolveInitialNavigation(
+  locationLike: Pick<Location, "href" | "pathname" | "search"> = window.location,
+): TabId {
+  redirectLegacyPathSlug(locationLike);
+  if (typeof window !== "undefined") {
+    return redirectLegacyTabQuery(window.location);
+  }
+  return getTabFromLocation(locationLike);
 }
 
 /** Keyword-first title with brand suffix (§8 SEO metadata, §10.45). */
@@ -550,6 +606,28 @@ export function patchIndexHtmlSeo(
 }
 
 /** Slug directories emitted under `dist/` for non-home tabs (§8, §10.54). */
-export const SEO_ROUTE_SLUGS = PLANNER_TABS.map((tab) => tab.id).filter(
-  (id): id is Exclude<TabId, "loan"> => id !== "loan",
+export const SEO_ROUTE_SLUGS = PLANNER_TABS.map((tab) => TAB_PATH_SLUG[tab.id]).filter(
+  (slug) => slug.length > 0,
 );
+
+/** Build a legacy-path shell that points canonical + refresh to the new slug (§8 Phase 4). */
+export function buildLegacyRedirectShell(
+  canonicalShellHtml: string,
+  tabId: TabId,
+  siteUrl: string,
+  routerBase = "/",
+): string {
+  const canonical = tabPageUrl(tabId, siteUrl);
+  const targetPath = tabPathname(tabId, routerBase);
+  let next = canonicalShellHtml.replace(
+    /<link rel="canonical" href="[^"]*"/,
+    `<link rel="canonical" href="${escapeHtml(canonical)}"`,
+  );
+  next = next.replace(
+    /<meta property="og:url" content="[^"]*"/,
+    `<meta property="og:url" content="${escapeHtml(canonical)}"`,
+  );
+  const refresh = `<meta http-equiv="refresh" content="0;url=${escapeHtml(targetPath)}" />`;
+  next = next.replace('<div id="root">', `${refresh}\n    <div id="root">`);
+  return next;
+}

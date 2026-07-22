@@ -1029,15 +1029,16 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
   | `loan` | `/` | `…/FinancialPlanner/` |
   | `debt` | `/debt` | `…/FinancialPlanner/debt` |
   | `retirement` | `/retirement` | `…/FinancialPlanner/retirement` |
-  | `strategies` | `/strategies` | `…/FinancialPlanner/strategies` |
-  | `strategic` | `/strategic` | `…/FinancialPlanner/strategic` |
+  | `strategies` | `/payoff-strategies` | `…/FinancialPlanner/payoff-strategies` |
+  | `strategic` | `/what-if-games` | `…/FinancialPlanner/what-if-games` |
   | `budget` | `/budget` | `…/FinancialPlanner/budget` |
 
-  `tabPageUrl(tabId)` returns the full absolute URL with the path slug. **Legacy** `/?tab={id}` URLs **redirect** to the path slug on load (`history.replaceState`); query params other than `tab` (e.g. UTM) are preserved. Capacitor / `VITE_BASE=./` mobile builds are exempt — they load `./index.html` only (web deploy targets carry path routing).
+  `tabPageUrl(tabId)` returns the full absolute URL with the path slug. **Legacy** `/?tab={id}` URLs **redirect** to the path slug on load (`history.replaceState`); query params other than `tab` (e.g. UTM) are preserved. **Legacy path slugs** `/strategies` and `/strategic` redirect client-side to `/payoff-strategies` and `/what-if-games`; production builds also emit static redirect shells at the old paths (canonical + meta refresh). Capacitor / `VITE_BASE=./` mobile builds are exempt — they load `./index.html` only (web deploy targets carry path routing).
 
 - **Build output (web):** production `vite build` emits:
   - `dist/index.html` — loan/home shell;
-  - `dist/{slug}/index.html` for each non-loan tab (`debt`, `retirement`, `strategies`, `strategic`, `budget`);
+  - `dist/{slug}/index.html` for each non-loan tab (`debt`, `retirement`, `payoff-strategies`, `what-if-games`, `budget`);
+  - `dist/strategies/index.html` and `dist/strategic/index.html` — legacy redirect shells pointing at canonical slugs;
   - `dist/404.html` — copy of the home shell (safety net for unmatched paths).
   Each shell has tab-specific `<title>`, description, canonical, OG/Twitter tags, and JSON-LD baked at build time (same token injection as home).
 
@@ -1049,6 +1050,8 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 - **Heading hierarchy:** exactly **one `<h1>` per tab view** — the calculator keyword phrase (e.g. “Loan EMI Calculator with Prepayment”), not the site brand. The brand “FinancialPlanner” appears in the header as styled text (not `<h1>`). Section headings use `<h2>` / `<h3>` without skipped levels.
 
 - **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
+
+- **Home framing:** on the loan/home tab, a short **“suite of 6 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, budget, payoff strategies, and what-if games.
 
 - **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) **below** the calculator inputs and results (after the KPI strip and schedule on loan/strategy tabs). Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
 

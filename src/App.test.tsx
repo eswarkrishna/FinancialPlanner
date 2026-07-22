@@ -13,6 +13,7 @@ describe("App shell composition", () => {
     renderWithLocale(<App />);
 
     expect(document.querySelector(".app-brand-name")).toHaveTextContent("FinancialPlanner");
+    expect(screen.getByText(/Six calculators in one planner/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { level: 1, name: "Loan EMI Calculator with Prepayment" }),
     ).toBeInTheDocument();
@@ -38,8 +39,8 @@ describe("App shell composition", () => {
       { tab: "Loan", h1: "Loan EMI Calculator with Prepayment" },
       { tab: "Multi-debt", h1: "Debt Avalanche vs Snowball Calculator" },
       { tab: "Retirement", h1: "Retirement Corpus & SIP Calculator" },
-      { tab: "Strategies", h1: "Loan Repayment Strategy Comparison" },
-      { tab: "Strategic", h1: "Loan Payoff Game Theory Explorer" },
+      { tab: "Payoff strategies", h1: "Household Payoff Strategy Comparison" },
+      { tab: "What-if games", h1: "Loan Payoff What-If Game Explorer" },
       { tab: "Budget", h1: "Budget Planner with 50/30/20 Rule" },
     ];
 
@@ -101,13 +102,15 @@ describe("App shell composition", () => {
     expect(await screen.findByRole("heading", { name: "Retirement planner" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/retirement");
 
-    await user.click(screen.getByRole("tab", { name: "Strategies" }));
+    await user.click(screen.getByRole("tab", { name: "Payoff strategies" }));
     expect(await screen.findByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/payoff-strategies");
 
-    await user.click(screen.getByRole("tab", { name: "Strategic" }));
+    await user.click(screen.getByRole("tab", { name: "What-if games" }));
     expect(
       await screen.findByRole("heading", { name: "Strategic scenarios" }),
     ).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/what-if-games");
 
     await user.click(screen.getByRole("tab", { name: "Loan" }));
     expect(window.location.pathname).toBe("/");
@@ -115,25 +118,36 @@ describe("App shell composition", () => {
   });
 
   it("opens the tab from a path URL", async () => {
-    window.history.replaceState({}, "", "/strategies");
+    window.history.replaceState({}, "", "/payoff-strategies");
     renderWithLocale(<App />);
 
-    expect(screen.getByRole("tab", { name: "Strategies" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Payoff strategies" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
     expect(await screen.findByRole("heading", { name: "Repayment strategies" })).toBeInTheDocument();
   });
 
+  it("redirects legacy /strategies path to canonical slug", () => {
+    window.history.replaceState({}, "", "/strategies");
+    renderWithLocale(<App />);
+
+    expect(screen.getByRole("tab", { name: "Payoff strategies" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(window.location.pathname).toBe("/payoff-strategies");
+  });
+
   it("redirects legacy ?tab= query to path slug", () => {
     window.history.replaceState({}, "", "/?tab=strategies&utm_source=legacy");
     renderWithLocale(<App />);
 
-    expect(screen.getByRole("tab", { name: "Strategies" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Payoff strategies" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
-    expect(window.location.pathname).toBe("/strategies");
+    expect(window.location.pathname).toBe("/payoff-strategies");
     expect(window.location.search).toBe("?utm_source=legacy");
   });
 

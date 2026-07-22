@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   buildSitemapXml,
+  LEGACY_TAB_PATH_SLUG,
   pageTitle,
   PLANNER_TABS,
   resolveSiteUrl,
@@ -87,6 +88,33 @@ for (const tab of PLANNER_TABS) {
   }
   if (canonical?.includes("/FinancialPlanner/FinancialPlanner")) {
     failures.push(`${label}: canonical doubles deploy base path`);
+  }
+}
+
+for (const tab of PLANNER_TABS) {
+  const legacySlug = LEGACY_TAB_PATH_SLUG[tab.id];
+  const canonicalSlug = TAB_PATH_SLUG[tab.id];
+  if (!legacySlug || legacySlug === canonicalSlug) {
+    continue;
+  }
+
+  const legacyPath = path.join(distDir, legacySlug, "index.html");
+  const legacyLabel = path.relative(process.cwd(), legacyPath);
+  if (!fs.existsSync(legacyPath)) {
+    failures.push(`${legacyLabel}: missing legacy redirect shell`);
+    continue;
+  }
+
+  const legacyHtml = fs.readFileSync(legacyPath, "utf8");
+  const expectedCanonical = tabPageUrl(tab.id, siteUrl);
+  const legacyCanonical = readCanonical(legacyHtml);
+  if (legacyCanonical !== expectedCanonical) {
+    failures.push(
+      `${legacyLabel}: canonical "${legacyCanonical ?? ""}" !== "${expectedCanonical}"`,
+    );
+  }
+  if (!legacyHtml.includes(`url=/${canonicalSlug}`) && !legacyHtml.includes(`url=${canonicalSlug}`)) {
+    failures.push(`${legacyLabel}: missing meta refresh to /${canonicalSlug}`);
   }
 }
 

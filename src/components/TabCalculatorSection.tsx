@@ -35,6 +35,11 @@ const GratuitySection = lazy(() =>
     default: module.GratuitySection,
   })),
 );
+const LumpsumSection = lazy(() =>
+  import("../features/lumpsum/LumpsumSection").then((module) => ({
+    default: module.LumpsumSection,
+  })),
+);
 
 const TAB_SECTIONS: Record<TabId, ComponentType> = {
   loan: LoanSection,
@@ -44,6 +49,7 @@ const TAB_SECTIONS: Record<TabId, ComponentType> = {
   sip: SipSection,
   ssy: SsySection,
   gratuity: GratuitySection,
+  lumpsum: LumpsumSection,
   strategies: StrategySection,
   strategic: GameSection,
   budget: BudgetSection,

@@ -71,6 +71,12 @@ describe("planner sections", () => {
     assert.equal(hasPayableKpi, true);
   });
 
+  it("renders lumpsum calculator on lumpsum tab", async () => {
+    await gotoApp(session.page, "lumpsum");
+    await waitForHeading(session.page, "Lumpsum calculator");
+    await waitForHeading(session.page, "Balance growth");
+  });
+
   it("renders budget planner on budget tab", async () => {
     await gotoApp(session.page, "budget");
     await waitForHeading(session.page, "Personal budget");

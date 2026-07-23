@@ -102,6 +102,7 @@ describe("seo", () => {
       "sip",
       "ssy",
       "gratuity",
+      "lumpsum",
       "payoff-strategies",
       "what-if-games",
       "budget",

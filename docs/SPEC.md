@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 3.1  
+**Version:** 3.2  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20), and **PDF amortisation export** on the loan tab. Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20, **Lumpsum** §4.21), and **PDF amortisation export** on the loan tab. Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -885,6 +885,55 @@ Statutory formula:
 
 **Persistence:** Gratuity tab form state in `localStorage` per locale (`financial-planner-gratuity-form-IN`, etc.).
 
+### 4.21 Lumpsum investment calculator
+
+**Locale:** general one-time investment projection; tab visible for all locales with amounts stored in INR (India), USD (US), or GBP (UK) via the locale currency field. Implementation: `src/lib/lumpsum/`, `src/features/lumpsum/`.
+
+Educational lumpsum growth projection with **annual** compounding — complements §4.18 SIP (monthly instalments) without modelling expense ratios, taxes, or exit loads.
+
+#### 4.21.1 Inputs
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `principal_inr` | number | yes | One-time investment at the start |
+| `expected_annual_return_pct` | number | yes | Default **12%** (illustrative CAGR; not a forecast) |
+| `years` | integer | yes | Holding period ≥ 1 |
+
+#### 4.21.2 Computations
+
+Simplified annual model (no ongoing contributions):
+
+Each year \(y = 1 \ldots \text{years}\):
+
+- `opening_inr` = balance at start of year (year 1 = `principal_inr`)
+- `interest_inr` = `roundInr(opening_inr × expected_annual_return_pct / 100)`
+- `closing_inr` = `roundInr(opening_inr + interest_inr)`
+
+Totals:
+
+- `principal_inr` = initial investment (rounded)
+- `maturity_value_inr` = final `closing_inr`
+- `total_gains_inr` = `maturity_value_inr − principal_inr`
+
+#### 4.21.3 Warnings
+
+| Code | Condition |
+|------|-----------|
+| `LUMPSUM_INVALID_YEARS` | `years < 1` |
+| `LUMPSUM_NO_PRINCIPAL` | `principal_inr ≤ 0` |
+
+#### 4.21.4 Outputs
+
+- **KPI strip:** future value, principal invested, total gains
+- **Yearly table:** year, opening balance, interest credited, closing balance
+- **Balance growth chart** (line)
+
+**Trust copy:** methodology one-liner (one-time principal, annual compounding, illustrative return, not investment advice).
+
+**Export:** CSV of yearly timeline + JSON export of inputs and summary.
+
+**Persistence:** Lumpsum tab form state in `localStorage` per locale (`financial-planner-lumpsum-form-IN`, etc.).
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1265,7 +1314,7 @@ Patterns follow [`docs/research/2026-07-financial-sites-seo.md`](research/2026-0
 
 - **Internal linking:** each tab panel includes a **“Related calculators”** (or equivalent) block with ≥ **1 contextual** `<a href>` to another calculator path (real links for crawlability; same-origin navigation may also update the active tab). Copy should be intent-based (e.g. loan → retirement), not a generic footer list only.
 
-- **Home framing:** on the loan/home tab, a short **“suite of 10 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, PPF, SIP, SSY, gratuity, budget, payoff strategies, and what-if games.
+- **Home framing:** on the loan/home tab, a short **“suite of 11 tools”** tagline appears above the fold (including mobile) listing loan, debt, retirement, PPF, SIP, SSY, gratuity, lumpsum, budget, payoff strategies, and what-if games.
 
 - **Explainer content:** each tab includes **100–200 words** of unique visible copy (formula summary + short example walkthrough) **below** the calculator inputs and results (after the KPI strip and schedule on loan/strategy tabs). Not duplicated across tabs; not hidden behind JS-only expanders for the primary paragraph.
 
@@ -1460,11 +1509,19 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 77. **Gratuity route:** `tabPageUrl("gratuity")` resolves `/gratuity`; `dist/gratuity/index.html` exists after build.  
 78. **Gratuity trust copy:** gratuity tab shows methodology one-liner (§4.20.4) near inputs.
 
+### Lumpsum calculator (§4.21)
+
+83. **Lumpsum reference:** principal ₹1,00,000, expected return 12%, 10 years → `maturity_value_inr = 310,584.83`, `total_gains_inr = 210,584.83` (half-up paise rounding).  
+84. **Lumpsum warnings:** principal ₹0 → warning `LUMPSUM_NO_PRINCIPAL`; years `0` → warning `LUMPSUM_INVALID_YEARS`.  
+85. **Lumpsum route:** `tabPageUrl("lumpsum")` resolves `/lumpsum`; `dist/lumpsum/index.html` exists after build.  
+86. **Lumpsum trust copy:** lumpsum tab shows methodology one-liner (§4.21.4) near inputs.  
+87. **Lumpsum explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
+
 ### Phase 5 platform (§8, §4.9)
 
 79. **INR KPI lakh/crore:** `formatMoneyKpi(5_000_000, "IN")` → `₹50,00,000 · 50 lakh`; `formatMoneyKpi(25_000_000, "IN")` → `₹2,50,00,000 · 2.5 crore`.  
 80. **Loan PDF export:** after reference load, loan schedule shows **Export PDF**; generated PDF contains header row and ≥ 1 data row for baseline schedule.  
-81. **Trust copy (all tabs):** debt, retirement, budget, strategies, strategic, PPF, SIP, SSY, and gratuity tabs each show a methodology one-liner near inputs (§5.2.2).  
+81. **Trust copy (all tabs):** debt, retirement, budget, strategies, strategic, PPF, SIP, SSY, gratuity, and lumpsum tabs each show a methodology one-liner near inputs (§5.2.2).  
 82. **Bank validation:** `docs/VALIDATION.md` documents reproducible HDFC Case 1 inputs and expected EMI; README links to it.
 
 ---
@@ -1484,7 +1541,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; **lumpsum** investment calculator; budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

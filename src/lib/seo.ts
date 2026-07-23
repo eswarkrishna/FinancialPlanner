@@ -8,6 +8,7 @@ export type TabId =
   | "sip"
   | "ssy"
   | "gratuity"
+  | "lumpsum"
   | "strategies"
   | "strategic"
   | "budget";
@@ -72,6 +73,13 @@ export const PLANNER_TABS: PlannerTab[] = [
       "Free gratuity calculator for India. Estimate statutory gratuity from last drawn salary and years of service under the Payment of Gratuity Act formula.",
   },
   {
+    id: "lumpsum",
+    label: "Lumpsum",
+    seoTitle: "Lumpsum Calculator — Investment Growth",
+    description:
+      "Free lumpsum calculator. Project future value and total gains from a one-time investment with annual compounding at an illustrative return rate.",
+  },
+  {
     id: "strategies",
     label: "Payoff strategies",
     seoTitle: "Household Payoff Strategy Comparison",
@@ -103,6 +111,7 @@ export const TAB_PATH_SLUG: Record<TabId, string> = {
   sip: "sip",
   ssy: "ssy",
   gratuity: "gratuity",
+  lumpsum: "lumpsum",
   strategies: "payoff-strategies",
   strategic: "what-if-games",
   budget: "budget",

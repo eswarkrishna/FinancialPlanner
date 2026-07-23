@@ -24,3 +24,5 @@ export * from "./sipJson";
 export * from "./ssyCsv";
 export * from "./ssyJson";
 export * from "./gratuityJson";
+export * from "./lumpsumCsv";
+export * from "./lumpsumJson";

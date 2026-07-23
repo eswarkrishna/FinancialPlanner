@@ -63,6 +63,10 @@ export const RELATED_CALCULATOR_LINKS: Record<TabId, RelatedCalculatorLink[]> = 
   ],
   sip: [
     {
+      tabId: "lumpsum",
+      blurb: "Model a one-time investment alongside monthly SIP instalments.",
+    },
+    {
       tabId: "ssy",
       blurb: "Model Sukanya Samriddhi maturity for a girl child alongside market SIP.",
     },
@@ -91,6 +95,10 @@ export const RELATED_CALCULATOR_LINKS: Record<TabId, RelatedCalculatorLink[]> = 
   ],
   gratuity: [
     {
+      tabId: "lumpsum",
+      blurb: "Project how a gratuity payout grows if invested as a one-time sum.",
+    },
+    {
       tabId: "retirement",
       blurb: "Combine gratuity with corpus and SIP-style retirement projections.",
     },
@@ -101,6 +109,20 @@ export const RELATED_CALCULATOR_LINKS: Record<TabId, RelatedCalculatorLink[]> = 
     {
       tabId: "ppf",
       blurb: "Balance employment benefits with long-term PPF savings.",
+    },
+  ],
+  lumpsum: [
+    {
+      tabId: "sip",
+      blurb: "Compare monthly SIP instalments with a one-time investment.",
+    },
+    {
+      tabId: "retirement",
+      blurb: "See how a lumpsum fits inflation-adjusted corpus targets.",
+    },
+    {
+      tabId: "ppf",
+      blurb: "Balance market lumpsum projections with government-backed PPF savings.",
     },
   ],
   strategies: [
@@ -154,6 +176,8 @@ export const TAB_EXPLAINERS: Record<TabId, string> = {
   ssy: `The Sukanya Samriddhi Yojana calculator projects how annual deposits grow until the girl child turns twenty-one. Enter her current age, planned yearly contribution, and interest rate to see maturity value, total contributed, and interest earned. For example, opening at age five with one lakh fifty thousand per year at eight point two percent matures in sixteen years at roughly forty-eight lakh forty-three thousand — about twenty-six lakh in interest on twenty-two lakh fifty thousand of deposits over fifteen contribution years. Deposits stop after fifteen years while interest continues until age twenty-one. This model assumes deposits at the start of each year with annual compounding and does not model partial withdrawals or Section 80C tax benefits. Accounts can only be opened when the girl is age ten or younger. Verify the latest notified rate on NSC or India Post before relying on numbers. Pair with the PPF tab for other government savings or the budget tab to confirm your annual deposit fits your cashflow.`,
 
   gratuity: `The gratuity calculator estimates statutory gratuity payable under the Payment of Gratuity Act from your last drawn monthly salary and completed years of service. The formula is salary times fifteen times years, divided by twenty-six, with half-up rounding to paise and a statutory cap on the payable amount. For example, fifty thousand rupees per month for ten years yields about two lakh eighty-eight thousand before any cap. Gratuity generally requires five years of continuous service; the tool warns when service is shorter. Last drawn salary should include basic plus dearness allowance as defined by your employer. Tax exemption limits and company-specific policies are not modelled. Use the retirement tab to see how a gratuity lump sum fits a broader corpus plan, or the budget tab to allocate the payout across goals. Export JSON for your own records.`,
+
+  lumpsum: `The lumpsum calculator projects how a one-time investment grows when returns compound once per year at an illustrative annual rate. Enter your principal, expected return, and holding period to see future value, total gains, and a year-by-year balance timeline. For example, one lakh rupees invested for ten years at twelve percent grows to about three lakh ten thousand — roughly two lakh ten thousand in gains on the original principal with no further contributions. Each year the model credits interest on the opening balance and rolls it forward, using the same half-up rounding to paise as the PPF and SIP tools. Taxes, expense ratios, exit loads, and periodic top-ups are not modelled. Returns are educational assumptions, not fund forecasts or investment advice. Pair with the SIP tab for monthly instalment plans, or the retirement tab when you need inflation-adjusted corpus targets and funded-ratio scenarios. Export the yearly timeline as CSV or JSON for your own spreadsheet.`,
 
   strategies: `Household repayment strategies split extra cash between investing and loan prepayment using fixed rules. The equity blend strategy sends a portion of surplus to an equity sleeve first, then applies the remainder as extra principal. Prepay-heavy and aggressive prepay variants route more cash straight to the loan, shortening payoff and cutting interest at the cost of lower invested balances at the horizon. Each strategy uses the same underlying loan amortisation engine as the loan tab, so principal, rate, tenure, and prepayment timing stay consistent. Comparison rows show payoff month, total interest, ending net worth, and allocation breakdown at the horizon you choose. For example, on a long home loan with moderate extra monthly cash, aggressive prepay may finish years earlier while equity blend keeps more assets in the market. Pick a strategy card to inspect allocation bars and export comparison numbers. These are planning sketches, not investment recommendations or lender-specific product rules.`,
 

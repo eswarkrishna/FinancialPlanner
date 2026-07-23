@@ -15,7 +15,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, and **Gratuity** shipped (§4.17–§4.20); PDF schedule export **shipped**; next: lumpsum, drawdown phase
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; next: drawdown phase
 2. Loan engine polish (timing / EMI / deterministic rate stress)  
 3. Charts, exports, persistence UX  
 4. **Web traffic first** — India wedge on the public SPA; Android/Capacitor maintenance-only (no new native features until web wins)
@@ -37,8 +37,10 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [ ] Amortisation CSV already shipped — PDF export still open
 - [x] PPF calculator (India instruments) — §4.17 shipped
 - [x] SIP calculator (India instruments) — §4.18 shipped
+- [x] Gratuity calculator (India instruments) — §4.20 shipped
+- [x] Lumpsum calculator — §4.21 shipped
 - [ ] Scenario save/compare (named localStorage slots)
-- [ ] Remaining: lumpsum, drawdown phase, budget charts, tax-aware rate, SEO polish
+- [ ] Remaining: drawdown phase, budget charts, tax-aware rate, SEO polish
 
 ---
 

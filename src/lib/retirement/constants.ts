@@ -10,6 +10,8 @@ export type RetirementFormDefaults = {
   annual_expense_today_inr: string;
   safe_withdrawal_rate_pct: string;
   expected_social_security_monthly_inr: string;
+  monthly_withdrawal_inr: string;
+  post_retirement_return_pct: string;
 };
 
 export const REFERENCE_RETIREMENT_FORM_IN: RetirementFormDefaults = {
@@ -21,6 +23,8 @@ export const REFERENCE_RETIREMENT_FORM_IN: RetirementFormDefaults = {
   annual_expense_today_inr: "800000",
   safe_withdrawal_rate_pct: String(DEFAULT_SAFE_WITHDRAWAL_RATE_PCT),
   expected_social_security_monthly_inr: "",
+  monthly_withdrawal_inr: "",
+  post_retirement_return_pct: "",
 };
 
 export const REFERENCE_RETIREMENT_FORM_US: RetirementFormDefaults = {
@@ -32,6 +36,8 @@ export const REFERENCE_RETIREMENT_FORM_US: RetirementFormDefaults = {
   annual_expense_today_inr: "60000",
   safe_withdrawal_rate_pct: String(DEFAULT_SAFE_WITHDRAWAL_RATE_PCT),
   expected_social_security_monthly_inr: "2000",
+  monthly_withdrawal_inr: "",
+  post_retirement_return_pct: "",
 };
 
 export const REFERENCE_RETIREMENT_FORM_UK: RetirementFormDefaults = {
@@ -43,4 +49,6 @@ export const REFERENCE_RETIREMENT_FORM_UK: RetirementFormDefaults = {
   annual_expense_today_inr: "36000",
   safe_withdrawal_rate_pct: String(DEFAULT_SAFE_WITHDRAWAL_RATE_PCT),
   expected_social_security_monthly_inr: "241.30",
+  monthly_withdrawal_inr: "",
+  post_retirement_return_pct: "",
 };

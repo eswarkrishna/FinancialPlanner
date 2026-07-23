@@ -4,6 +4,7 @@ export * from "./readImportFile";
 export * from "./debtCsv";
 export * from "./debtJson";
 export * from "./retirementCsv";
+export * from "./retirementDrawdownCsv";
 export * from "./retirementJson";
 export * from "./scheduleCsv";
 export * from "./schedulePdf";

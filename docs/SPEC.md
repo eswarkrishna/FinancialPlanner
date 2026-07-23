@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 3.2  
+**Version:** 3.3  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -293,9 +293,39 @@ Each debt: `name`, `balance_inr`, `apr_pct`, `minimum_payment_inr`.
 
 **Scenarios:** `base`, `conservative` (−2% return, +1% inflation), `optimistic` (+2% return, −1% inflation, +20% contribution).
 
-**Outputs:** projected corpus, real corpus, expense at retirement, target corpus (expense / SWR), funded ratio, yearly timeline.
+**Outputs:** projected corpus, real corpus, expense at retirement, target corpus (expense / SWR), funded ratio, yearly accumulation timeline.
 
-**Export:** CSV export of selected-scenario yearly timeline + JSON export of inputs and all scenario projections.
+#### 4.11.2 Post-retirement drawdown phase
+
+After the accumulation horizon, model **monthly withdrawals** against the projected corpus at retirement with continued growth at a (usually lower) post-retirement return rate.
+
+| Field | Type | Required | Notes |
+|------|------|----------|------|
+| `monthly_withdrawal_inr` | number | yes | Default: `annual_expense_at_retirement_inr / 12` from the active scenario (expense gap after Social Security when SS is entered) |
+| `post_retirement_return_pct` | number | yes | Default: active scenario `annual_return_pct` |
+
+Each month after retirement:
+
+- `growth_inr` = `roundInr(corpus × post_retirement_return_pct / 100 / 12)`
+- `corpus` = `roundInr(corpus + growth_inr − monthly_withdrawal_inr)`
+
+Year-end snapshots record opening, total growth, total withdrawals, and closing balance for each post-retirement year. Simulation runs up to **50 years** after retirement.
+
+**Outputs:**
+
+- `depletion_year` — post-retirement year when corpus reaches zero, or `null` when corpus remains positive through the 50-year horizon (`lasts_indefinitely = true`)
+- **Drawdown KPI** and yearly table + chart on the retirement tab
+
+**Warnings:**
+
+| Code | Condition |
+|------|-----------|
+| `DRAWDOWN_NO_CORPUS` | `corpus_at_retirement_inr ≤ 0` |
+| `DRAWDOWN_NO_WITHDRAWAL` | `monthly_withdrawal_inr ≤ 0` |
+
+**Export:** drawdown yearly timeline included in retirement JSON export; optional CSV export of drawdown rows for the active scenario.
+
+**Export (accumulation):** CSV export of selected-scenario yearly timeline + JSON export of inputs and all scenario projections.
 
 ---
 
@@ -1517,6 +1547,12 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 86. **Lumpsum trust copy:** lumpsum tab shows methodology one-liner (§4.21.4) near inputs.  
 87. **Lumpsum explainer:** visible explainer paragraph is **100–200 words**, unique across tabs (§8).
 
+### Retirement drawdown (§4.11.2)
+
+88. **Drawdown reference:** corpus at retirement ₹10,00,000, monthly withdrawal ₹10,000, post-retirement return 6% → `depletion_year = 12`, year-1 `closing_inr = 9,38,322.18` (half-up paise rounding).  
+89. **Drawdown indefinite:** corpus ₹1,00,00,000, monthly withdrawal ₹10,000, post-retirement return 6% → `depletion_year = null`, `lasts_indefinitely = true`.  
+90. **Drawdown warning:** corpus at retirement ₹0 → warning `DRAWDOWN_NO_CORPUS`.
+
 ### Phase 5 platform (§8, §4.9)
 
 79. **INR KPI lakh/crore:** `formatMoneyKpi(5_000_000, "IN")` → `₹50,00,000 · 50 lakh`; `formatMoneyKpi(25_000_000, "IN")` → `₹2,50,00,000 · 2.5 crore`.  
@@ -1541,7 +1577,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation / drawdown; budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation toggle (nominal vs real display); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

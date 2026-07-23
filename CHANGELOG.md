@@ -19,6 +19,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Retirement drawdown phase (§4.11.2)** — post-retirement monthly withdrawal simulation on the retirement tab: depletion year or 50+ year sustainability, drawdown chart/table, and CSV export.
 - **Lumpsum calculator (§4.21)** — one-time investment tab at `/lumpsum` with annual compounding, yearly timeline, CSV/JSON export, and reference golden (₹1L, 12%, 10 years → ₹3,10,584.83).
 
 ### Added (prior)

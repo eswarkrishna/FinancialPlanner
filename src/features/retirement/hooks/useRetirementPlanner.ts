@@ -2,9 +2,11 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   buildRetirementScenarios,
   DEFAULT_SAFE_WITHDRAWAL_RATE_PCT,
+  isRetirementDisplayMode,
   projectRetirementDrawdown,
   REFERENCE_RETIREMENT_FORM_IN,
   REFERENCE_RETIREMENT_FORM_US,
+  type RetirementDisplayMode,
   type RetirementInput,
 } from "../../../lib/retirement/index";
 import { roundInr } from "../../../lib/money";
@@ -82,6 +84,10 @@ export function useRetirementPlanner() {
   const [selectedRetirementScenario, setSelectedRetirementScenario] = useState(
     () => readRetirementFormState(readStoredLocale())?.selected_scenario_id ?? "base",
   );
+  const [displayMode, setDisplayMode] = useState<RetirementDisplayMode>(() => {
+    const stored = readRetirementFormState(readStoredLocale())?.display_mode;
+    return stored && isRetirementDisplayMode(stored) ? stored : "nominal";
+  });
   const [importError, setImportError] = useState<string | null>(null);
 
   const prevLocaleEpochRef = useRef(localeEpoch);
@@ -92,6 +98,8 @@ export function useRetirementPlanner() {
     setSelectedRetirementScenario(
       readRetirementFormState(locale)?.selected_scenario_id ?? "base",
     );
+    const storedMode = readRetirementFormState(locale)?.display_mode;
+    setDisplayMode(storedMode && isRetirementDisplayMode(storedMode) ? storedMode : "nominal");
     setImportError(null);
   }, [locale, localeEpoch]);
 
@@ -101,8 +109,9 @@ export function useRetirementPlanner() {
       locale,
       ...retirementInputs,
       selected_scenario_id: selectedRetirementScenario,
+      display_mode: displayMode,
     });
-  }, [locale, retirementInputs, selectedRetirementScenario]);
+  }, [locale, retirementInputs, selectedRetirementScenario, displayMode]);
 
   const yearsInvalid = useMemo(() => {
     const raw = retirementInputs.years_to_retirement.trim();
@@ -233,13 +242,15 @@ export function useRetirementPlanner() {
           setImportError(outcome.message);
           return;
         }
-        const { selectedRetirementScenario: scenario, ...form } = outcome;
+        const { selectedRetirementScenario: scenario, displayMode: importedMode, ...form } =
+          outcome;
         setRetirementInputs({
           ...form,
           monthly_withdrawal_inr: form.monthly_withdrawal_inr ?? "",
           post_retirement_return_pct: form.post_retirement_return_pct ?? "",
         });
         setSelectedRetirementScenario(scenario);
+        setDisplayMode(importedMode);
       })
       .catch((error: unknown) => {
         setImportError(
@@ -279,6 +290,7 @@ export function useRetirementPlanner() {
       inputs: { ...retirementBaseInput },
       scenarios: retirementScenarios,
       selected_scenario_id: selectedRetirementScenario,
+      display_mode: displayMode,
       drawdown: drawdownProjection ?? undefined,
     });
     downloadTextFile(
@@ -300,6 +312,8 @@ export function useRetirementPlanner() {
     effectiveMonthlyWithdrawal,
     effectivePostRetirementReturn,
     annualSsIncome,
+    displayMode,
+    setDisplayMode,
     setRetirementField,
     formatPercent,
     yearsInvalid,

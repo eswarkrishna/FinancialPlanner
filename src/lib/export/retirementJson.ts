@@ -1,5 +1,6 @@
 import type {
   RetirementDrawdownProjection,
+  RetirementDisplayMode,
   RetirementInput,
   RetirementScenarioResult,
 } from "../retirement";
@@ -11,6 +12,7 @@ export interface RetirementExportPayload {
   inputs: RetirementInput;
   scenarios: RetirementScenarioResult[];
   selected_scenario_id: string;
+  display_mode?: RetirementDisplayMode;
   drawdown?: RetirementDrawdownProjection;
 }
 

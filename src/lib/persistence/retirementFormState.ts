@@ -1,4 +1,5 @@
 import type { Locale } from "../locale/types";
+import type { RetirementDisplayMode } from "../retirement/display";
 
 export const RETIREMENT_FORM_STORAGE_KEY = "financial-planner-retirement-form";
 export const RETIREMENT_FORM_STORAGE_VERSION = 1;
@@ -17,6 +18,7 @@ export interface RetirementFormPersistedState {
   selected_scenario_id: string;
   monthly_withdrawal_inr?: string;
   post_retirement_return_pct?: string;
+  display_mode?: RetirementDisplayMode;
 }
 
 export function retirementFormStorageKey(locale: Locale): string {

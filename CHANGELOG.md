@@ -19,6 +19,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Budget chart view toggle + savings-rate bands (§4.16.5)** — Monthly/Yearly toggle on the budget tab charts (yearly = monthly × 12, display-only) and a three-band savings-rate KPI indicator (red < 10%, amber 10–20%, green ≥ 20%).
 - **Retirement inflation toggle (§4.11.3)** — nominal vs real (today's value) display on the retirement tab for charts, scenario comparison, and drawdown closing balances.
 - **Retirement drawdown phase (§4.11.2)** — post-retirement monthly withdrawal simulation on the retirement tab: depletion year or 50+ year sustainability, drawdown chart/table, and CSV export.
 - **Lumpsum calculator (§4.21)** — one-time investment tab at `/lumpsum` with annual compounding, yearly timeline, CSV/JSON export, and reference golden (₹1L, 12%, 10 years → ₹3,10,584.83).

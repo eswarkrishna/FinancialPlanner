@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-23 — Budget chart view + savings-rate bands (§4.16.5)
+
+- **Context:** Gap-fill backlog "budget charts" (research §4.1–§4.2). Intake audit found most chart roadmap items were already shipped but unchecked in `FEATURE-ROADMAP.md` (A4 debt/retirement/strategies charts, PDF export, lakh/crore formatting).
+- **What we learned:** Roadmap checkboxes drift when slices ship under other initiatives (Phase 5 wedge shipped A4/A0 items silently). Audit `rg` for the actual components before scoping "remaining" work — the real gap was only the Monthly/Yearly view and the three-band savings-rate indicator.
+- **Action:** §4.16.5 keeps the toggle display-only (yearly = monthly × 12, no persistence/export changes) so the export payload and goldens stay untouched; roadmap boxes refreshed in the same PR that closes the item.
+
+---
+
 ## 2026-07-22 — Phase 5 wedge slice 1 (floating rate + trust)
 
 - **Context:** Architecture review Phase 5 / gap-fill §7 — floating rates and bank validation doc.

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatMoneyFinite, formatMoneyKpi } from "../../lib/locale/formatMoney";
 import { buildBudgetPortfolioCurve } from "../../lib/loan/chartData";
 import { AlertCallout } from "../../components/AlertCallout";
@@ -7,6 +8,13 @@ import { LineChart } from "../../components/LineChart";
 import { TableWrap } from "../../components/TableWrap";
 import { useLocale } from "../locale/LocaleContext";
 import { useBudgetPlanner } from "./hooks/useBudgetPlanner";
+import {
+  chartViewLabel,
+  savingsRateBand,
+  savingsRateBandTone,
+  scaleForChartView,
+  type BudgetChartView,
+} from "../../lib/budget";
 import type { BudgetBucket, InvestmentAssetClass } from "../../lib/budget";
 
 const BUCKET_LABELS: Record<BudgetBucket, string> = {
@@ -34,8 +42,14 @@ function bucketDeltaClass(kind: BucketRowKind, actual: number, target: number): 
   return actual > target ? "warning-text" : "positive-text";
 }
 
+const CHART_VIEW_OPTIONS: { value: BudgetChartView; label: string }[] = [
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+];
+
 export function BudgetSection() {
   const { locale } = useLocale();
+  const [chartView, setChartView] = useState<BudgetChartView>("monthly");
   const money = (value: number) => formatMoneyFinite(value, locale);
   const moneyKpi = (value: number) => formatMoneyKpi(value, locale);
   const currencyLabel = locale === "US" ? "USD" : locale === "UK" ? "GBP" : "INR";
@@ -91,7 +105,7 @@ export function BudgetSection() {
       id: "savings-rate",
       label: "Savings rate",
       value: `${summary.savings_rate_pct.toFixed(1)}%`,
-      tone: summary.savings_rate_pct >= 20 ? ("positive" as const) : ("warning" as const),
+      tone: savingsRateBandTone(savingsRateBand(summary.savings_rate_pct)),
     },
     {
       id: "emergency",
@@ -111,7 +125,7 @@ export function BudgetSection() {
     .map((line, index) => ({
       id: line.id,
       label: line.name.slice(0, 12) || "Expense",
-      value_inr: Number(line.amount_inr),
+      value_inr: scaleForChartView(Number(line.amount_inr), chartView),
       color: EXPENSE_CHART_COLORS[index % EXPENSE_CHART_COLORS.length]!,
     }));
 
@@ -119,22 +133,24 @@ export function BudgetSection() {
     {
       id: "needs",
       label: "Needs",
-      value_inr: buckets.needs_inr,
+      value_inr: scaleForChartView(buckets.needs_inr, chartView),
       color: "#0d9488",
     },
     {
       id: "wants",
       label: "Wants",
-      value_inr: buckets.wants_inr,
+      value_inr: scaleForChartView(buckets.wants_inr, chartView),
       color: "#2563eb",
     },
     {
       id: "savings-bucket",
       label: "Savings",
-      value_inr: buckets.savings_bucket_inr,
+      value_inr: scaleForChartView(buckets.savings_bucket_inr, chartView),
       color: "#7c3aed",
     },
   ];
+
+  const viewLabel = chartViewLabel(chartView);
 
   return (
     <>
@@ -388,16 +404,38 @@ export function BudgetSection() {
             </tbody>
           </table>
         </TableWrap>
+        <div className="schedule-head">
+          <p className="hint">
+            Charts show {viewLabel} amounts{chartView === "yearly" ? " (monthly × 12)" : ""};
+            the table stays monthly.
+          </p>
+          <div className="locale-segment" role="radiogroup" aria-label="Budget chart view">
+            {CHART_VIEW_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={chartView === option.value}
+                className={`locale-segment-btn${
+                  chartView === option.value ? " locale-segment-btn--active" : ""
+                }`}
+                onClick={() => setChartView(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="chart-grid">
           <BarChart
-            title="Expense buckets (50/30/20)"
+            title={`Expense buckets (50/30/20) — ${viewLabel}`}
             items={bucketChartItems}
             yLabel={currencyLabel}
             locale={locale}
           />
           {expenseChartItems.length > 0 && (
             <BarChart
-              title="Expenses by category"
+              title={`Expenses by category — ${viewLabel}`}
               items={expenseChartItems}
               yLabel={currencyLabel}
               locale={locale}

@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 3.4  
+**Version:** 3.5  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20, **Lumpsum** §4.21), and **PDF amortisation export** on the loan tab. Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20, **Lumpsum** §4.21), **PDF amortisation export** on the loan tab, and **budget chart view toggle + savings-rate bands** (§4.16.5). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -734,6 +734,20 @@ Educational monthly budget planner with **50/30/20** bucket analysis and manual 
 **Import:** JSON round-trip of §4.16 export payload.
 
 **Persistence (v1.8):** Budget tab form state in `localStorage` per locale (`financial-planner-budget-form-IN`, etc.). Locale switch resets to reference budget for the new locale.
+
+#### 4.16.5 Chart view toggle & savings-rate bands (v3.5)
+
+**Chart view (display-only).** The budget tab offers a `chart_view` segmented control ∈ `monthly` (default) | `yearly`. Inputs stay monthly; the **yearly** view multiplies charted amounts by **12** (simple annualisation, no compounding) on the expense-bucket and expense-by-category bar charts, and chart titles indicate the selected view. The KPI strip and 50/30/20 table always stay monthly. The toggle is ephemeral UI state — not persisted and not part of the §4.16 export payload.
+
+**Savings-rate bands** (visual indicator on the savings-rate KPI):
+
+| Band | Condition | KPI tone |
+|------|-----------|----------|
+| `low` | `savings_rate_pct < 10` | danger (red) |
+| `medium` | `10 ≤ savings_rate_pct < 20` | warning (amber) |
+| `high` | `savings_rate_pct ≥ 20` | positive (green) |
+
+Implementation: pure helper `savingsRateBand(pct)` in `src/lib/budget/`, shared by the UI tone mapping. Boundaries: exactly 10 → `medium`; exactly 20 → `high` (the IN reference budget at 20.0% shows green).
 
 ### 4.17 Public Provident Fund (PPF) calculator
 
@@ -1574,6 +1588,12 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 91. **Display labels:** `corpusSeriesLabel("nominal")` → `Nominal`; `corpusSeriesLabel("real")` → `Real (today's value)`.  
 92. **Real corpus selection:** reference retirement inputs → `projectedCorpusForMode(projection, "real")` &lt; `projectedCorpusForMode(projection, "nominal")`.  
 93. **Drawdown real balance:** ₹10,00,000 closing at drawdown year 5 with 20 years to retirement and 6% inflation → `drawdownBalanceForMode(..., "real", 20, 5, 6)` matches `deflateToToday(10_00_000, 6, 25)`.
+
+### Budget chart view & savings-rate bands (§4.16.5)
+
+94. **Savings-rate bands:** `savingsRateBand(9.9)` = `low`, `savingsRateBand(10)` = `medium`, `savingsRateBand(19.9)` = `medium`, `savingsRateBand(20)` = `high`; KPI tone maps `low` → danger, `medium` → warning, `high` → positive (IN reference budget at 20.0% renders positive).  
+95. **Yearly chart view:** with the IN reference budget, selecting **Yearly** scales the expense-bucket chart needs bar from ₹95,000 to ₹11,40,000 (×12) and chart titles indicate the yearly view; default view is **Monthly**.  
+96. **View toggle UI:** the budget tab renders a Monthly | Yearly radiogroup near the charts; switching views changes chart values only — KPI strip and 50/30/20 table amounts stay monthly.
 
 ### Phase 5 platform (§8, §4.9)
 

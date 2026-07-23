@@ -176,6 +176,10 @@ export function BudgetSection() {
             </button>
           </div>
         </div>
+        <p className="hint trust-note">
+          <strong>Methodology:</strong> income minus expenses; needs/wants/savings buckets compared to
+          a 50/30/20 guideline; investment sleeves compound monthly at entered returns.
+        </p>
         {importError ? <p className="error">{importError}</p> : null}
         <p className="hint">
           Plan monthly income and expenses, track investment holdings, and compare your split to

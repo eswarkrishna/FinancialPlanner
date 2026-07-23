@@ -35,6 +35,11 @@ export function DebtSection() {
     <>
       <section className="card">
         <h2>Debt payoff planner</h2>
+        <p className="hint trust-note">
+          <strong>Methodology:</strong> avalanche routes surplus to the highest APR balance first;
+          snowball pays the smallest balance first. All minimums are paid each month; amounts rounded
+          half-up to paise per step.
+        </p>
         <div className="form-grid">
           <label>
             Start date

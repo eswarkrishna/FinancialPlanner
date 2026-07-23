@@ -30,6 +30,11 @@ const SipSection = lazy(() =>
 const SsySection = lazy(() =>
   import("../features/ssy/SsySection").then((module) => ({ default: module.SsySection })),
 );
+const GratuitySection = lazy(() =>
+  import("../features/gratuity/GratuitySection").then((module) => ({
+    default: module.GratuitySection,
+  })),
+);
 
 const TAB_SECTIONS: Record<TabId, ComponentType> = {
   loan: LoanSection,
@@ -38,6 +43,7 @@ const TAB_SECTIONS: Record<TabId, ComponentType> = {
   ppf: PpfSection,
   sip: SipSection,
   ssy: SsySection,
+  gratuity: GratuitySection,
   strategies: StrategySection,
   strategic: GameSection,
   budget: BudgetSection,

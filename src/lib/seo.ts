@@ -7,6 +7,7 @@ export type TabId =
   | "ppf"
   | "sip"
   | "ssy"
+  | "gratuity"
   | "strategies"
   | "strategic"
   | "budget";
@@ -64,6 +65,13 @@ export const PLANNER_TABS: PlannerTab[] = [
       "Free SSY calculator for Sukanya Samriddhi Yojana. Project maturity at age 21 from annual deposits, girl child age, and government-notified interest rates.",
   },
   {
+    id: "gratuity",
+    label: "Gratuity",
+    seoTitle: "Gratuity Calculator — India Employees",
+    description:
+      "Free gratuity calculator for India. Estimate statutory gratuity from last drawn salary and years of service under the Payment of Gratuity Act formula.",
+  },
+  {
     id: "strategies",
     label: "Payoff strategies",
     seoTitle: "Household Payoff Strategy Comparison",
@@ -94,6 +102,7 @@ export const TAB_PATH_SLUG: Record<TabId, string> = {
   ppf: "ppf",
   sip: "sip",
   ssy: "ssy",
+  gratuity: "gratuity",
   strategies: "payoff-strategies",
   strategic: "what-if-games",
   budget: "budget",

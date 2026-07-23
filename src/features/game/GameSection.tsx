@@ -32,6 +32,11 @@ export function GameSection() {
     <div className="game-section">
       <section className="card">
         <h2>Strategic scenarios</h2>
+        <p className="hint trust-note">
+          <strong>Methodology:</strong> discrete borrower/lender/household actions scored on the
+          same amortisation engine as the Loan tab; payoffs are deterministic for chosen actions,
+          not predictions of real lender behaviour.
+        </p>
         <p className="hint">
           Model how your prepay choices interact with a lender fee, household split, or
           unemployment timing. Payoffs use the same amortisation engine as the Loan tab.

@@ -15,7 +15,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** and **inflation toggle** shipped (§4.11.2–§4.11.3); next: budget charts
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** and **inflation toggle** shipped (§4.11.2–§4.11.3); **budget chart view + savings-rate bands** shipped (§4.16.5); next: scenario save/compare
 2. Loan engine polish (timing / EMI / deterministic rate stress)  
 3. Charts, exports, persistence UX  
 4. **Web traffic first** — India wedge on the public SPA; Android/Capacitor maintenance-only (no new native features until web wins)
@@ -33,15 +33,16 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [x] Prepayment fee modeling (flat / %) + net savings (§4.4.1)
 - [x] Reduce EMI vs Reduce Tenure side-by-side (§4.4.2)
 - [x] Retirement inflation display toggle — §4.11.3 shipped
-- [ ] Currency/locale formatting polish (lakhs vs millions)
-- [ ] Amortisation CSV already shipped — PDF export still open
+- [x] Currency/locale formatting polish (lakhs vs millions) — per-locale `formatMoney` + INR lakh/crore KPI suffix shipped (§10.79)
+- [x] Amortisation CSV already shipped — PDF export shipped (§10.80)
 - [x] PPF calculator (India instruments) — §4.17 shipped
 - [x] SIP calculator (India instruments) — §4.18 shipped
 - [x] Gratuity calculator (India instruments) — §4.20 shipped
 - [x] Lumpsum calculator — §4.21 shipped
 - [x] Retirement drawdown phase — §4.11.2 shipped
+- [x] Budget chart view toggle + savings-rate bands — §4.16.5 shipped
 - [ ] Scenario save/compare (named localStorage slots)
-- [ ] Remaining: budget charts, tax-aware rate, SEO polish
+- [ ] Remaining: tax-aware rate, SEO polish
 
 ---
 
@@ -79,10 +80,10 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 
 ### A4. Charts & exports (§4.9)
 
-- [ ] Debt tab — total balance over time chart
-- [ ] Retirement tab — nominal corpus by year chart
-- [ ] Strategies tab — net worth at horizon bar chart
-- [ ] Shared SVG chart components reused across tabs
+- [x] Debt tab — total balance over time chart (`DebtSection`)
+- [x] Retirement tab — corpus by year chart with nominal/real toggle (`RetirementSection`, §4.11.3)
+- [x] Strategies tab — net worth at horizon bar chart (`StrategySection`)
+- [x] Shared SVG chart components reused across tabs (`src/components/LineChart.tsx`, `BarChart.tsx`)
 - [ ] Richer CSV/JSON export fields where useful
 - [x] Shareable scenario / tab links (UTM rules stay within §5.1) — **Share on Facebook** footer control (`utm_source=facebook`, `utm_medium=social`) shipped; copy-link already present
 

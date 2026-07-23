@@ -49,6 +49,8 @@ manual smoke checks.
 | 10.29–39 | Browser E2E smoke (shell, navigation, loan, locale, budget) | `e2e/specs/*.spec.ts`, `npm run test:e2e` |
 | 10.29–39 (mobile) | 360px layout: no form overflow, locale visible, explainer below calculator | `e2e/specs/mobile-layout.spec.ts` |
 | 10.40–41 | Android Capacitor sync + debug APK | `scripts/verify-android-sync.mjs`, `.github/workflows/ci.yml` |
+| 10.94 | Savings-rate bands + KPI tone mapping (§4.16.5) | `src/lib/budget/display.test.ts`, `src/features/budget/BudgetSection.test.tsx` |
+| 10.95–96 | Budget chart Monthly/Yearly toggle scales charts only (§4.16.5) | `src/lib/budget/display.test.ts`, `src/features/budget/BudgetSection.test.tsx` |
 
 ## Golden contracts
 

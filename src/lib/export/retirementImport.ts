@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Locale } from "../locale/types";
+import type { RetirementDisplayMode } from "../retirement/display";
 
 const retirementImportSchema = z.object({
   locale: z.enum(["IN", "US", "UK"]).optional(),
@@ -14,6 +15,7 @@ const retirementImportSchema = z.object({
     expected_social_security_monthly_inr: z.coerce.number().min(0).optional(),
   }),
   selected_scenario_id: z.string().optional(),
+  display_mode: z.enum(["nominal", "real"]).optional(),
   drawdown: z
     .object({
       depletion_year: z.number().int().positive().nullable(),
@@ -34,6 +36,7 @@ export type RetirementImportFormState = {
   monthly_withdrawal_inr: string;
   post_retirement_return_pct: string;
   selectedRetirementScenario: string;
+  displayMode: RetirementDisplayMode;
 };
 
 export type RetirementImportOutcome =
@@ -86,5 +89,6 @@ export function parseRetirementImportJson(
     monthly_withdrawal_inr: "",
     post_retirement_return_pct: "",
     selectedRetirementScenario: envelope.data.selected_scenario_id ?? "base",
+    displayMode: envelope.data.display_mode ?? "nominal",
   };
 }

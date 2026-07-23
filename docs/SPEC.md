@@ -8,7 +8,7 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 3.3  
+**Version:** 3.4  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
@@ -326,6 +326,22 @@ Year-end snapshots record opening, total growth, total withdrawals, and closing 
 **Export:** drawdown yearly timeline included in retirement JSON export; optional CSV export of drawdown rows for the active scenario.
 
 **Export (accumulation):** CSV export of selected-scenario yearly timeline + JSON export of inputs and all scenario projections.
+
+#### 4.11.3 Nominal vs real display toggle
+
+UI toggle switches corpus projections between **nominal** future values and **real (today's value)** purchasing power using the entered `inflation_pct`.
+
+| Control | Values | Default |
+|---------|--------|---------|
+| `display_mode` | `nominal` \| `real` | `nominal` |
+
+**When `display_mode = real`:**
+
+- Charts and primary table columns use `corpus_real_inr` (accumulation) or balances deflated to today via `roundInr(value / (1 + inflation_pct/100)^(years_to_retirement + drawdown_year))` (drawdown closing).
+- Scenario comparison shows **expense (today's value)** and **target corpus (today)** with `real_funded_ratio = projected_real_corpus / (annual_expense_today / SWR)`.
+- Labels read **“Real (today's value)”** vs **“Nominal”**.
+
+**Persistence:** `display_mode` stored in retirement form `localStorage` per locale. Included in JSON export/import when present.
 
 ---
 
@@ -1553,6 +1569,12 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 89. **Drawdown indefinite:** corpus ₹1,00,00,000, monthly withdrawal ₹10,000, post-retirement return 6% → `depletion_year = null`, `lasts_indefinitely = true`.  
 90. **Drawdown warning:** corpus at retirement ₹0 → warning `DRAWDOWN_NO_CORPUS`.
 
+### Retirement inflation display (§4.11.3)
+
+91. **Display labels:** `corpusSeriesLabel("nominal")` → `Nominal`; `corpusSeriesLabel("real")` → `Real (today's value)`.  
+92. **Real corpus selection:** reference retirement inputs → `projectedCorpusForMode(projection, "real")` &lt; `projectedCorpusForMode(projection, "nominal")`.  
+93. **Drawdown real balance:** ₹10,00,000 closing at drawdown year 5 with 20 years to retirement and 6% inflation → `drawdownBalanceForMode(..., "real", 20, 5, 6)` matches `deflateToToday(10_00_000, 6, 25)`.
+
 ### Phase 5 platform (§8, §4.9)
 
 79. **INR KPI lakh/crore:** `formatMoneyKpi(5_000_000, "IN")` → `₹50,00,000 · 50 lakh`; `formatMoneyKpi(25_000_000, "IN")` → `₹2,50,00,000 · 2.5 crore`.  
@@ -1577,7 +1599,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 - **Bank / brokerage account linking** or live market-price feeds (§4.16 uses manual entry only).
 - **Live bank rate APIs**, multi-language UI, and user accounts / server-side scenario sync (gap-fill §7 — localStorage is sufficient).
 
-**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; retirement inflation toggle (nominal vs real display); budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
+**Deferred (gap-fill backlog, not this version):** payment-in-advance timing toggle; budget category charts & savings-rate colours; named multi-scenario save/compare; tax-aware effective rate; **full HTML prerender / SSR** (§8 uses build-time shells + noscript instead). Track in [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) and [`FEATURE-ROADMAP.md`](FEATURE-ROADMAP.md). **Floating-rate stochastic** simulation remains out of scope (§4.13 `GAME_FLOATING_N` design-only).
 
 **Frozen at P0 (no new Tier P1 work until India wedge wins):** §4.13 game-theory profiles beyond shipped P0; US/UK locale parity features (maintenance mode — bugfixes only).
 

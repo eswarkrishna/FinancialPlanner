@@ -15,7 +15,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** shipped (§4.11.2); next: inflation toggle
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** and **inflation toggle** shipped (§4.11.2–§4.11.3); next: budget charts
 2. Loan engine polish (timing / EMI / deterministic rate stress)  
 3. Charts, exports, persistence UX  
 4. **Web traffic first** — India wedge on the public SPA; Android/Capacitor maintenance-only (no new native features until web wins)
@@ -32,7 +32,7 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 
 - [x] Prepayment fee modeling (flat / %) + net savings (§4.4.1)
 - [x] Reduce EMI vs Reduce Tenure side-by-side (§4.4.2)
-- [ ] Retirement inflation adjustment (real vs nominal)
+- [x] Retirement inflation display toggle — §4.11.3 shipped
 - [ ] Currency/locale formatting polish (lakhs vs millions)
 - [ ] Amortisation CSV already shipped — PDF export still open
 - [x] PPF calculator (India instruments) — §4.17 shipped
@@ -41,7 +41,7 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [x] Lumpsum calculator — §4.21 shipped
 - [x] Retirement drawdown phase — §4.11.2 shipped
 - [ ] Scenario save/compare (named localStorage slots)
-- [ ] Remaining: inflation toggle, budget charts, tax-aware rate, SEO polish
+- [ ] Remaining: budget charts, tax-aware rate, SEO polish
 
 ---
 

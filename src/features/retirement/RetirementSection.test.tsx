@@ -18,6 +18,17 @@ describe("RetirementSection", () => {
     expect(
       screen.getByRole("heading", { name: "Post-retirement drawdown (Base)" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Retirement corpus display mode" })).toBeInTheDocument();
+    expect(screen.getByText("Nominal corpus growth")).toBeInTheDocument();
+  });
+
+  it("switches to real display mode labels", () => {
+    renderWithLocale(<RetirementSection />);
+
+    fireEvent.click(screen.getByRole("radio", { name: "Real (today)" }));
+
+    expect(screen.getByText("Real (today's value) corpus growth")).toBeInTheDocument();
+    expect(screen.getByText("Expense (today's value)")).toBeInTheDocument();
   });
 
   it("updates yearly timeline when scenario selection changes", () => {

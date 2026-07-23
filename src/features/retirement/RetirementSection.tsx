@@ -1,10 +1,19 @@
 import { formatMoney, formatMoneyKpi } from "../../lib/locale/formatMoney";
+import { buildRetirementCorpusCurve } from "../../lib/loan/chartData";
+import {
+  corpusSeriesLabel,
+  drawdownBalanceForMode,
+  projectedCorpusForMode,
+  realFundedRatio,
+  realTargetCorpus,
+  yearlyCorpusForMode,
+} from "../../lib/retirement/display";
 import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "../../lib/retirement/constants";
 import { trackRetirementScenarioSelect } from "../../lib/analytics";
-import { buildRetirementCorpusCurve } from "../../lib/loan/chartData";
 import { AlertCallout } from "../../components/AlertCallout";
 import { KpiStrip } from "../../components/KpiStrip";
 import { LineChart } from "../../components/LineChart";
+import { RetirementDisplaySegment } from "../../components/RetirementDisplaySegment";
 import { TableWrap } from "../../components/TableWrap";
 import { useLocale } from "../locale/LocaleContext";
 import { useRetirementPlanner } from "./hooks/useRetirementPlanner";
@@ -29,6 +38,8 @@ export function RetirementSection() {
     effectiveMonthlyWithdrawal,
     effectivePostRetirementReturn,
     annualSsIncome,
+    displayMode,
+    setDisplayMode,
     exportRetirementTimelineCsv,
     exportRetirementDrawdownCsv,
     exportRetirementJson,
@@ -36,13 +47,25 @@ export function RetirementSection() {
     importError,
   } = useRetirementPlanner();
 
+  const corpusLabel = corpusSeriesLabel(displayMode);
+  const yearsToRetirement = activeRetirementScenario
+    ? Math.floor(Number(retirementInputs.years_to_retirement) || 0)
+    : 0;
+  const inflationPct = activeRetirementScenario?.assumptions.inflation_pct ?? 0;
+  const swrPct =
+    retirementInputs.safe_withdrawal_rate_pct.trim() === ""
+      ? DEFAULT_SAFE_WITHDRAWAL_RATE_PCT
+      : Math.max(0.1, Number(retirementInputs.safe_withdrawal_rate_pct) || 0);
+
   const drawdownKpiItems =
     activeRetirementScenario && drawdownProjection
       ? [
           {
             id: "corpus",
-            label: "Corpus at retirement",
-            value: moneyKpi(activeRetirementScenario.projection.projected_corpus_inr),
+            label: `Corpus at retirement (${corpusLabel.toLowerCase()})`,
+            value: moneyKpi(
+              projectedCorpusForMode(activeRetirementScenario.projection, displayMode),
+            ),
           },
           {
             id: "withdrawal",
@@ -66,9 +89,22 @@ export function RetirementSection() {
     ? buildRetirementCorpusCurve(
         drawdownProjection.yearly.map((row) => ({
           year: row.year,
-          corpus_nominal_inr: row.closing_inr,
-          corpus_real_inr: row.closing_inr,
+          corpus_nominal_inr: drawdownBalanceForMode(
+            row.closing_inr,
+            displayMode,
+            yearsToRetirement,
+            row.year,
+            inflationPct,
+          ),
+          corpus_real_inr: drawdownBalanceForMode(
+            row.closing_inr,
+            displayMode,
+            yearsToRetirement,
+            row.year,
+            inflationPct,
+          ),
         })),
+        displayMode,
       )
     : [];
 
@@ -227,7 +263,12 @@ export function RetirementSection() {
       </section>
 
       <section className="card">
-        <h2>Retirement scenarios</h2>
+        <div className="schedule-head">
+          <h2>Retirement scenarios</h2>
+          {!yearsInvalid && (
+            <RetirementDisplaySegment value={displayMode} onChange={setDisplayMode} />
+          )}
+        </div>
         {yearsInvalid ? (
           <p className="hint">Enter valid years to retirement to see scenario comparison.</p>
         ) : (
@@ -237,10 +278,16 @@ export function RetirementSection() {
               <tr>
                 <th>Scenario</th>
                 <th>Assumptions</th>
-                <th>Projected corpus</th>
-                <th>Inflation-adjusted corpus</th>
-                <th>Expense at retirement</th>
-                <th>Target corpus</th>
+                <th>Projected corpus ({corpusLabel.toLowerCase()})</th>
+                {displayMode === "nominal" && <th>Inflation-adjusted corpus</th>}
+                <th>
+                  {displayMode === "real"
+                    ? "Expense (today's value)"
+                    : "Expense at retirement"}
+                </th>
+                <th>
+                  {displayMode === "real" ? "Target corpus (today)" : "Target corpus"}
+                </th>
                 <th>Funded ratio</th>
                 {(isUs || isUk) && annualSsIncome > 0 && (
                   <>
@@ -252,7 +299,25 @@ export function RetirementSection() {
               </tr>
             </thead>
             <tbody>
-              {retirementScenarios.map((scenario) => (
+              {retirementScenarios.map((scenario) => {
+                const expenseToday = Math.max(
+                  0,
+                  Number(retirementInputs.annual_expense_today_inr) || 0,
+                );
+                const expenseDisplay =
+                  displayMode === "real"
+                    ? expenseToday
+                    : scenario.projection.annual_expense_at_retirement_inr;
+                const targetDisplay =
+                  displayMode === "real"
+                    ? realTargetCorpus(expenseToday, swrPct)
+                    : scenario.projection.target_corpus_inr;
+                const fundedDisplay =
+                  displayMode === "real"
+                    ? realFundedRatio(scenario.projection, expenseToday, swrPct)
+                    : scenario.projection.funded_ratio;
+
+                return (
                 <tr key={scenario.id}>
                   <td>{scenario.label}</td>
                   <td>
@@ -260,13 +325,13 @@ export function RetirementSection() {
                     {scenario.assumptions.inflation_pct}% / SIP{" "}
                     {money(scenario.assumptions.monthly_contribution_inr)}
                   </td>
-                  <td>{money(scenario.projection.projected_corpus_inr)}</td>
-                  <td>{money(scenario.projection.projected_real_corpus_inr)}</td>
-                  <td>
-                    {money(scenario.projection.annual_expense_at_retirement_inr)}
-                  </td>
-                  <td>{money(scenario.projection.target_corpus_inr)}</td>
-                  <td>{formatPercent(scenario.projection.funded_ratio)}</td>
+                  <td>{money(projectedCorpusForMode(scenario.projection, displayMode))}</td>
+                  {displayMode === "nominal" && (
+                    <td>{money(scenario.projection.projected_real_corpus_inr)}</td>
+                  )}
+                  <td>{money(expenseDisplay)}</td>
+                  <td>{money(targetDisplay)}</td>
+                  <td>{formatPercent(fundedDisplay)}</td>
                   {(isUs || isUk) && annualSsIncome > 0 && (
                     <>
                       <td>{money(annualSsIncome)}</td>
@@ -283,7 +348,8 @@ export function RetirementSection() {
                     </>
                   )}
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </TableWrap>
@@ -334,28 +400,35 @@ export function RetirementSection() {
         ) : (
         <>
         <LineChart
-          title="Nominal corpus growth"
-          points={buildRetirementCorpusCurve(activeRetirementScenario.projection.yearly)}
+          title={`${corpusLabel} corpus growth`}
+          points={buildRetirementCorpusCurve(
+            activeRetirementScenario.projection.yearly,
+            displayMode,
+          )}
           stroke="#7c3aed"
-          yLabel="Corpus"
+          yLabel={`Corpus (${corpusLabel})`}
           xLabel="Year"
           locale={locale}
         />
-        <TableWrap label="Retirement yearly corpus timeline">
+        <TableWrap label={`Retirement yearly corpus timeline (${corpusLabel})`}>
           <table>
             <thead>
               <tr>
                 <th>Year</th>
-                <th>Nominal corpus</th>
-                <th>Real corpus (today {currencyLabel})</th>
+                <th>{corpusLabel} corpus</th>
+                {displayMode === "nominal" && (
+                  <th>Real corpus (today {currencyLabel})</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {activeRetirementScenario.projection.yearly.map((row) => (
                 <tr key={row.year}>
                   <td>{row.year}</td>
-                  <td>{money(row.corpus_nominal_inr)}</td>
-                  <td>{money(row.corpus_real_inr)}</td>
+                  <td>{money(yearlyCorpusForMode(row, displayMode))}</td>
+                  {displayMode === "nominal" && (
+                    <td>{money(row.corpus_real_inr)}</td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -416,32 +489,50 @@ export function RetirementSection() {
             {drawdownProjection.yearly.length > 0 && (
               <>
                 <LineChart
-                  title="Corpus during drawdown"
+                  title={`${corpusLabel} corpus during drawdown`}
                   points={drawdownChartPoints}
                   stroke="#0d9488"
-                  yLabel="Corpus"
+                  yLabel={`Corpus (${corpusLabel})`}
                   xLabel="Years after retirement"
                   locale={locale}
                 />
-                <TableWrap label="Post-retirement drawdown timeline">
+                <TableWrap label={`Post-retirement drawdown timeline (${corpusLabel})`}>
                   <table>
                     <thead>
                       <tr>
                         <th>Year after retirement</th>
-                        <th>Opening</th>
-                        <th>Growth</th>
-                        <th>Withdrawals</th>
-                        <th>Closing</th>
+                        {displayMode === "nominal" && (
+                          <>
+                            <th>Opening</th>
+                            <th>Growth</th>
+                            <th>Withdrawals</th>
+                          </>
+                        )}
+                        <th>Closing ({corpusLabel.toLowerCase()})</th>
                       </tr>
                     </thead>
                     <tbody>
                       {drawdownProjection.yearly.map((row) => (
                         <tr key={row.year}>
                           <td>{row.year}</td>
-                          <td>{money(row.opening_inr)}</td>
-                          <td>{money(row.growth_inr)}</td>
-                          <td>{money(row.withdrawals_inr)}</td>
-                          <td>{money(row.closing_inr)}</td>
+                          {displayMode === "nominal" && (
+                            <>
+                              <td>{money(row.opening_inr)}</td>
+                              <td>{money(row.growth_inr)}</td>
+                              <td>{money(row.withdrawals_inr)}</td>
+                            </>
+                          )}
+                          <td>
+                            {money(
+                              drawdownBalanceForMode(
+                                row.closing_inr,
+                                displayMode,
+                                yearsToRetirement,
+                                row.year,
+                                inflationPct,
+                              ),
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

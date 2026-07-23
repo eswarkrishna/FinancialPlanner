@@ -1,6 +1,8 @@
 import type { ScheduleRow } from "./amortisation";
 import type { DebtMonthRow } from "../debt/simulatePayoff";
 import type { RetirementYearRow } from "../retirement/project";
+import type { RetirementDisplayMode } from "../retirement/display";
+import { yearlyCorpusForMode } from "../retirement/display";
 
 export interface ChartPoint {
   month: number;
@@ -42,9 +44,12 @@ export function buildBudgetPortfolioCurve(
   }));
 }
 
-export function buildRetirementCorpusCurve(rows: RetirementYearRow[]): ChartPoint[] {
+export function buildRetirementCorpusCurve(
+  rows: RetirementYearRow[],
+  mode: RetirementDisplayMode = "nominal",
+): ChartPoint[] {
   return rows.map((row) => ({
     month: row.year,
-    value_inr: row.corpus_nominal_inr,
+    value_inr: yearlyCorpusForMode(row, mode),
   }));
 }

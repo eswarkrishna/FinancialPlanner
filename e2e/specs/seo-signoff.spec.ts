@@ -12,6 +12,7 @@ const SEO_H1: Record<PlannerTabId, string> = {
   sip: "SIP Calculator — Mutual Fund Returns",
   ssy: "SSY Calculator — Sukanya Samriddhi",
   gratuity: "Gratuity Calculator — India Employees",
+  lumpsum: "Lumpsum Calculator — Investment Growth",
   strategies: "Household Payoff Strategy Comparison",
   strategic: "Loan Payoff What-If Game Explorer",
   budget: "Budget Planner with 50/30/20 Rule",

@@ -2,15 +2,18 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   buildRetirementScenarios,
   DEFAULT_SAFE_WITHDRAWAL_RATE_PCT,
+  projectRetirementDrawdown,
   REFERENCE_RETIREMENT_FORM_IN,
   REFERENCE_RETIREMENT_FORM_US,
   type RetirementInput,
 } from "../../../lib/retirement/index";
+import { roundInr } from "../../../lib/money";
 import {
   downloadTextFile,
   ImportFileTooLargeError,
   parseRetirementImportJson,
   readImportTextFile,
+  retirementDrawdownToCsv,
   retirementResultToJson,
   retirementTimelineToCsv,
 } from "../../../lib/export";
@@ -37,6 +40,8 @@ type RetirementFormState = {
   annual_expense_today_inr: string;
   safe_withdrawal_rate_pct: string;
   expected_social_security_monthly_inr: string;
+  monthly_withdrawal_inr: string;
+  post_retirement_return_pct: string;
 };
 
 function parseNumber(value: string): number {
@@ -62,6 +67,8 @@ function formFromPersisted(
       annual_expense_today_inr: stored.annual_expense_today_inr,
       safe_withdrawal_rate_pct: stored.safe_withdrawal_rate_pct,
       expected_social_security_monthly_inr: stored.expected_social_security_monthly_inr,
+      monthly_withdrawal_inr: stored.monthly_withdrawal_inr ?? "",
+      post_retirement_return_pct: stored.post_retirement_return_pct ?? "",
     };
   }
   return referenceRetirementFormForLocale(locale);
@@ -159,6 +166,56 @@ export function useRetirementPlanner() {
       (scenario) => scenario.id === selectedRetirementScenario,
     ) ?? retirementScenarios[0];
 
+  const annualSsIncome = useMemo(() => {
+    if (!retirementBaseInput) return 0;
+    const ssPeriods = locale === "UK" ? 52 : 12;
+    return Math.max(
+      0,
+      (retirementBaseInput.expected_social_security_monthly_inr ?? 0) * ssPeriods,
+    );
+  }, [retirementBaseInput, locale]);
+
+  const drawdownProjection = useMemo(() => {
+    if (!activeRetirementScenario) return null;
+    const projection = activeRetirementScenario.projection;
+    const withdrawalRaw = retirementInputs.monthly_withdrawal_inr.trim();
+    const monthlyWithdrawal =
+      withdrawalRaw === ""
+        ? roundInr(
+            Math.max(0, projection.annual_expense_at_retirement_inr - annualSsIncome) / 12,
+          )
+        : Math.max(0, parseNumber(withdrawalRaw));
+    const postRetRaw = retirementInputs.post_retirement_return_pct.trim();
+    const postRetirementReturn =
+      postRetRaw === ""
+        ? activeRetirementScenario.assumptions.annual_return_pct
+        : Math.max(0, parseNumber(postRetRaw));
+
+    return projectRetirementDrawdown({
+      corpus_at_retirement_inr: projection.projected_corpus_inr,
+      monthly_withdrawal_inr: monthlyWithdrawal,
+      post_retirement_return_pct: postRetirementReturn,
+    });
+  }, [activeRetirementScenario, annualSsIncome, retirementInputs]);
+
+  const effectiveMonthlyWithdrawal = useMemo(() => {
+    if (!activeRetirementScenario) return 0;
+    const withdrawalRaw = retirementInputs.monthly_withdrawal_inr.trim();
+    if (withdrawalRaw !== "") return Math.max(0, parseNumber(withdrawalRaw));
+    const projection = activeRetirementScenario.projection;
+    return roundInr(
+      Math.max(0, projection.annual_expense_at_retirement_inr - annualSsIncome) / 12,
+    );
+  }, [activeRetirementScenario, annualSsIncome, retirementInputs.monthly_withdrawal_inr]);
+
+  const effectivePostRetirementReturn = useMemo(() => {
+    if (!activeRetirementScenario) return 0;
+    const postRetRaw = retirementInputs.post_retirement_return_pct.trim();
+    return postRetRaw === ""
+      ? activeRetirementScenario.assumptions.annual_return_pct
+      : Math.max(0, parseNumber(postRetRaw));
+  }, [activeRetirementScenario, retirementInputs.post_retirement_return_pct]);
+
   function setRetirementField(
     key: keyof RetirementFormState,
     event: ChangeEvent<HTMLInputElement>,
@@ -177,7 +234,11 @@ export function useRetirementPlanner() {
           return;
         }
         const { selectedRetirementScenario: scenario, ...form } = outcome;
-        setRetirementInputs(form);
+        setRetirementInputs({
+          ...form,
+          monthly_withdrawal_inr: form.monthly_withdrawal_inr ?? "",
+          post_retirement_return_pct: form.post_retirement_return_pct ?? "",
+        });
         setSelectedRetirementScenario(scenario);
       })
       .catch((error: unknown) => {
@@ -187,6 +248,16 @@ export function useRetirementPlanner() {
             : "Could not read the selected file.",
         );
       });
+  }
+
+  function exportRetirementDrawdownCsv(): void {
+    if (!drawdownProjection || drawdownProjection.yearly.length === 0) return;
+    const csv = retirementDrawdownToCsv(drawdownProjection.yearly);
+    downloadTextFile(
+      `retirement-drawdown-${selectedRetirementScenario}.csv`,
+      csv,
+      "text/csv;charset=utf-8",
+    );
   }
 
   function exportRetirementTimelineCsv(): void {
@@ -208,6 +279,7 @@ export function useRetirementPlanner() {
       inputs: { ...retirementBaseInput },
       scenarios: retirementScenarios,
       selected_scenario_id: selectedRetirementScenario,
+      drawdown: drawdownProjection ?? undefined,
     });
     downloadTextFile(
       `retirement-planner-${selectedRetirementScenario}.json`,
@@ -224,10 +296,15 @@ export function useRetirementPlanner() {
     retirementScenarios,
     activeRetirementScenario,
     retirementBaseInput,
+    drawdownProjection,
+    effectiveMonthlyWithdrawal,
+    effectivePostRetirementReturn,
+    annualSsIncome,
     setRetirementField,
     formatPercent,
     yearsInvalid,
     exportRetirementTimelineCsv,
+    exportRetirementDrawdownCsv,
     exportRetirementJson,
     importRetirementJson,
     importError,

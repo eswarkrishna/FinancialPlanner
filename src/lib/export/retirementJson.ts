@@ -1,4 +1,8 @@
-import type { RetirementInput, RetirementScenarioResult } from "../retirement";
+import type {
+  RetirementDrawdownProjection,
+  RetirementInput,
+  RetirementScenarioResult,
+} from "../retirement";
 
 /** JSON export payload for retirement planner (SPEC §4.11). */
 export interface RetirementExportPayload {
@@ -7,6 +11,7 @@ export interface RetirementExportPayload {
   inputs: RetirementInput;
   scenarios: RetirementScenarioResult[];
   selected_scenario_id: string;
+  drawdown?: RetirementDrawdownProjection;
 }
 
 export function retirementResultToJson(payload: RetirementExportPayload): string {

@@ -14,6 +14,12 @@ const retirementImportSchema = z.object({
     expected_social_security_monthly_inr: z.coerce.number().min(0).optional(),
   }),
   selected_scenario_id: z.string().optional(),
+  drawdown: z
+    .object({
+      depletion_year: z.number().int().positive().nullable(),
+      lasts_indefinitely: z.boolean(),
+    })
+    .optional(),
 });
 
 export type RetirementImportFormState = {
@@ -25,6 +31,8 @@ export type RetirementImportFormState = {
   annual_expense_today_inr: string;
   safe_withdrawal_rate_pct: string;
   expected_social_security_monthly_inr: string;
+  monthly_withdrawal_inr: string;
+  post_retirement_return_pct: string;
   selectedRetirementScenario: string;
 };
 
@@ -75,6 +83,8 @@ export function parseRetirementImportJson(
     expected_social_security_monthly_inr: String(
       i.expected_social_security_monthly_inr ?? "",
     ),
+    monthly_withdrawal_inr: "",
+    post_retirement_return_pct: "",
     selectedRetirementScenario: envelope.data.selected_scenario_id ?? "base",
   };
 }

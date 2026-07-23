@@ -15,6 +15,9 @@ describe("RetirementSection", () => {
         name: "Retirement yearly corpus timeline (Base)",
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Post-retirement drawdown (Base)" }),
+    ).toBeInTheDocument();
   });
 
   it("updates yearly timeline when scenario selection changes", () => {

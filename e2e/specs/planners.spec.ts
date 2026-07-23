@@ -24,6 +24,7 @@ describe("planner sections", () => {
     await gotoApp(session.page, "retirement");
     await waitForHeading(session.page, "Retirement planner");
     await waitForHeading(session.page, "Retirement scenarios");
+    await waitForHeading(session.page, "Post-retirement drawdown (Base)");
   });
 
   it("renders strategy comparison on strategies tab", async () => {

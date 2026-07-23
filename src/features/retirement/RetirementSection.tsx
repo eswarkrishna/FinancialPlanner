@@ -1,7 +1,9 @@
-import { formatMoney } from "../../lib/locale/formatMoney";
+import { formatMoney, formatMoneyKpi } from "../../lib/locale/formatMoney";
 import { DEFAULT_SAFE_WITHDRAWAL_RATE_PCT } from "../../lib/retirement/constants";
 import { trackRetirementScenarioSelect } from "../../lib/analytics";
 import { buildRetirementCorpusCurve } from "../../lib/loan/chartData";
+import { AlertCallout } from "../../components/AlertCallout";
+import { KpiStrip } from "../../components/KpiStrip";
 import { LineChart } from "../../components/LineChart";
 import { TableWrap } from "../../components/TableWrap";
 import { useLocale } from "../locale/LocaleContext";
@@ -10,6 +12,7 @@ import { useRetirementPlanner } from "./hooks/useRetirementPlanner";
 export function RetirementSection() {
   const { locale } = useLocale();
   const money = (value: number) => formatMoney(value, locale);
+  const moneyKpi = (value: number) => formatMoneyKpi(value, locale);
   const isUs = locale === "US";
   const isUk = locale === "UK";
   const currencyLabel = isUk ? "GBP" : isUs ? "USD" : "INR";
@@ -21,17 +24,61 @@ export function RetirementSection() {
     activeRetirementScenario,
     setRetirementField,
     formatPercent,
-    retirementBaseInput,
     yearsInvalid,
+    drawdownProjection,
+    effectiveMonthlyWithdrawal,
+    effectivePostRetirementReturn,
+    annualSsIncome,
     exportRetirementTimelineCsv,
+    exportRetirementDrawdownCsv,
     exportRetirementJson,
     importRetirementJson,
     importError,
   } = useRetirementPlanner();
 
-  const annualSsIncome = isUk
-    ? (retirementBaseInput?.expected_social_security_monthly_inr ?? 0) * 52
-    : (retirementBaseInput?.expected_social_security_monthly_inr ?? 0) * 12;
+  const drawdownKpiItems =
+    activeRetirementScenario && drawdownProjection
+      ? [
+          {
+            id: "corpus",
+            label: "Corpus at retirement",
+            value: moneyKpi(activeRetirementScenario.projection.projected_corpus_inr),
+          },
+          {
+            id: "withdrawal",
+            label: "Monthly withdrawal",
+            value: moneyKpi(effectiveMonthlyWithdrawal),
+          },
+          {
+            id: "longevity",
+            label: "Corpus lasts",
+            value: drawdownProjection.lasts_indefinitely
+              ? `${drawdownProjection.max_years}+ years`
+              : `${drawdownProjection.depletion_year} years`,
+            tone: drawdownProjection.lasts_indefinitely
+              ? ("positive" as const)
+              : undefined,
+          },
+        ]
+      : [];
+
+  const drawdownChartPoints = drawdownProjection
+    ? buildRetirementCorpusCurve(
+        drawdownProjection.yearly.map((row) => ({
+          year: row.year,
+          corpus_nominal_inr: row.closing_inr,
+          corpus_real_inr: row.closing_inr,
+        })),
+      )
+    : [];
+
+  const drawdownWarningMessages =
+    drawdownProjection?.warnings.map((code) => {
+      if (code === "DRAWDOWN_NO_CORPUS") {
+        return "Projected corpus at retirement is zero — drawdown cannot be modelled.";
+      }
+      return "Enter a monthly withdrawal greater than zero to model drawdown.";
+    }) ?? [];
 
   return (
     <>
@@ -39,7 +86,8 @@ export function RetirementSection() {
         <h2>Retirement planner</h2>
         <p className="hint trust-note">
           <strong>Methodology:</strong> monthly corpus growth at annual return ÷ 12, then your
-          contribution; inflation adjusts the target corpus. Illustrative scenarios — not tax or
+          contribution; inflation adjusts the target corpus. Post-retirement drawdown models
+          monthly withdrawals against the projected corpus. Illustrative scenarios — not tax or
           pension-rule specific.
         </p>
         <div className="form-grid">
@@ -120,6 +168,26 @@ export function RetirementSection() {
               />
             </label>
           )}
+          <label>
+            Monthly withdrawal after retirement ({currencyLabel})
+            <input
+              inputMode="decimal"
+              placeholder="Auto from expense at retirement"
+              value={retirementInputs.monthly_withdrawal_inr}
+              onChange={(event) => setRetirementField("monthly_withdrawal_inr", event)}
+            />
+          </label>
+          <label>
+            Post-retirement return (%)
+            <input
+              inputMode="decimal"
+              placeholder="Same as accumulation scenario"
+              value={retirementInputs.post_retirement_return_pct}
+              onChange={(event) =>
+                setRetirementField("post_retirement_return_pct", event)
+              }
+            />
+          </label>
           <label>
             Yearly timeline scenario
             <select
@@ -296,6 +364,94 @@ export function RetirementSection() {
         </>
         )}
       </section>
+
+      {!yearsInvalid && activeRetirementScenario && drawdownProjection && (
+        <>
+          {drawdownKpiItems.length > 0 && (
+            <KpiStrip items={drawdownKpiItems} ariaLabel="Retirement drawdown metrics" />
+          )}
+
+          {drawdownWarningMessages.length > 0 && (
+            <AlertCallout
+              title="Drawdown warnings"
+              messages={drawdownWarningMessages}
+              tone="warning"
+            />
+          )}
+
+          <section className="card">
+            <div className="schedule-head">
+              <h2>
+                Post-retirement drawdown ({activeRetirementScenario.label})
+              </h2>
+              {drawdownProjection.yearly.length > 0 && (
+                <div className="actions inline-actions">
+                  <button
+                    type="button"
+                    className="btn secondary btn-sm"
+                    onClick={exportRetirementDrawdownCsv}
+                  >
+                    Export drawdown CSV
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="hint">
+              Withdrawal defaults to monthly expense at retirement
+              {annualSsIncome > 0 ? " minus pension income" : ""} (
+              {money(effectiveMonthlyWithdrawal)}/mo). Post-retirement return defaults to{" "}
+              {effectivePostRetirementReturn}% unless overridden.
+            </p>
+            {drawdownProjection.lasts_indefinitely ? (
+              <p className="hint">
+                Corpus remains positive through the {drawdownProjection.max_years}-year
+                drawdown horizon — withdrawal is below sustained growth at this return rate.
+              </p>
+            ) : (
+              <p className="hint">
+                Corpus depletes in year {drawdownProjection.depletion_year} after retirement at
+                the entered withdrawal and return assumptions.
+              </p>
+            )}
+            {drawdownProjection.yearly.length > 0 && (
+              <>
+                <LineChart
+                  title="Corpus during drawdown"
+                  points={drawdownChartPoints}
+                  stroke="#0d9488"
+                  yLabel="Corpus"
+                  xLabel="Years after retirement"
+                  locale={locale}
+                />
+                <TableWrap label="Post-retirement drawdown timeline">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Year after retirement</th>
+                        <th>Opening</th>
+                        <th>Growth</th>
+                        <th>Withdrawals</th>
+                        <th>Closing</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {drawdownProjection.yearly.map((row) => (
+                        <tr key={row.year}>
+                          <td>{row.year}</td>
+                          <td>{money(row.opening_inr)}</td>
+                          <td>{money(row.growth_inr)}</td>
+                          <td>{money(row.withdrawals_inr)}</td>
+                          <td>{money(row.closing_inr)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </TableWrap>
+              </>
+            )}
+          </section>
+        </>
+      )}
     </>
   );
 }

@@ -15,6 +15,8 @@ export interface RetirementFormPersistedState {
   safe_withdrawal_rate_pct: string;
   expected_social_security_monthly_inr: string;
   selected_scenario_id: string;
+  monthly_withdrawal_inr?: string;
+  post_retirement_return_pct?: string;
 }
 
 export function retirementFormStorageKey(locale: Locale): string {

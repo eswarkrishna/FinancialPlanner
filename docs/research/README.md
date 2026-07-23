@@ -10,6 +10,7 @@ Spikes, options analysis, and external desk research live here as **Markdown** f
 
 | Note | Topic |
 |------|-------|
+| [2026-07-idea-backlog-expansion.md](2026-07-idea-backlog-expansion.md) | Idea backlog expansion: wedge, instruments, trust/distribution, §11-blocked |
 | [2026-07-architecture-review-roadmap.md](2026-07-architecture-review-roadmap.md) | Chief-architect review: trust-breakers, cut list, mobile UX, wedge strategy |
 | [../TASKS-ARCHITECTURE-ROADMAP.md](../TASKS-ARCHITECTURE-ROADMAP.md) | Actionable checklist derived from architecture review |
 | [2026-07-gap-fill-competitors.md](2026-07-gap-fill-competitors.md) | Competitor parity gap-fill (EMI fees, India instruments, inflation, …) |

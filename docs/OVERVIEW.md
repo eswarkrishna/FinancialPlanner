@@ -92,6 +92,7 @@ Production hosting is a static SPA on **S3 (private) + CloudFront** with optiona
 | Doc | Topic |
 |-----|--------|
 | [2026-07-architecture-review-roadmap.md](research/2026-07-architecture-review-roadmap.md) | Chief-architect review: trust-breakers, cut list, mobile UX, wedge strategy |
+| [2026-07-idea-backlog-expansion.md](research/2026-07-idea-backlog-expansion.md) | Idea backlog expansion: goal-seek, balance transfer, FD/RD, trust & distribution |
 | [2026-07-us-employee-benefits-mapping.md](research/2026-07-us-employee-benefits-mapping.md) | US locale summary spike (parity matrix + recommendations) |
 | [2026-07-us-employee-locale-deep-dive.md](research/2026-07-us-employee-locale-deep-dive.md) | US locale deep-dive: 401(k), UI, mortgage, LTCG, SS, Roth, vesting, games |
 | [2026-07-other-planner-areas.md](research/2026-07-other-planner-areas.md) | Beyond US employee: IN spec symmetry, UK/CA locales, HSA, PMI, ARM games, Tier P2 |

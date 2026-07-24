@@ -1,0 +1,9 @@
+[project]
+name = "us-equity-research"
+version = "0.1.0"
+description = "US equity research: OpenBB data, daily alerts, backtrader strategies"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

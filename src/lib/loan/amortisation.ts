@@ -106,7 +106,11 @@ export function baselineSchedule(
   let balance = roundInr(principalInr);
   let totalInterest = 0;
   let totalPaid = 0;
-  let emi = computeEmi(principalInr, annualRateForMonth(1, config), tenureMonths);
+  const hasEmiOverride = emiOverride !== undefined && emiOverride > 0;
+  const initialEmi = hasEmiOverride
+    ? roundInr(emiOverride)
+    : computeEmi(principalInr, annualRateForMonth(1, config), tenureMonths);
+  let emi = initialEmi;
   let previousAnnualRate: number | null = null;
 
   for (let m = 1; m <= tenureMonths; m++) {
@@ -119,7 +123,13 @@ export function baselineSchedule(
     const rateChanged =
       previousAnnualRate === null || annualRate !== previousAnnualRate;
     if (rateChanged) {
-      emi = computeEmi(opening, annualRate, tenureMonths - m + 1);
+      // Opening segment honors current-EMI override (§4.4.3); later resets
+      // recompute from remaining balance under the floating-rate policy.
+      if (previousAnnualRate === null && hasEmiOverride) {
+        emi = initialEmi;
+      } else {
+        emi = computeEmi(opening, annualRate, tenureMonths - m + 1);
+      }
     }
     previousAnnualRate = annualRate;
 
@@ -136,7 +146,8 @@ export function baselineSchedule(
   }
 
   return {
-    emi_inr: emi,
+    // KPI / summary EMI matches keep-EMI schedules when an override is set.
+    emi_inr: hasEmiOverride ? initialEmi : emi,
     rows,
     totals: {
       total_paid_inr: roundInr(totalPaid),

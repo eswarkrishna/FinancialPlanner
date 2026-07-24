@@ -179,7 +179,7 @@ After earlier part-prepays, a borrower's **contractual EMI** often differs from 
 | `baseline` (default) | `computeEmi(principal_inr, annual_interest_rate, tenure_months)` |
 | `current` | `current_emi_inr` when &gt; 0; otherwise fall back to baseline formula |
 
-**Applies to:** every schedule that holds EMI fixed under `recompute_tenure_keep_emi` / fixed-EMI + extra / timed prepays / IN cashflow keep-EMI loops — including the loan-tab baseline summary EMI when `emi_basis = current`. Does **not** change `recompute_emi_keep_tenure` (that policy always recomputes EMI from remaining balance and remaining months).
+**Applies to:** every schedule that holds EMI fixed under `recompute_tenure_keep_emi` / fixed-EMI + extra / timed prepays / IN cashflow keep-EMI loops — including the loan-tab baseline summary EMI when `emi_basis = current`. Does **not** change `recompute_emi_keep_tenure` (that policy always recomputes EMI from remaining balance and remaining months). When `rate_type = floating`, the **opening** rate segment uses `resolveKeepEmi`; after each subsequent rate reset, EMI is recomputed from remaining balance and remaining months (floating policy). The baseline KPI `emi_inr` still reports the opening (override) amount so it matches keep-EMI schedules.
 
 **Warning:** `CURRENT_EMI_TOO_LOW` when `emi_basis = current` and `current_emi_inr ≤ principal_inr × monthly_rate` (negative amortisation / never pays down).
 

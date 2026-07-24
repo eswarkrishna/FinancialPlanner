@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 3.5  
+**Version:** 3.6  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20, **Lumpsum** §4.21), **PDF amortisation export** on the loan tab, and **budget chart view toggle + savings-rate bands** (§4.16.5). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20, **Lumpsum** §4.21), **PDF amortisation export** on the loan tab, **budget chart view toggle + savings-rate bands** (§4.16.5), and **loan scenario save/compare slots** (§4.9.1). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -256,6 +256,20 @@ For each scenario:
 **Import (v1.7):** JSON import of a previously exported loan scenario config (§4.9 payload shape). Restores numeric inputs, one-time prepay source, staged prepayments, and the exported scenario view when recognised. Invalid files surface an inline error; no silent partial apply. Imports are rejected when the file exceeds **5 MB**.
 
 **Persistence (v1.7):** Loan tab form state (inputs, scenario view, prepay source, staged prepayments) is stored in **`localStorage`** using **separate keys per locale** (`financial-planner-loan-form-IN`, `financial-planner-loan-form-US`) so a refresh preserves user edits and switching the active locale does not overwrite another locale's saved state. Legacy single-key blobs are migrated on read. Locale switch resets to the reference scenario for the new locale (existing behaviour). Analytics must not transmit stored values (§5.1).
+
+#### 4.9.1 Scenario save & compare slots (v3.6)
+
+Named scenario slots on the **loan tab** — save the current form, reload it later, and compare saved scenarios side by side. Local-only (no backend), per gap-fill research §5.2.
+
+**Storage.** Up to **5** slots per locale under `financial-planner-loan-scenarios-{locale}` (`IN` / `US` / `UK`). Each slot: `{ id, name, saved_at (ISO), state }` where `state` is the §4.9 persisted form snapshot (inputs, scenario view, prepay source, staged prepayments, rate changes). Slots that fail shape validation are dropped on read; a corrupt blob never crashes the tab.
+
+**Save.** Requires a trimmed, non-empty name (≤ 40 chars). Saving with a name that matches an existing slot (case-insensitive) **overwrites** that slot; otherwise the slot is appended. When 5 slots exist and the name is new, the save is rejected with an inline `SLOTS_FULL` message and storage is unchanged.
+
+**Load / delete.** Loading a slot applies its saved state to the form (same code path as JSON import) and persists it as the current form state. Deleting removes the slot immediately; no confirm dialog.
+
+**Compare.** A table shows one row for the **current form** plus one per saved slot: name, saved scenario label, baseline EMI, payoff month, total interest, total paid — each slot computed with **its own** saved inputs and scenario view via the §4.3–§4.8 engine (no stored totals; recomputed on render). Slots whose inputs no longer parse render an "invalid" row instead of numbers.
+
+**Privacy.** Slots live only in `localStorage`; analytics must not transmit slot names or stored values (§5.1).
 
 ### 4.10 Multi-debt payoff planner
 
@@ -1594,6 +1608,12 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 94. **Savings-rate bands:** `savingsRateBand(9.9)` = `low`, `savingsRateBand(10)` = `medium`, `savingsRateBand(19.9)` = `medium`, `savingsRateBand(20)` = `high`; KPI tone maps `low` → danger, `medium` → warning, `high` → positive (IN reference budget at 20.0% renders positive).  
 95. **Yearly chart view:** with the IN reference budget, selecting **Yearly** scales the expense-bucket chart needs bar from ₹95,000 to ₹11,40,000 (×12) and chart titles indicate the yearly view; default view is **Monthly**.  
 96. **View toggle UI:** the budget tab renders a Monthly | Yearly radiogroup near the charts; switching views changes chart values only — KPI strip and 50/30/20 table amounts stay monthly.
+
+### Loan scenario slots (§4.9.1)
+
+97. **Slot storage:** saving two named slots persists both under `financial-planner-loan-scenarios-IN`; saving a 6th distinct name is rejected with `SLOTS_FULL` and storage is unchanged; re-saving an existing name (case-insensitive) overwrites that slot without increasing the count; a corrupt stored blob reads back as an empty list.  
+98. **Slot load:** loading a saved slot restores its inputs (e.g. principal) and saved scenario view into the loan form, replacing current values.  
+99. **Slot compare:** the compare table renders one row for current inputs plus one per saved slot; a slot saved from the IN reference scenario shows payoff month **168** and the §10.1 reference EMI, computed from the slot's own saved state.
 
 ### Phase 5 platform (§8, §4.9)
 

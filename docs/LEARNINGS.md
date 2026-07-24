@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-24 — Current EMI basis for keep-EMI (§4.4.3)
+
+- **Context:** A3 loan engine polish — promote deferred “current EMI after prior prepays” so borrowers modelling a second prepay can hold their contractual EMI.
+- **What we learned:** The useful override is a **user-entered contractual EMI**, not recomputing `computeEmi(outstanding, r, remaining)` (that already happens when principal/tenure are today’s values). Keep-tenure must stay on its own recompute path — threading `emiOverride` only into keep-EMI / fixed-EMI / timed-prepay / IN cashflow loops avoids accidental coupling.
+- **Action:** `resolveKeepEmi` + optional override on schedule helpers; UI checkbox; `CURRENT_EMI_TOO_LOW` warning. Mid-month timing and floating stress paths remain open on A3.
+
+---
+
 ## 2026-07-24 — Loan scenario save/compare slots (§4.9.1)
 
 - **Context:** Gap-fill research §5.2 — named localStorage scenario slots with side-by-side compare, scoped to the loan tab (wedge tool) first.

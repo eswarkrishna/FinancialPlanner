@@ -54,6 +54,9 @@ manual smoke checks.
 | 10.97 | Loan scenario slots: save/overwrite/cap/corrupt-blob/delete (§4.9.1) | `src/lib/persistence/loanScenarioSlots.test.ts`, `src/features/loan/LoanSection.test.tsx` |
 | 10.98 | Loading a slot restores saved inputs and scenario view (§4.9.1) | `src/features/loan/LoanSection.test.tsx` |
 | 10.99 | Slot compare rows recomputed from each slot's saved state (§4.9.1) | `src/features/loan/hooks/buildScenarioSlotRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |
+| 10.100–101 | Current EMI resolver + keep-EMI override shortens payoff (§4.4.3) | `src/lib/loan/resolveKeepEmi.test.ts`, `src/features/loan/LoanSection.test.tsx` |
+| 10.102 | `CURRENT_EMI_TOO_LOW` when contractual EMI ≤ first-month interest (§4.4.3) | `src/lib/loan/resolveKeepEmi.test.ts`, `src/features/loan/LoanSection.test.tsx` |
+| 10.103 | Keep-tenure results identical under baseline vs current `emi_basis` (§4.4.3) | `src/lib/loan/resolveKeepEmi.test.ts` |
 
 ## Golden contracts
 

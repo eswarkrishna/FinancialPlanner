@@ -9,7 +9,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 - Items marked **§11** need an explicit non-goals revision before implementation.
 - Prefer one feature slice per branch/PR; cite SPEC § in commits.
 
-**Sources:** [`SPEC.md`](SPEC.md) §4 / §11 / §13 · [`SPEC-US.md`](SPEC-US.md) · [`SPEC-UK.md`](SPEC-UK.md) · [`research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) · [`research/2026-07-architecture-review-roadmap.md`](research/2026-07-architecture-review-roadmap.md) · [`OVERVIEW.md`](OVERVIEW.md)
+**Sources:** [`SPEC.md`](SPEC.md) §4 / §11 / §13 · [`SPEC-US.md`](SPEC-US.md) · [`SPEC-UK.md`](SPEC-UK.md) · [`research/2026-07-other-planner-areas.md`](research/2026-07-other-planner-areas.md) · [`research/2026-07-architecture-review-roadmap.md`](research/2026-07-architecture-review-roadmap.md) · [`research/2026-07-idea-backlog-expansion.md`](research/2026-07-idea-backlog-expansion.md) · [`OVERVIEW.md`](OVERVIEW.md)
 
 ---
 
@@ -86,6 +86,21 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [x] Shared SVG chart components reused across tabs (`src/components/LineChart.tsx`, `BarChart.tsx`)
 - [ ] Richer CSV/JSON export fields where useful
 - [x] Shareable scenario / tab links (UTM rules stay within §5.1) — **Share on Facebook** footer control (`utm_source=facebook`, `utm_medium=social`) shipped; copy-link already present
+
+### A5. India wedge idea backlog (2026-07)
+
+Source: [`research/2026-07-idea-backlog-expansion.md`](research/2026-07-idea-backlog-expansion.md) — SPEC change first for each (§ noted in the note's spec delta).
+
+- [ ] Payoff goal-seek (inverse solver: target date → required extra/lump) — A-1
+- [ ] Loan-tab trust trio: RBI fee note (A-4) + interest/principal crossover KPI (A-5) + repo-cycle rate presets (A-6)
+- [ ] Annual bonus sweep — yearly recurring prepay rule (A-3)
+- [ ] Balance transfer / refinance comparator with breakeven month (A-2)
+- [ ] Loan eligibility / FOIR calculator (A-7)
+- [ ] FD calculator (B-1) + step-up SIP (B-3) — after Group A
+- [ ] Public accuracy page rendering `docs/VALIDATION.md` cases (C-1)
+- [ ] Embeddable EMI widget shell (C-2) · dark mode (C-5) · visible FAQ blocks (C-6)
+- [ ] Product call needed: rent-vs-buy (B-7), tax regime comparator (B-8), programmatic SEO shells (C-3), PWA cache (C-4)
+- [ ] §11-blocked (spec revision first): share-scenario URLs, Hindi UI, moratorium, penal interest (Group D)
 
 ---
 

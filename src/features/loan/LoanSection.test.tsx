@@ -1,5 +1,5 @@
 import { renderWithLocale } from "../../test/renderWithLocale";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { scenarioToJson } from "../../lib/export/scenarioJson";
@@ -200,5 +200,93 @@ describe("LoanSection", () => {
 
     expect(screen.getAllByText("Net savings after fee").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Gross interest saved").length).toBeGreaterThan(0);
+  });
+
+  it("saves a named scenario slot and shows it in the compare table (§10.97, §10.99)", async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    await user.type(screen.getByLabelText("Scenario name"), "Reference plan");
+    await user.click(screen.getByRole("button", { name: "Save current" }));
+
+    const table = within(screen.getByRole("region", { name: "Saved scenario comparison" }));
+    expect(table.getByText("Current inputs")).toBeInTheDocument();
+    const slotRow = table.getByText("Reference plan").closest("tr");
+    expect(slotRow).not.toBeNull();
+    // §10.99: slot recomputed from its own saved state — reference payoff month 168.
+    expect(within(slotRow!).getByText("168")).toBeInTheDocument();
+    expect(within(slotRow!).getByText("₹49,282.45")).toBeInTheDocument();
+  });
+
+  it("loads a saved slot to restore inputs and scenario view (§10.98)", async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    await user.type(screen.getByLabelText("Scenario name"), "Before edit");
+    await user.click(screen.getByRole("button", { name: "Save current" }));
+
+    fireEvent.change(screen.getByLabelText("Principal (INR)"), {
+      target: { value: "6000000" },
+    });
+    expect(screen.getByLabelText("Principal (INR)")).toHaveValue("6000000");
+
+    await user.click(screen.getByRole("button", { name: "Load scenario Before edit" }));
+    expect(screen.getByLabelText("Principal (INR)")).toHaveValue("5000000");
+  });
+
+  it("keeps saved slots usable for recovery when current inputs are invalid (§4.9.1)", async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    await user.type(screen.getByLabelText("Scenario name"), "Recovery point");
+    await user.click(screen.getByRole("button", { name: "Save current" }));
+
+    // Break the form: empty principal → live models are gone.
+    fireEvent.change(screen.getByLabelText("Principal (INR)"), {
+      target: { value: "" },
+    });
+    expect(
+      screen.queryByRole("heading", { name: "Loan scenario comparison" }),
+    ).not.toBeInTheDocument();
+
+    // Saved scenarios card still renders; save is disabled, load still works.
+    expect(screen.getByRole("button", { name: "Save current" })).toBeDisabled();
+    const table = within(screen.getByRole("region", { name: "Saved scenario comparison" }));
+    expect(table.queryByText("Current inputs")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Load scenario Recovery point" }));
+    expect(screen.getByLabelText("Principal (INR)")).toHaveValue("5000000");
+    expect(
+      screen.getByRole("heading", { name: "Loan scenario comparison" }),
+    ).toBeInTheDocument();
+  });
+
+  it("deletes a saved slot and rejects saves beyond the slot cap (§10.97)", async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    const nameInput = screen.getByLabelText("Scenario name");
+    for (let i = 1; i <= 5; i += 1) {
+      await user.clear(nameInput);
+      await user.type(nameInput, `Plan ${i}`);
+      await user.click(screen.getByRole("button", { name: "Save current" }));
+    }
+
+    await user.clear(nameInput);
+    await user.type(nameInput, "Plan 6");
+    await user.click(screen.getByRole("button", { name: "Save current" }));
+    expect(
+      screen.getByText(/All 5 slots are used/),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Delete scenario Plan 1" }));
+    expect(screen.queryByText("Plan 1")).not.toBeInTheDocument();
   });
 });

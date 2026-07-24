@@ -19,6 +19,8 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Loan scenario save/compare slots (§4.9.1)** — save up to 5 named scenarios per locale in browser localStorage on the loan tab, load or delete them, and compare current inputs against saved slots side by side (EMI, payoff month, total interest, total paid — each recomputed with the slot's own saved scenario view).
+
 - **Budget chart view toggle + savings-rate bands (§4.16.5)** — Monthly/Yearly toggle on the budget tab charts (yearly = monthly × 12, display-only) and a three-band savings-rate KPI indicator (red < 10%, amber 10–20%, green ≥ 20%).
 - **Retirement inflation toggle (§4.11.3)** — nominal vs real (today's value) display on the retirement tab for charts, scenario comparison, and drawdown closing balances.
 - **Retirement drawdown phase (§4.11.2)** — post-retirement monthly withdrawal simulation on the retirement tab: depletion year or 50+ year sustainability, drawdown chart/table, and CSV export.

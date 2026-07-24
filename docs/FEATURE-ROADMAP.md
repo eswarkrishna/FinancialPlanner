@@ -15,7 +15,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** and **inflation toggle** shipped (§4.11.2–§4.11.3); **budget chart view + savings-rate bands** shipped (§4.16.5); next: scenario save/compare
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** and **inflation toggle** shipped (§4.11.2–§4.11.3); **budget chart view + savings-rate bands** shipped (§4.16.5); **loan scenario save/compare slots** shipped (§4.9.1); next: loan engine polish or tax-aware rate
 2. Loan engine polish (timing / EMI / deterministic rate stress)  
 3. Charts, exports, persistence UX  
 4. **Web traffic first** — India wedge on the public SPA; Android/Capacitor maintenance-only (no new native features until web wins)
@@ -41,7 +41,7 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 - [x] Lumpsum calculator — §4.21 shipped
 - [x] Retirement drawdown phase — §4.11.2 shipped
 - [x] Budget chart view toggle + savings-rate bands — §4.16.5 shipped
-- [ ] Scenario save/compare (named localStorage slots)
+- [x] Scenario save/compare (named localStorage slots) — §4.9.1 shipped (loan tab; other tabs via C1)
 - [ ] Remaining: tax-aware rate, SEO polish
 
 ---
@@ -127,7 +127,7 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 ### C1. Persistence & comparison UX
 
 - [ ] Per-locale `localStorage` for debt / retirement / strategy / budget (loan already done)
-- [ ] Side-by-side scenario compare (e.g. job loss month 12 vs 24) without full re-entry
+- [x] Side-by-side scenario compare (e.g. job loss month 12 vs 24) without full re-entry — loan tab via §4.9.1 slots; extend to other tabs if needed
 - [ ] JSON import/export parity across tabs where missing
 
 ### C2. Native & distribution — **deprioritized (web first)**

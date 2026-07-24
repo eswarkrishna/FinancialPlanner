@@ -4,6 +4,14 @@ Short, dated notes after features, incidents, or spikes. Newest first.
 
 ---
 
+## 2026-07-24 — Loan scenario save/compare slots (§4.9.1)
+
+- **Context:** Gap-fill research §5.2 — named localStorage scenario slots with side-by-side compare, scoped to the loan tab (wedge tool) first.
+- **What we learned:** The loan form → `loanInputSchema` mapping lived inline in `useLoanModels`, blocking reuse for recomputing saved slots. Extracting it to `parseLoanForm.ts` (plus `effectiveLiquidForLocale`) let slot compare rows share the exact live-form parsing — recompute-on-render avoids stale stored totals entirely.
+- **Action:** Slots store the same snapshot shape as §4.9 form persistence (`normalizeLoanFormSnapshot` shared), so slot validation is one code path; loading reuses `applyLoanState` from JSON import. Other tabs can follow the same pattern via C1 if demanded.
+
+---
+
 ## 2026-07-23 — Budget chart view + savings-rate bands (§4.16.5)
 
 - **Context:** Gap-fill backlog "budget charts" (research §4.1–§4.2). Intake audit found most chart roadmap items were already shipped but unchecked in `FEATURE-ROADMAP.md` (A4 debt/retirement/strategies charts, PDF export, lakh/crore formatting).

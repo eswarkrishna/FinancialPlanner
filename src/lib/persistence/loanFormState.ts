@@ -27,6 +27,9 @@ export function loanFormStorageKey(locale: Locale): string {
   return `${LOAN_FORM_STORAGE_KEY}-${locale}`;
 }
 
+/** The loan form snapshot persisted per locale and inside scenario slots (§4.9.1). */
+export type LoanFormSnapshot = Omit<LoanFormPersistedState, "version" | "locale">;
+
 function isRateChangeEntry(value: unknown): value is RateChangeEntry {
   if (!value || typeof value !== "object") return false;
   const entry = value as Partial<RateChangeEntry>;
@@ -86,31 +89,43 @@ function isValidPersistedState(value: Partial<LoanFormPersistedState>): value is
   return true;
 }
 
-function normalizePersistedState(
-  value: Partial<LoanFormPersistedState>,
-  locale: Locale,
-): LoanFormPersistedState | null {
-  if (value.version !== LOAN_FORM_STORAGE_VERSION) return null;
-  if (value.locale !== locale) return null;
-  if (!value.inputs || typeof value.inputs !== "object") return null;
-  if (!isValidScenarioView(value.scenarioView)) return null;
-  if (!isValidPrepaySource(value.prepaySource)) return null;
+/** Validate and normalise a bare form snapshot (shared with scenario slots, §4.9.1). */
+export function normalizeLoanFormSnapshot(value: unknown): LoanFormSnapshot | null {
+  if (!value || typeof value !== "object") return null;
+  const snapshot = value as Partial<LoanFormSnapshot>;
+  if (!snapshot.inputs || typeof snapshot.inputs !== "object") return null;
+  if (!isValidScenarioView(snapshot.scenarioView)) return null;
+  if (!isValidPrepaySource(snapshot.prepaySource)) return null;
   const mergedInputs = { ...EMPTY_LOAN_FORM };
   for (const key of Object.keys(EMPTY_LOAN_FORM) as (keyof LoanInput)[]) {
-    const raw = (value.inputs as Record<string, unknown>)[key];
+    const raw = (snapshot.inputs as Record<string, unknown>)[key];
     if (raw !== undefined && raw !== null) {
       mergedInputs[key] = String(raw);
     }
   }
 
   return {
+    inputs: mergedInputs,
+    scenarioView: snapshot.scenarioView,
+    prepaySource: snapshot.prepaySource,
+    stagedPrepays: normalizeStagedPrepays(snapshot.stagedPrepays),
+    rateChanges: normalizeRateChanges(snapshot.rateChanges),
+  };
+}
+
+function normalizePersistedState(
+  value: Partial<LoanFormPersistedState>,
+  locale: Locale,
+): LoanFormPersistedState | null {
+  if (value.version !== LOAN_FORM_STORAGE_VERSION) return null;
+  if (value.locale !== locale) return null;
+  const snapshot = normalizeLoanFormSnapshot(value);
+  if (!snapshot) return null;
+
+  return {
     version: LOAN_FORM_STORAGE_VERSION,
     locale,
-    inputs: mergedInputs,
-    scenarioView: value.scenarioView,
-    prepaySource: value.prepaySource,
-    stagedPrepays: normalizeStagedPrepays(value.stagedPrepays),
-    rateChanges: normalizeRateChanges(value.rateChanges),
+    ...snapshot,
   };
 }
 

@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildCumulativeInterestCurve,
   buildPrincipalCurve,
-  effectiveBrokerageLiquidUsd,
-  effectiveGoldLiquidInr,
 } from "../../../lib/loan";
 import {
   downloadBlob,
@@ -43,9 +41,14 @@ import {
   writeLoanFormState,
 } from "../../../lib/persistence/loanFormState";
 import {
-  loanInputSchema,
-  type LoanInput,
-} from "../../../lib/schemas/index";
+  deleteLoanScenarioSlot,
+  readLoanScenarioSlots,
+  saveLoanScenarioSlot,
+  type LoanScenarioSlot,
+} from "../../../lib/persistence/loanScenarioSlots";
+import { buildScenarioSlotRows } from "./buildScenarioSlotRows";
+import type { LoanInput } from "../../../lib/schemas/index";
+import { effectiveLiquidForLocale, parseLoanForm } from "./parseLoanForm";
 import { computePfUnemploymentWithdrawalPlan } from "../../../lib/pf/index";
 import { computeK401JobLossWithdrawalPlan } from "../../../lib/k401/index";
 import {
@@ -111,85 +114,16 @@ export function useLoanModels() {
   const [rateChanges, setRateChanges] = useState<RateChangeEntry[]>(
     () => initialLoanState(locale).rateChanges,
   );
+  const [scenarioSlots, setScenarioSlots] = useState<LoanScenarioSlot[]>(() =>
+    readLoanScenarioSlots(locale),
+  );
+  const [slotError, setSlotError] = useState<string | null>(null);
 
-  const parsed = useMemo(() => {
-    return loanInputSchema.safeParse({
-      principal_inr: inputs.principal_inr,
-      annual_interest_rate: inputs.annual_interest_rate,
-      tenure_months: inputs.tenure_months,
-      start_date: inputs.start_date || undefined,
-      cash_inr: inputs.cash_inr || 0,
-      monthly_salary_inr: inputs.monthly_salary_inr || 0,
-      pf_corpus_inr: inputs.pf_corpus_inr || 0,
-      pf_annual_interest_rate_pct: inputs.pf_annual_interest_rate_pct || 0,
-      monthly_pf_addition_inr: inputs.monthly_pf_addition_inr || 0,
-      gold_liquid_inr: inputs.gold_liquid_inr || 0,
-      gold_haircut_enabled: inputs.gold_haircut_enabled === "true",
-      gold_haircut_pct: inputs.gold_haircut_pct || 0,
-      monthly_cash_to_loan_inr: inputs.monthly_cash_to_loan_inr || 0,
-      prepayment_fee_type:
-        inputs.prepayment_fee_type === "flat" ||
-        inputs.prepayment_fee_type === "percent"
-          ? inputs.prepayment_fee_type
-          : "none",
-      prepayment_fee_inr: inputs.prepayment_fee_inr || 0,
-      prepayment_fee_pct: inputs.prepayment_fee_pct || 0,
-      rate_type: inputs.rate_type === "floating" ? "floating" : "fixed",
-      unemployment_mode: inputs.unemployment_mode === "true",
-      unemployment_start_month: inputs.unemployment_start_month || 1,
-      monthly_living_expense_inr: inputs.monthly_living_expense_inr || 0,
-      monthly_income_inr: inputs.monthly_income_inr || 0,
-      monthly_uib_inr: inputs.monthly_uib_inr || 0,
-      vested_fraction_pct: inputs.vested_fraction_pct || 100,
-      early_withdrawal_tax_withholding_pct:
-        inputs.early_withdrawal_tax_withholding_pct || 22,
-      employer_match_rate_pct: inputs.employer_match_rate_pct || 50,
-      employer_match_cap_pct_of_salary:
-        inputs.employer_match_cap_pct_of_salary || 6,
-      annual_salary_inr: inputs.annual_salary_inr || 0,
-      employment_type:
-        inputs.employment_type === "self_employed" ? "self_employed" : "w2",
-      pmi_monthly_inr: inputs.pmi_monthly_inr || 0,
-      pmi_active: inputs.pmi_active !== "false",
-      hsa_balance_inr: inputs.hsa_balance_inr || 0,
-      monthly_health_premium_inr: inputs.monthly_health_premium_inr || 0,
-      isa_balance_inr: inputs.isa_balance_inr || 0,
-      gia_balance_inr: inputs.gia_balance_inr || 0,
-      gia_cost_basis_inr: inputs.gia_cost_basis_inr || 0,
-      overpayment_allowance_pct: inputs.overpayment_allowance_pct || 10,
-      erc_pct: inputs.erc_pct || 0,
-      employee_pension_pct: inputs.employee_pension_pct || 5,
-      employer_pension_pct: inputs.employer_pension_pct || 3,
-      redundancy_payment_inr: inputs.redundancy_payment_inr || 0,
-      marginal_tax_rate_pct: inputs.marginal_tax_rate_pct || 20,
-      jsa_duration_months: inputs.jsa_duration_months || 6,
-      smi_enabled: inputs.smi_enabled === "true",
-      smi_wait_months: inputs.smi_wait_months || 3,
-      smi_rate_pct: inputs.smi_rate_pct || 3.66,
-      smi_capital_cap_inr: inputs.smi_capital_cap_inr || 200_000,
-      cgt_rate_pct: inputs.cgt_rate_pct || 24,
-      cgt_annual_exempt_inr: inputs.cgt_annual_exempt_inr || 3_000,
-    });
-  }, [inputs]);
+  const parsed = useMemo(() => parseLoanForm(inputs), [inputs]);
 
   const effectiveLiquidInr = useMemo(() => {
     if (!parsed.success) return 0;
-    const v = parsed.data;
-    if (locale === "UK") {
-      return v.isa_balance_inr + v.gia_balance_inr;
-    }
-    if (locale === "US") {
-      return effectiveBrokerageLiquidUsd(
-        v.gold_liquid_inr,
-        v.gold_haircut_enabled,
-        v.gold_haircut_pct,
-      );
-    }
-    return effectiveGoldLiquidInr(
-      v.gold_liquid_inr,
-      v.gold_haircut_enabled,
-      v.gold_haircut_pct,
-    );
+    return effectiveLiquidForLocale(parsed.data, locale);
   }, [parsed, locale]);
 
   const stagedEvents = useMemo(() => parseStagedPrepays(stagedPrepays), [stagedPrepays]);
@@ -345,6 +279,8 @@ export function useLoanModels() {
     if (prevLocaleRef.current === locale) return;
     prevLocaleRef.current = locale;
     setImportError(null);
+    setSlotError(null);
+    setScenarioSlots(readLoanScenarioSlots(locale));
     applyLoanState({
       inputs: loanFormFromScenario(referenceScenarioForLocale(locale)) as Record<
         keyof LoanInput,
@@ -356,6 +292,45 @@ export function useLoanModels() {
       rateChanges: [],
     });
   }, [locale]);
+
+  const scenarioSlotRows = useMemo(
+    () => buildScenarioSlotRows(scenarioSlots, locale),
+    [scenarioSlots, locale],
+  );
+
+  function saveScenarioSlot(name: string) {
+    const result = saveLoanScenarioSlot(locale, name, {
+      inputs,
+      scenarioView,
+      prepaySource,
+      stagedPrepays,
+      rateChanges,
+    });
+    if (!result.success) {
+      setSlotError(
+        result.reason === "SLOTS_FULL"
+          ? "All 5 slots are used — delete a saved scenario or reuse an existing name."
+          : "Enter a name for the scenario.",
+      );
+      return false;
+    }
+    setSlotError(null);
+    setScenarioSlots(result.slots);
+    return true;
+  }
+
+  function loadScenarioSlot(id: string) {
+    const slot = scenarioSlots.find((entry) => entry.id === id);
+    if (!slot) return;
+    setSlotError(null);
+    setImportError(null);
+    applyLoanState(slot.state);
+  }
+
+  function deleteScenarioSlot(id: string) {
+    setSlotError(null);
+    setScenarioSlots(deleteLoanScenarioSlot(locale, id));
+  }
 
   function addStagedPrepay() {
     setStagedPrepays((prev) => [...prev, newStagedPrepayEntry()]);
@@ -518,5 +493,11 @@ export function useLoanModels() {
     exportScheduleCsv,
     exportSchedulePdf,
     exportScenarioJson,
+    scenarioSlots,
+    scenarioSlotRows,
+    slotError,
+    saveScenarioSlot,
+    loadScenarioSlot,
+    deleteScenarioSlot,
   };
 }

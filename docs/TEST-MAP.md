@@ -51,6 +51,9 @@ manual smoke checks.
 | 10.40–41 | Android Capacitor sync + debug APK | `scripts/verify-android-sync.mjs`, `.github/workflows/ci.yml` |
 | 10.94 | Savings-rate bands + KPI tone mapping (§4.16.5) | `src/lib/budget/display.test.ts`, `src/features/budget/BudgetSection.test.tsx` |
 | 10.95–96 | Budget chart Monthly/Yearly toggle scales charts only (§4.16.5) | `src/lib/budget/display.test.ts`, `src/features/budget/BudgetSection.test.tsx` |
+| 10.97 | Loan scenario slots: save/overwrite/cap/corrupt-blob/delete (§4.9.1) | `src/lib/persistence/loanScenarioSlots.test.ts`, `src/features/loan/LoanSection.test.tsx` |
+| 10.98 | Loading a slot restores saved inputs and scenario view (§4.9.1) | `src/features/loan/LoanSection.test.tsx` |
+| 10.99 | Slot compare rows recomputed from each slot's saved state (§4.9.1) | `src/features/loan/hooks/buildScenarioSlotRows.test.ts`, `src/features/loan/LoanSection.test.tsx` |
 
 ## Golden contracts
 

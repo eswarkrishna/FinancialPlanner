@@ -28,10 +28,12 @@ export const LOAN_US_V11_FIELD_DEFAULTS = {
   k401_loan_balance_inr: 0,
 } as const;
 
-/** Loan-tab prepayment fee + rate defaults (§4.4.1, §4.3.1). */
+/** Loan-tab prepayment fee + rate + EMI-basis defaults (§4.4.1, §4.3.1, §4.4.3). */
 export const LOAN_PREPAYMENT_FEE_DEFAULTS = {
   prepayment_fee_type: "none" as const,
   prepayment_fee_inr: 0,
   prepayment_fee_pct: 0,
   rate_type: "fixed" as const,
+  emi_basis: "baseline" as const,
+  current_emi_inr: 0,
 } as const;

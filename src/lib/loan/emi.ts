@@ -26,3 +26,35 @@ export function computeEmi(
   const emi = (principalInr * r * pow) / (pow - 1);
   return roundInr(emi);
 }
+
+/** Which EMI keep-EMI schedules hold fixed (§4.4.3). */
+export type EmiBasis = "baseline" | "current";
+
+/**
+ * Resolve the fixed EMI for keep-EMI schedules (§4.4.3).
+ * `current` with a positive amount overrides the formula; otherwise baseline.
+ */
+export function resolveKeepEmi(
+  principalInr: number,
+  annualPercent: number,
+  tenureMonths: number,
+  emiBasis: EmiBasis = "baseline",
+  currentEmiInr = 0,
+): number {
+  if (emiBasis === "current" && currentEmiInr > 0) {
+    return roundInr(currentEmiInr);
+  }
+  return computeEmi(principalInr, annualPercent, tenureMonths);
+}
+
+/** True when contractual EMI cannot cover first-month interest (§4.4.3). */
+export function isCurrentEmiTooLow(
+  principalInr: number,
+  annualPercent: number,
+  currentEmiInr: number,
+): boolean {
+  if (currentEmiInr <= 0 || principalInr <= 0) return false;
+  const firstMonthInterest =
+    principalInr * monthlyRateFromAnnualPercent(annualPercent);
+  return currentEmiInr <= firstMonthInterest;
+}

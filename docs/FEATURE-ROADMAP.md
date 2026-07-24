@@ -15,7 +15,7 @@ Candidate features to build on top of FinancialPlanner. Use this as a backlog; d
 
 ## Priority order (suggested)
 
-1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** and **inflation toggle** shipped (§4.11.2–§4.11.3); **budget chart view + savings-rate bands** shipped (§4.16.5); **loan scenario save/compare slots** shipped (§4.9.1); next: loan engine polish or tax-aware rate
+1. **Competitor gap-fill** ([`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md)) — prepay fee + EMI/tenure compare **shipped**; floating rates + bank validation **shipped**; **PPF**, **SIP**, **SSY**, **Gratuity**, and **Lumpsum** shipped (§4.17–§4.21); PDF schedule export **shipped**; **retirement drawdown** and **inflation toggle** shipped (§4.11.2–§4.11.3); **budget chart view + savings-rate bands** shipped (§4.16.5); **loan scenario save/compare slots** shipped (§4.9.1); **current EMI basis** shipped (§4.4.3); next: mid-month prepayment timing or floating-rate stress paths
 2. Loan engine polish (timing / EMI / deterministic rate stress)  
 3. Charts, exports, persistence UX  
 4. **Web traffic first** — India wedge on the public SPA; Android/Capacitor maintenance-only (no new native features until web wins)
@@ -74,7 +74,7 @@ Source: [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-c
 ### A3. Loan engine polish (deferred in SPEC)
 
 - [ ] Mid-month prepayment timing (`prepayment_timing = mid_month`) with documented interest policy
-- [ ] Advanced “current EMI” after prior prepays (vs baseline snapshot only)
+- [x] Advanced “current EMI” after prior prepays (vs baseline snapshot only) — §4.4.3 shipped
 - [ ] Floating-rate **deterministic** stress paths (discrete shocks; not Monte Carlo)
 - [ ] Unit tests + golden updates for any amortisation change
 

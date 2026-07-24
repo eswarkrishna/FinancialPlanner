@@ -33,6 +33,8 @@ export function parseLoanForm(inputs: Record<keyof LoanInput, string>) {
     prepayment_fee_inr: inputs.prepayment_fee_inr || 0,
     prepayment_fee_pct: inputs.prepayment_fee_pct || 0,
     rate_type: inputs.rate_type === "floating" ? "floating" : "fixed",
+    emi_basis: inputs.emi_basis === "current" ? "current" : "baseline",
+    current_emi_inr: inputs.current_emi_inr || 0,
     unemployment_mode: inputs.unemployment_mode === "true",
     unemployment_start_month: inputs.unemployment_start_month || 1,
     monthly_living_expense_inr: inputs.monthly_living_expense_inr || 0,

@@ -13,6 +13,7 @@ import {
   simulateUsCashPlus401kCashflow,
   simulateUsCashflowSchedule,
 } from "../../../lib/loan";
+import { computeEmi, resolveKeepEmi } from "../../../lib/loan/emi";
 import type { ParsedRateChange } from "../../../lib/loan/rateChanges";
 import { loanRateConfigFrom } from "../../../lib/loan/rateSchedule";
 import { computeK401JobLossWithdrawalPlan } from "../../../lib/k401/index";
@@ -110,11 +111,25 @@ export function buildLoanModels(
     v.rate_type ?? "fixed",
     rateChanges,
   );
+  const keepEmi = resolveKeepEmi(
+    v.principal_inr,
+    v.annual_interest_rate,
+    v.tenure_months,
+    v.emi_basis ?? "baseline",
+    v.current_emi_inr ?? 0,
+  );
+  const formulaEmi = computeEmi(
+    v.principal_inr,
+    v.annual_interest_rate,
+    v.tenure_months,
+  );
+  const emiOverride = keepEmi !== formulaEmi ? keepEmi : undefined;
   const base = baselineSchedule(
     v.principal_inr,
     v.annual_interest_rate,
     v.tenure_months,
     rateConfig,
+    emiOverride,
   );
   const baseSalarySweep =
     salaryRecurring > 0
@@ -123,6 +138,8 @@ export function buildLoanModels(
           v.annual_interest_rate,
           v.tenure_months,
           salaryRecurring,
+          undefined,
+          emiOverride,
         )
       : null;
   const k401Plan = computeK401JobLossWithdrawalPlan(
@@ -161,6 +178,7 @@ export function buildLoanModels(
           v.tenure_months,
           salaryRecurring,
           { month: 1, amount: oneTimePrepayInr },
+          emiOverride,
         )
     : null;
   const baseInflow =
@@ -170,6 +188,8 @@ export function buildLoanModels(
           v.annual_interest_rate,
           v.tenure_months,
           x,
+          undefined,
+          emiOverride,
         )
       : null;
   const prepayEmiInflow =
@@ -186,6 +206,7 @@ export function buildLoanModels(
             v.tenure_months,
             x,
             { month: 1, amount: oneTimePrepayInr },
+            emiOverride,
           )
       : null;
   const pfPlan = computePfUnemploymentWithdrawalPlan(
@@ -201,6 +222,7 @@ export function buildLoanModels(
           v.tenure_months,
           [{ month: 1, amount_inr: v.cash_inr }],
           recurringToLoan,
+          emiOverride,
         )
       : null;
   const cashflowPlusPf =
@@ -223,6 +245,7 @@ export function buildLoanModels(
               ),
             ],
             recurringToLoan,
+            emiOverride,
           )
       : null;
   const uePfToLoan =
@@ -245,6 +268,7 @@ export function buildLoanModels(
                 v.unemployment_start_month,
               ),
               recurringToLoan,
+              emiOverride,
             )
       : null;
   const uePfBridge =
@@ -267,6 +291,7 @@ export function buildLoanModels(
           v.tenure_months,
           stagedEvents,
           recurringToLoan,
+          emiOverride,
         )
       : null;
 

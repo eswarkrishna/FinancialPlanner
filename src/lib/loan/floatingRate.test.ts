@@ -32,4 +32,21 @@ describe("baselineSchedule floating rate (§4.3.1)", () => {
     );
     expect(floating.rows[12]?.emi_inr).not.toBe(floating.rows[0]?.emi_inr);
   });
+
+  it("honors current-EMI override on the opening floating segment (§4.4.3)", () => {
+    const config = loanRateConfigFrom(initialRate, "floating", [
+      { month: 13, annual_rate: 8.5 },
+    ]);
+    const withOverride = baselineSchedule(
+      principal,
+      initialRate,
+      tenure,
+      config,
+      60_000,
+    );
+    expect(withOverride.emi_inr).toBe(60_000);
+    expect(withOverride.rows[0]?.emi_inr).toBe(60_000);
+    // After the rate reset, EMI is recomputed from remaining balance.
+    expect(withOverride.rows[12]?.emi_inr).not.toBe(60_000);
+  });
 });

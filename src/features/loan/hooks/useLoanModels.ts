@@ -3,6 +3,7 @@ import {
   buildCumulativeInterestCurve,
   buildPrincipalCurve,
 } from "../../../lib/loan";
+import { isCurrentEmiTooLow } from "../../../lib/loan/emi";
 import {
   downloadBlob,
   downloadTextFile,
@@ -186,7 +187,21 @@ export function useLoanModels() {
 
   const activeRows = activeBundle?.rows ?? [];
   const activeCashBalances = activeBundle?.cashBalances;
-  const activeWarnings = activeBundle?.warnings ?? [];
+  const activeWarnings = useMemo(() => {
+    const warnings = [...(activeBundle?.warnings ?? [])];
+    if (
+      parsed.success &&
+      parsed.data.emi_basis === "current" &&
+      isCurrentEmiTooLow(
+        parsed.data.principal_inr,
+        parsed.data.annual_interest_rate,
+        parsed.data.current_emi_inr,
+      )
+    ) {
+      warnings.push("CURRENT_EMI_TOO_LOW");
+    }
+    return warnings;
+  }, [activeBundle, parsed]);
   const principalCurve = useMemo(
     () => buildPrincipalCurve(activeRows),
     [activeRows],

@@ -19,6 +19,7 @@ Versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html) at the 
 
 ### Added
 
+- **Current EMI basis for keep-EMI schedules (§4.4.3)** — optional “Use my current EMI” on the loan tab so keep-EMI / fixed-EMI scenarios hold your contractual payment after earlier prepays instead of always using `computeEmi(principal, rate, tenure)`. Warns when the entered EMI cannot cover interest. Default remains formula EMI (goldens unchanged).
 - **Loan scenario save/compare slots (§4.9.1)** — save up to 5 named scenarios per locale in browser localStorage on the loan tab, load or delete them, and compare current inputs against saved slots side by side (EMI, payoff month, total interest, total paid — each recomputed with the slot's own saved scenario view).
 
 - **Budget chart view toggle + savings-rate bands (§4.16.5)** — Monthly/Yearly toggle on the budget tab charts (yearly = monthly × 12, display-only) and a three-band savings-rate KPI indicator (red < 10%, amber 10–20%, green ≥ 20%).

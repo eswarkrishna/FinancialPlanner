@@ -8,13 +8,13 @@
 
 # Loan Payoff Simulator — Product & Engineering Specification
 
-**Version:** 3.6  
+**Version:** 3.7  
 **Audience:** Engineers / Cursor agents implementing the application  
 **Locale:** India (INR, lakhs in UI optional)  
 **US locale spec:** [`SPEC-US.md`](SPEC-US.md) — parallel requirements for US employees (401(k), mortgage, USD)  
 **UK locale spec:** [`SPEC-UK.md`](SPEC-UK.md) — parallel requirements for UK employees (redundancy/JSA/SMI job-loss bridge, ISA-first equity sleeve, GBP; no early pension access)  
 **Status:** Draft for implementation  
-**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20, **Lumpsum** §4.21), **PDF amortisation export** on the loan tab, **budget chart view toggle + savings-rate bands** (§4.16.5), and **loan scenario save/compare slots** (§4.9.1). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
+**Gap-fill backlog:** [`research/2026-07-gap-fill-competitors.md`](research/2026-07-gap-fill-competitors.md) — competitor parity items; this version ships **prepayment fee modeling** + **Reduce EMI vs Reduce Tenure** comparison (§4.4.1 / §4.9), **deterministic floating-rate resets** on the loan tab (§4.3.1), India instrument calculators (**PPF** §4.17, **SIP** §4.18, **SSY** §4.19, **Gratuity** §4.20, **Lumpsum** §4.21), **PDF amortisation export** on the loan tab, **budget chart view toggle + savings-rate bands** (§4.16.5), **loan scenario save/compare slots** (§4.9.1), and **current-EMI basis for keep-EMI schedules** (§4.4.3). Bank parity cases: [`VALIDATION.md`](VALIDATION.md).  
 **SEO gap-fill:** [`research/2026-07-seo-routes-noscript.md`](research/2026-07-seo-routes-noscript.md) — path routes, per-route HTML shells, noscript, on-page content (§8 extended; §10.52–58).
 
 ---
@@ -78,6 +78,8 @@ Optional **strategic interaction** modelling (§4.13) compares borrower, lender,
 | `prepayment_fee_pct` | number | optional | % of prepaid principal when type = `percent`; default `0`. Also used by §4.13 `L_FEE_PCT` (game default 1% if unset). |
 | `rate_type` | enum | optional | `fixed` (default) or `floating` — see §4.3.1 |
 | `rate_changes` | array | optional | When `rate_type = floating`: `{ month, annual_rate }[]` discrete resets (month ≥ 2); ignored when fixed |
+| `emi_basis` | enum | optional | `baseline` (default) or `current` — which EMI keep-EMI schedules hold fixed (§4.4.3) |
+| `current_emi_inr` | number | optional | Contractual EMI when `emi_basis = current`; ignored when baseline. Must be &gt; 0 to take effect. |
 
 ### 4.2 Asset inputs (for labelling & constraints, not all are auto-spent)
 
@@ -124,7 +126,7 @@ Prepayments are applied **at month boundary after scheduled EMI** unless advance
 **Policies when prepayment occurs:**
 
 1. **`recompute_tenure_keep_emi`**  
-   - EMI unchanged from **baseline snapshot at scenario start**: `emi0 = computeEmi(P₀, r, N)` using original principal, rate, and tenure. Do **not** recompute EMI after earlier prepayments in the same scenario unless the user explicitly selects advanced “current EMI” (deferred).  
+   - EMI held fixed for the scenario from **`resolveKeepEmi`** (§4.4.3): by default the **baseline snapshot** `emi0 = computeEmi(P₀, r, N)` using the form principal, rate, and tenure. When the user selects advanced **current EMI**, `emi0` is the entered `current_emi_inr` instead (typical after earlier part-prepays left contractual EMI ≠ formula EMI on today's outstanding).  
    - After prepayment, recompute remaining months until balance ≤ 0 (or final fractional month if you support it; otherwise last month adjustment).  
 
 2. **`recompute_emi_keep_tenure`**  
@@ -165,6 +167,25 @@ For a one-time prepay (month 1 from the selected source), the loan tab must surf
 | **Reduce EMI** (keep tenure) | `recompute_emi_keep_tenure` → scenarios `PREPAY_*_TENURE` / view `PREPAY_TENURE` |
 
 Each column shows: **new EMI**, **new tenure** (payoff months), **total interest**, **gross interest saved**, **prepayment fees**, **net savings after fee**. Selecting a column sets the active schedule view to that policy (gap-fill §1.3).
+
+#### 4.4.3 Current EMI basis (keep-EMI schedules)
+
+After earlier part-prepays, a borrower's **contractual EMI** often differs from `computeEmi(outstanding, rate, remaining_tenure)` — e.g. they chose keep-EMI previously and still pay the old EMI on a smaller balance. When modelling the next prepay from "today", keep-EMI schedules must be able to hold that contractual amount.
+
+**Resolver** `resolveKeepEmi(principal, rate, tenure, emi_basis, current_emi_inr)` → `emi0`:
+
+| `emi_basis` | `emi0` |
+|-------------|--------|
+| `baseline` (default) | `computeEmi(principal_inr, annual_interest_rate, tenure_months)` |
+| `current` | `current_emi_inr` when &gt; 0; otherwise fall back to baseline formula |
+
+**Applies to:** every schedule that holds EMI fixed under `recompute_tenure_keep_emi` / fixed-EMI + extra / timed prepays / IN cashflow keep-EMI loops — including the loan-tab baseline summary EMI when `emi_basis = current`. Does **not** change `recompute_emi_keep_tenure` (that policy always recomputes EMI from remaining balance and remaining months). When `rate_type = floating`, the **opening** rate segment uses `resolveKeepEmi`; after each subsequent rate reset, EMI is recomputed from remaining balance and remaining months (floating policy). The baseline KPI `emi_inr` still reports the opening (override) amount so it matches keep-EMI schedules.
+
+**Warning:** `CURRENT_EMI_TOO_LOW` when `emi_basis = current` and `current_emi_inr ≤ principal_inr × monthly_rate` (negative amortisation / never pays down).
+
+**UI:** loan-tab advanced control — checkbox "Use my current EMI" revealing a currency field; default unchecked (`baseline`). Not persisted as a scenario-view change; stored with form state / scenario slots like other inputs.
+
+**Default:** `emi_basis = baseline` so existing goldens and §10.1–§10.4 reference numbers are unchanged.
 
 ### 4.5 Extra monthly principal
 
@@ -1299,7 +1320,7 @@ When `recompute_emi_keep_tenure` after prepayment at month `k`:
 
 When `recompute_tenure_keep_emi`:
 
-- Iterate month simulation until balance ≤ 0 using fixed EMI (clarify whether EMI is **original baseline EMI** or **EMI after prior recomputations**; v1: **original baseline EMI** unless user selects “current EMI”).
+- Iterate month simulation until balance ≤ 0 using fixed EMI from **`resolveKeepEmi`** (§4.4.3): baseline formula by default, or the user-entered `current_emi_inr` when `emi_basis = current`.
 
 ### 7.2 Closed-form months-to-payoff (optional fast path)
 
@@ -1615,6 +1636,13 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 98. **Slot load:** loading a saved slot restores its inputs (e.g. principal) and saved scenario view into the loan form, replacing current values.  
 99. **Slot compare:** the compare table renders one row for current inputs plus one per saved slot; a slot saved from the IN reference scenario shows payoff month **168** and the §10.1 reference EMI, computed from the slot's own saved state.
 
+### Current EMI basis (§4.4.3)
+
+100. **Baseline default:** `emi_basis = baseline` (or unset) → `resolveKeepEmi(5_000_000, 7.9, 168, "baseline", 0)` equals `computeEmi(5_000_000, 7.9, 168)` within paise; reference keep-EMI prepay payoff month unchanged vs pre-§4.4.3 goldens.  
+101. **Current override:** `resolveKeepEmi(5_000_000, 7.9, 168, "current", 60_000)` = **60,000**; `schedulePrepayKeepEmi` with that override and a ₹25L month-1 prepay pays off in **fewer** months than the same call with baseline EMI.  
+102. **Too-low warning:** `emi_basis = current` and `current_emi_inr` ≤ first-month interest on the reference principal → warning `CURRENT_EMI_TOO_LOW`.  
+103. **Keep-tenure unchanged:** `recompute_emi_keep_tenure` / `schedulePrepayKeepTenure` results are identical whether `emi_basis` is baseline or current.
+
 ### Phase 5 platform (§8, §4.9)
 
 79. **INR KPI lakh/crore:** `formatMoneyKpi(5_000_000, "IN")` → `₹50,00,000 · 50 lakh`; `formatMoneyKpi(25_000_000, "IN")` → `₹2,50,00,000 · 2.5 crore`.  
@@ -1664,7 +1692,7 @@ Run with `npm run test:e2e` (builds the app, serves `dist/` via `vite preview`, 
 3. §4.13: Collapse duplicate normal-form cells when `b_lump = 0` in export vs show full grid?  
 4. §4.13 v1.3: Implement `L_RATE_BUMP` before or after mixed Nash?
 
-**Resolved (see §4.4, §4.7):** baseline EMI snapshot for `recompute_tenure_keep_emi`; EPFO fiction disclaimer; month-boundary prepay timing (pro-rata deferred).
+**Resolved (see §4.4, §4.7):** baseline EMI snapshot for `recompute_tenure_keep_emi` with optional **current EMI** override (§4.4.3); EPFO fiction disclaimer; month-boundary prepay timing (pro-rata deferred).
 
 ---
 

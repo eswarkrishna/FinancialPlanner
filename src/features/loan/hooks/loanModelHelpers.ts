@@ -4,6 +4,7 @@ import type {
   UkCashflowSimResult,
   UsCashflowSimResult,
 } from "../../../lib/loan";
+import { computeEmi, resolveKeepEmi } from "../../../lib/loan/emi";
 import type { Locale } from "../../../lib/locale/types";
 import type { LoanInput } from "../../../lib/schemas/index";
 import type { PrepaySource } from "../../../lib/loan/scenarioViews";
@@ -224,6 +225,18 @@ export function ukRedundancyLabel(startMonth: number, jobLossMode: boolean): str
 }
 
 export function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
+  const emiOverride = resolveKeepEmi(
+    v.principal_inr,
+    v.annual_interest_rate,
+    v.tenure_months,
+    v.emi_basis ?? "baseline",
+    v.current_emi_inr ?? 0,
+  );
+  const baselineEmi = computeEmi(
+    v.principal_inr,
+    v.annual_interest_rate,
+    v.tenure_months,
+  );
   return {
     principal_inr: v.principal_inr,
     annual_interest_rate: v.annual_interest_rate,
@@ -236,5 +249,6 @@ export function cashflowBaseInput(v: LoanInput, recurringToLoan: number) {
     pf_corpus_inr: v.pf_corpus_inr,
     pf_annual_interest_rate_pct: v.pf_annual_interest_rate_pct,
     monthly_pf_addition_inr: v.monthly_pf_addition_inr,
+    ...(emiOverride !== baselineEmi ? { emi_override_inr: emiOverride } : {}),
   };
 }

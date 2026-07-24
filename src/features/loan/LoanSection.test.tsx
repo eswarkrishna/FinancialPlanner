@@ -202,6 +202,32 @@ describe("LoanSection", () => {
     expect(screen.getAllByText("Gross interest saved").length).toBeGreaterThan(0);
   });
 
+  it("uses current EMI on keep-EMI schedules and warns when too low (§10.101–102)", async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    await user.click(screen.getByRole("checkbox", { name: /Use my current EMI/i }));
+    fireEvent.change(screen.getByLabelText(/Current EMI \(INR\)/), {
+      target: { value: "60000" },
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /Keep your EMI — loan ends sooner/i }),
+    );
+
+    // KPI / summary should reflect the contractual EMI.
+    expect(screen.getAllByText("₹60,000").length).toBeGreaterThan(0);
+
+    fireEvent.change(screen.getByLabelText(/Current EMI \(INR\)/), {
+      target: { value: "1000" },
+    });
+    expect(
+      screen.getByText(/Current EMI is too low to cover interest/),
+    ).toBeInTheDocument();
+  });
+
   it("saves a named scenario slot and shows it in the compare table (§10.97, §10.99)", async () => {
     localStorage.clear();
     const user = userEvent.setup();

@@ -60,12 +60,16 @@ export function baselineSchedule(
   annualPercent: number,
   tenureMonths: number,
   rateConfig?: LoanRateConfig,
+  emiOverride?: number,
 ): { rows: ScheduleRow[]; totals: ScheduleTotals; emi_inr: number } {
   const config =
     rateConfig ?? loanRateConfigFrom(annualPercent, "fixed", []);
 
   if (!usesFloatingRate(config)) {
-    const emi = computeEmi(principalInr, annualPercent, tenureMonths);
+    const emi =
+      emiOverride !== undefined && emiOverride > 0
+        ? roundInr(emiOverride)
+        : computeEmi(principalInr, annualPercent, tenureMonths);
     const r = monthlyRateFromAnnualPercent(annualPercent);
     const rows: ScheduleRow[] = [];
     let balance = roundInr(principalInr);
@@ -219,8 +223,12 @@ export function schedulePrepayKeepEmi(
   tenureMonths: number,
   prepayMonth: number,
   prepaymentInr: number,
+  emiOverride?: number,
 ): { rows: ScheduleRow[]; totals: ScheduleTotals; emi_inr: number } {
-  const emi0 = computeEmi(principalInr, annualPercent, tenureMonths);
+  const emi0 =
+    emiOverride !== undefined && emiOverride > 0
+      ? roundInr(emiOverride)
+      : computeEmi(principalInr, annualPercent, tenureMonths);
   const r = monthlyRateFromAnnualPercent(annualPercent);
   const rows: ScheduleRow[] = [];
   let balance = roundInr(principalInr);
@@ -272,8 +280,12 @@ export function scheduleFixedEmiWithMonthlyExtra(
   tenureMonths: number,
   monthlyExtraInr: number,
   oneTimePrepay?: { month: number; amount: number },
+  emiOverride?: number,
 ): { rows: ScheduleRow[]; totals: ScheduleTotals; emi_inr: number } {
-  const emi0 = computeEmi(principalInr, annualPercent, tenureMonths);
+  const emi0 =
+    emiOverride !== undefined && emiOverride > 0
+      ? roundInr(emiOverride)
+      : computeEmi(principalInr, annualPercent, tenureMonths);
   const r = monthlyRateFromAnnualPercent(annualPercent);
   const rows: ScheduleRow[] = [];
   let balance = roundInr(principalInr);
@@ -334,8 +346,12 @@ export function scheduleTimedPrepaysKeepEmi(
   tenureMonths: number,
   prepaymentEvents: TimedPrepaymentEvent[],
   monthlyExtraInr = 0,
+  emiOverride?: number,
 ): { rows: ScheduleRow[]; totals: ScheduleTotals; emi_inr: number } {
-  const emi0 = computeEmi(principalInr, annualPercent, tenureMonths);
+  const emi0 =
+    emiOverride !== undefined && emiOverride > 0
+      ? roundInr(emiOverride)
+      : computeEmi(principalInr, annualPercent, tenureMonths);
   const r = monthlyRateFromAnnualPercent(annualPercent);
   const rows: ScheduleRow[] = [];
   let balance = roundInr(principalInr);

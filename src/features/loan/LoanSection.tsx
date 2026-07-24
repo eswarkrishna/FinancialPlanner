@@ -33,6 +33,8 @@ const WARNING_LABELS: Record<string, string> = {
     "Loan balance remains after the simulation horizon; payoff month is not reached.",
   SCHEDULE_TRUNCATED:
     "Schedule table shows the first 600 months only; totals reflect the full simulation.",
+  CURRENT_EMI_TOO_LOW:
+    "Current EMI is too low to cover interest — the loan will not pay down. Raise the EMI or switch back to the formula EMI.",
   ERC_ALLOWANCE_EXCEEDED: "Overpayment exceeded the fee-free allowance (no ERC charged).",
   JSA_WINDOW_ENDED: "JSA window ended; cash flow may still be negative.",
   SMI_IS_A_LOAN: "SMI credits accrue as a repayable loan secured on your home.",
@@ -171,6 +173,25 @@ export function LoanSection() {
               onChange={(e) => setField("tenure_months", e.target.value)}
             />
           </label>
+          <label className="checkbox-field">
+            <input
+              type="checkbox"
+              checked={inputs.emi_basis === "current"}
+              onChange={(e) =>
+                setField("emi_basis", e.target.checked ? "current" : "baseline")
+              }
+            />
+            Use my current EMI
+          </label>
+          {inputs.emi_basis === "current" ? (
+            <CurrencyField
+              label={`Current EMI (${currencyLabel})`}
+              value={inputs.current_emi_inr}
+              onChange={(value) => setField("current_emi_inr", value)}
+              locale={locale}
+              hint="Contractual EMI you pay today after earlier prepays — held fixed on keep-EMI scenarios."
+            />
+          ) : null}
           <label>
             Start date (optional)
             <input

@@ -30,6 +30,8 @@ export interface CashflowSimInput {
   pf_tranche1_loan_fraction?: number;
   pf_tranche2_loan_fraction?: number;
   extra_prepayments?: TimedPrepaymentEvent[];
+  /** Optional fixed EMI override for keep-EMI loops (§4.4.3). */
+  emi_override_inr?: number;
 }
 
 export interface CashflowSimResult {
@@ -81,11 +83,14 @@ function pushCashflowRow(
  * Order: income/living → interest → EMI from cash → PF tranches → extra prepay/monthly extra.
  */
 export function simulateCashflowSchedule(input: CashflowSimInput): CashflowSimResult {
-  const emi0 = computeEmi(
-    input.principal_inr,
-    input.annual_interest_rate,
-    input.tenure_months,
-  );
+  const emi0 =
+    input.emi_override_inr !== undefined && input.emi_override_inr > 0
+      ? roundInr(input.emi_override_inr)
+      : computeEmi(
+          input.principal_inr,
+          input.annual_interest_rate,
+          input.tenure_months,
+        );
   const r = monthlyRateFromAnnualPercent(input.annual_interest_rate);
   const rows: CashflowScheduleRow[] = [];
   let balance = roundInr(input.principal_inr);

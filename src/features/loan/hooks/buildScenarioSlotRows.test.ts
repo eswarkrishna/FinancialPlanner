@@ -56,6 +56,19 @@ describe("buildScenarioSlotRow (SPEC §4.9.1, §10.99)", () => {
     expect(prepay.totalInterest).toBeLessThan(base.totalInterest);
   });
 
+  it("falls back to Baseline label and totals when the saved view has no bundle", () => {
+    const base = buildScenarioSlotRow(referenceSlot(), "IN");
+    // PREPAY_TENURE saved, but cash is 0 in the saved inputs → no prepay bundle.
+    const row = buildScenarioSlotRow(
+      referenceSlot({ scenarioView: "PREPAY_TENURE" }),
+      "IN",
+    );
+    expect(row.valid).toBe(true);
+    expect(row.scenarioLabel).toBe("Baseline");
+    expect(row.payoffMonth).toBe(base.payoffMonth);
+    expect(row.totalInterest).toBe(base.totalInterest);
+  });
+
   it("marks a slot with unparsable inputs as invalid", () => {
     const row = buildScenarioSlotRow(
       referenceSlot({

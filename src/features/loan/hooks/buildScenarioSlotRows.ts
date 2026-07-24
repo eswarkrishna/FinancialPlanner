@@ -4,6 +4,7 @@ import { parseRateChanges } from "../../../lib/loan/rateChanges";
 import { parseStagedPrepays } from "../../../lib/loan/stagedPrepays";
 import type { LoanScenarioSlot } from "../../../lib/persistence/loanScenarioSlots";
 import { buildLoanModels } from "./buildLoanModels";
+import { scenarioViewIsAvailable } from "./loanModelHelpers";
 import { effectiveLiquidForLocale, parseLoanForm } from "./parseLoanForm";
 import { resolveActiveBundle } from "./resolveActiveBundle";
 
@@ -80,11 +81,17 @@ export function buildScenarioSlotRow(
     locale,
     parseRateChanges(slot.state.rateChanges),
   );
-  const bundle = resolveActiveBundle(models, slot.state.scenarioView, locale);
+  // Mirror the live UI: when the saved view has no bundle after recompute,
+  // fall back to Baseline for the label AND the totals together.
+  const effectiveView = scenarioViewIsAvailable(slot.state.scenarioView, models)
+    ? slot.state.scenarioView
+    : "BASE";
+  const bundle = resolveActiveBundle(models, effectiveView, locale);
   if (!bundle) return invalid;
 
   return {
     ...invalid,
+    scenarioLabel: scenarioSlotLabel(effectiveView, locale),
     valid: true,
     emi: models.base.emi_inr,
     payoffMonth: bundle.totals.payoff_month,

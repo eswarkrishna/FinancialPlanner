@@ -8,7 +8,8 @@ import type { ScenarioSlotCompareRow } from "../hooks/buildScenarioSlotRows";
 interface ScenarioSlotsProps {
   locale: Locale;
   rows: ScenarioSlotCompareRow[];
-  currentRow: ScenarioSlotCompareRow;
+  /** Null when the live form does not parse — saved slots stay usable for recovery. */
+  currentRow: ScenarioSlotCompareRow | null;
   slotError: string | null;
   emiLabel: string;
   onSave: (name: string) => boolean;
@@ -44,12 +45,18 @@ export function ScenarioSlots({
             maxLength={40}
             placeholder="e.g. Prepay in March"
             aria-label="Scenario name"
+            disabled={currentRow === null}
             onChange={(event) => setName(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") handleSave();
             }}
           />
-          <button type="button" className="btn secondary btn-sm" onClick={handleSave}>
+          <button
+            type="button"
+            className="btn secondary btn-sm"
+            disabled={currentRow === null}
+            onClick={handleSave}
+          >
             Save current
           </button>
         </div>
@@ -59,6 +66,12 @@ export function ScenarioSlots({
         side. Saved scenarios stay in your browser only.
       </p>
       {slotError ? <p className="error">{slotError}</p> : null}
+      {currentRow === null && rows.length > 0 ? (
+        <p className="hint">
+          Current inputs are incomplete — load a saved scenario to restore a
+          working setup.
+        </p>
+      ) : null}
       {rows.length === 0 ? (
         <p className="hint">
           No saved scenarios yet — set up the loan, then save it under a name to
@@ -79,17 +92,19 @@ export function ScenarioSlots({
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <strong>{currentRow.name}</strong>
-                </td>
-                <td>{currentRow.scenarioLabel}</td>
-                <td>{money(currentRow.emi)}</td>
-                <td>{currentRow.payoffMonth}</td>
-                <td>{money(currentRow.totalInterest)}</td>
-                <td>{money(currentRow.totalPaid)}</td>
-                <td>—</td>
-              </tr>
+              {currentRow && (
+                <tr>
+                  <td>
+                    <strong>{currentRow.name}</strong>
+                  </td>
+                  <td>{currentRow.scenarioLabel}</td>
+                  <td>{money(currentRow.emi)}</td>
+                  <td>{currentRow.payoffMonth}</td>
+                  <td>{money(currentRow.totalInterest)}</td>
+                  <td>{money(currentRow.totalPaid)}</td>
+                  <td>—</td>
+                </tr>
+              )}
               {rows.map((row) => (
                 <tr key={row.id}>
                   <td>{row.name}</td>

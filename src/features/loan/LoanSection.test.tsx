@@ -238,6 +238,34 @@ describe("LoanSection", () => {
     expect(screen.getByLabelText("Principal (INR)")).toHaveValue("5000000");
   });
 
+  it("keeps saved slots usable for recovery when current inputs are invalid (§4.9.1)", async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    renderWithLocale(<LoanSection />);
+    await user.click(screen.getByRole("button", { name: /Load reference scenario/i }));
+
+    await user.type(screen.getByLabelText("Scenario name"), "Recovery point");
+    await user.click(screen.getByRole("button", { name: "Save current" }));
+
+    // Break the form: empty principal → live models are gone.
+    fireEvent.change(screen.getByLabelText("Principal (INR)"), {
+      target: { value: "" },
+    });
+    expect(
+      screen.queryByRole("heading", { name: "Loan scenario comparison" }),
+    ).not.toBeInTheDocument();
+
+    // Saved scenarios card still renders; save is disabled, load still works.
+    expect(screen.getByRole("button", { name: "Save current" })).toBeDisabled();
+    const table = within(screen.getByRole("region", { name: "Saved scenario comparison" }));
+    expect(table.queryByText("Current inputs")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Load scenario Recovery point" }));
+    expect(screen.getByLabelText("Principal (INR)")).toHaveValue("5000000");
+    expect(
+      screen.getByRole("heading", { name: "Loan scenario comparison" }),
+    ).toBeInTheDocument();
+  });
+
   it("deletes a saved slot and rejects saves beyond the slot cap (§10.97)", async () => {
     localStorage.clear();
     const user = userEvent.setup();

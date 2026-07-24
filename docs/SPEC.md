@@ -265,9 +265,9 @@ Named scenario slots on the **loan tab** — save the current form, reload it la
 
 **Save.** Requires a trimmed, non-empty name (≤ 40 chars). Saving with a name that matches an existing slot (case-insensitive) **overwrites** that slot; otherwise the slot is appended. When 5 slots exist and the name is new, the save is rejected with an inline `SLOTS_FULL` message and storage is unchanged.
 
-**Load / delete.** Loading a slot applies its saved state to the form (same code path as JSON import) and persists it as the current form state. Deleting removes the slot immediately; no confirm dialog.
+**Load / delete.** Loading a slot applies its saved state to the form (same code path as JSON import) and persists it as the current form state. Deleting removes the slot immediately; no confirm dialog. The saved-scenarios card stays visible even when the **current** form inputs do not parse — save is disabled, but load / delete / compare remain usable so a saved slot can restore a working setup.
 
-**Compare.** A table shows one row for the **current form** plus one per saved slot: name, saved scenario label, baseline EMI, payoff month, total interest, total paid — each slot computed with **its own** saved inputs and scenario view via the §4.3–§4.8 engine (no stored totals; recomputed on render). Slots whose inputs no longer parse render an "invalid" row instead of numbers.
+**Compare.** A table shows one row for the **current form** (omitted while current inputs do not parse) plus one per saved slot: name, saved scenario label, baseline EMI, payoff month, total interest, total paid — each slot computed with **its own** saved inputs and scenario view via the §4.3–§4.8 engine (no stored totals; recomputed on render). Slots whose inputs no longer parse render an "invalid" row instead of numbers. When a saved scenario view has no matching engine bundle after recompute, the row falls back to **Baseline** for the label and totals together (mirrors the live view reset).
 
 **Privacy.** Slots live only in `localStorage`; analytics must not transmit slot names or stored values (§5.1).
 

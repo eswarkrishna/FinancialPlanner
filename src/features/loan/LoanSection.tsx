@@ -809,33 +809,35 @@ export function LoanSection() {
         />
       )}
 
-      {models && (
-        <ScenarioSlots
-          locale={locale}
-          rows={scenarioSlotRows}
-          currentRow={{
-            id: "current",
-            name: "Current inputs",
-            scenarioLabel: scenarioSlotLabel(scenarioView, locale),
-            valid: true,
-            emi: models.base.emi_inr,
-            payoffMonth:
-              comparisonRows.find((row) => row.id === scenarioView)?.payoffMonth ??
-              models.base.totals.payoff_month,
-            totalInterest:
-              comparisonRows.find((row) => row.id === scenarioView)?.totalInterest ??
-              models.base.totals.total_interest_inr,
-            totalPaid:
-              comparisonRows.find((row) => row.id === scenarioView)?.totalPaid ??
-              models.base.totals.total_paid_inr,
-          }}
-          slotError={slotError}
-          emiLabel={emiLabel}
-          onSave={saveScenarioSlot}
-          onLoad={loadScenarioSlot}
-          onDelete={deleteScenarioSlot}
-        />
-      )}
+      <ScenarioSlots
+        locale={locale}
+        rows={scenarioSlotRows}
+        currentRow={
+          models
+            ? {
+                id: "current",
+                name: "Current inputs",
+                scenarioLabel: scenarioSlotLabel(scenarioView, locale),
+                valid: true,
+                emi: models.base.emi_inr,
+                payoffMonth:
+                  comparisonRows.find((row) => row.id === scenarioView)?.payoffMonth ??
+                  models.base.totals.payoff_month,
+                totalInterest:
+                  comparisonRows.find((row) => row.id === scenarioView)?.totalInterest ??
+                  models.base.totals.total_interest_inr,
+                totalPaid:
+                  comparisonRows.find((row) => row.id === scenarioView)?.totalPaid ??
+                  models.base.totals.total_paid_inr,
+              }
+            : null
+        }
+        slotError={slotError}
+        emiLabel={emiLabel}
+        onSave={saveScenarioSlot}
+        onLoad={loadScenarioSlot}
+        onDelete={deleteScenarioSlot}
+      />
 
       {models && (
         <>
